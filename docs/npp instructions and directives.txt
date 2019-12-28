@@ -1,0 +1,5 @@
+CPU INSTRUCTION
+lda sta ldx ldy jsl stz mvp brk pla tas bcs stp rtl phd phx php bne beq bcc plp plx pld txa jsl bra inx phy iny ply phb stx cpx plb pha cpy sty dey
+
+DIRECTIVE
+.offs .logical .here .align .byte .char .word .sint .addr .rta .long .lint .dword .dint .text .fill .shift .shiftl .null .ptext .enc .cdef .edef .struct .ends .dstruct .union .endu .dunion .segment .macro .endm .function .if .elsif .else .fi .endif .ifne .ifeq .ifpl .ifmi .switch .case .default .endswitch .for .next .rept .next .break .continue .lbl .goto .include .binclude .binary .proc .pend .block .bend .weak .endweak  .section .send .dsection .as .al .xs .xl .autsiz .mansiz .databank .dpage .page .endp .option .error .cerror .warn .cwarn .cpu .end .eor .seed .var .endc .assert .check .pron .proff .hidemac .showmac .comment .endc
