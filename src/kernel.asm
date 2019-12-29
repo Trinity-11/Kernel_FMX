@@ -1,5 +1,6 @@
 .cpu "65816"
 .include "macros_inc.asm"
+.include "characters.asm"     ; Definition of special ASCII control codes
 .include "simulator_inc.asm"
 .include "page_00_inc.asm"
 .include "page_00_data.asm"
@@ -14,7 +15,8 @@
 .include "RTC_def.asm"        ; Real-Time Clock Register Definition (BQ4802)
 .include "io_def.asm"         ; Joystick, DipSwitch, CODEC, SDCard Controller Registers
 .include "CMD_Parser.asm"
-.include "monitor.asm"        ; Tom's early code for the Monitor (Possibly useful for PJW)
+.include "monitor.asm"
+;.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
 .include "Interrupt_Handler.asm" ; Interrupt Handler Routines
 .include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
@@ -121,6 +123,16 @@ CLEAR_MEM_LOOP
                 ; Now, clear the screen and Setup Foreground/Background Bytes, so we can see the Text on screen
                 JSL ICLRSCREEN  ; Clear Screen and Set a standard color in Color Memory
                 ; Init Globacl Look-up Table
+
+                ; Set the default I/O devices to the screen and keyboard
+                LDA #0
+                JSL SETIN
+                JSL SETOUT
+
+                LDX #0
+                LDY #0
+                JSL ILOCATE
+
                 ; Go set the Color Text Memory so we can have color for the LOGO
                 JSL ICOLORFLAG  ; This is to set the Color Memory for the Logo
                 ; Write the Greeting Message Here, after Screen Cleared and Colored
@@ -291,6 +303,40 @@ IKEYDOWN        STP             ; Keyboard key pressed
 IRETURN         STP
 
 ;
+; ISETIN
+; Sets the channel to use for input (e.g. GETCH)
+;
+; Inputs:
+;   A = the number of the channel to use (1-byte)
+;       0 = Keyboard
+;       1 = COM1
+;       2 = COM2
+;       3 = N/A
+;
+ISETIN          PHP
+                setas
+                STA @lCHAN_IN   ; Save the channel number
+                PLP
+                RTL
+
+;
+; ISETOUT
+; Sets the channel to use for output (e.g. PUTC)
+;
+; Inputs:
+;   A = the number of the channel to use (1-byte)
+;       0 = Text Screen
+;       1 = COM1
+;       2 = COM2
+;       3 = LPT
+;
+ISETOUT         PHP
+                setas
+                STA @lCHAN_OUT  ; Save the channel number
+                PLP
+                RTL
+
+;
 ;IGETCHE
 ; Get a character from the current input chnannel and echo it to screen.
 ; Waits for a character to be read.
@@ -378,28 +424,188 @@ iputs_done      INX
                 RTL
 
 ;
-;IPUTC
+; IPUTC
 ; Print a single character to a channel.
 ; Handles terminal sequences, based on the selected text mode
 ; Modifies: none
 ;
-IPUTC           PHD
-                PHP             ; stash the flags (we'll be changing M)
-                setdp 0
+IPUTC           .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP                 ; stash the flags (we'll be changing M)
+
                 setas
-                CMP #$0D        ; handle CR
-                BNE iputc_bs
-                JSL IPRINTCR
-                bra iputc_done
-iputc_bs        CMP #$08        ; backspace
-                BNE iputc_print
-                JSL IPRINTBS
-                BRA iputc_done
-iputc_print     STA [CURSORPOS] ; Save the character on the screen
+                setxl
+                setdp 0
+                setdbr 0
+
+                PHA                 ; Save the character to print
+                LDA @lCHAN_OUT      ; Check the output channel #
+                BEQ putc_screen     ; If it's 0: print to the screen
+
+                ; TODO: handle other output channels
+
+                PLA                 ; Otherwise, just exit
+                BRA done
+
+putc_screen     PLA                 ; Get the character to print
+                CMP #CHAR_LF        ; Linefeed moves cursor down one line
+                BEQ go_down
+                CMP #$20
+                BCC check_ctrl0     ; [$00..$1F]: check for arrows
+                CMP #$7F
+                BEQ do_del
+                BCS check_A0        ; [$20..$7E]: print it
+                BRA printc
+
+check_A0        CMP #$A0
+                BCC check_ctrl1
+                BRA printc          ; [$A0..$FF]: print it
+
+check_ctrl1     CMP #CHAR_DOWN      ; If the down arrow key was pressed
+                BEQ go_down         ; ... move the cursor down one row
+                CMP #CHAR_LEFT      ; If the left arrow key was pressed
+                BEQ go_left         ; ... move the cursor left one column
+                JMP done
+
+check_ctrl0     CMP #CHAR_TAB       ; If it's a TAB...
+                BEQ do_TAB          ; ... move to the next TAB stop
+                CMP #CHAR_BS        ; If it's a backspace...
+                BEQ backspace       ; ... move the cursor back and replace with a space
+                CMP #CHAR_CR        ; If the carriage return was pressed
+                BEQ do_cr           ; ... move cursor down and to the first column
+                CMP #CHAR_UP        ; If the up arrow key was pressed
+                BEQ go_up           ; ... move the cursor up one row
+                CMP #CHAR_RIGHT     ; If the right arrow key was pressed
+                BEQ go_right        ; ... move the cursor right one column
+                CMP #CHAR_INS       ; If the insert key was pressed
+                BEQ do_ins          ; ... insert a space
+
+printc          STA [CURSORPOS]     ; Save the character on the screen
                 JSL ICSRRIGHT
-iputc_done	sim_refresh
-                PLP
+
+done            PLP
+                PLB
                 PLD
+                PLY
+                PLX
+                RTL
+
+do_del          JSL SCRSHIFTLL      ; Shift the current line left one space into the cursor
+                BRA done
+
+do_ins          JSL SCRSHIFTLR      ; Shift the current line right one space from the cursor
+                BRA done
+
+backspace       JSL ICSRLEFT  
+                JSL SCRSHIFTLL      ; Shift the current line left one space into the cursor
+                BRA done
+
+do_cr           JSL IPRINTCR        ; Move the cursor to the beginning of the next line
+                BRA done
+
+go_down         JSL ICSRDOWN        ; Move the cursor down one row (might force a scroll)
+                BRA done
+
+go_up           JSL ICSRUP          ; Move the cursor up one line
+                BRA done
+
+go_right        JSL ICSRRIGHT       ; Move the cursor right one column
+                BRA done
+
+go_left         JSL ICSRLEFT        ; Move the cursor left one column
+                BRA done
+
+do_TAB          setal
+                LDA CURSORX         ; Get the current column
+                AND #$FFF8          ; See which group of 8 it's in
+                CLC
+                ADC #$0008          ; And move it to the next one
+                TAX
+                LDY CURSORY
+                setas
+
+set_xy          CPX COLS_VISIBLE    ; Check if we're still on screen horizontally
+                BCC check_row       ; Yes: check the row
+                LDX #0              ; No: move to the first column...
+                INY                 ; ... and the next row
+
+check_row       CPY LINES_VISIBLE   ; Check if we're still on the screen vertically
+                BCC do_locate       ; Yes: reposition the cursor
+
+                JSL ISCROLLUP       ; No: scroll the screen
+                DEY                 ; And set the row to the last one   
+
+do_locate       JSL ILOCATE         ; Set the cursor position
+                BRA done
+                .pend
+
+;
+; SCRSHIFTLL
+; Shift all the characters on the current line left one cell, starting from the character to the right of the cursor
+;
+; Modifies: none
+;
+SCRSHIFTLL      PHX
+                PHY
+                PHA
+                PHP
+
+                setdp 0
+
+                setaxl
+                LDA CURSORPOS       ; Get the current cursor position
+                TAY                 ; Set it as the destination
+                TAX
+                INX                 ; And set the next cell as the source
+
+                SEC                 ; Calculate the length of the block to move
+                LDA #127            ; as 127 - X
+                SBC CURSORX
+
+                MVN $AF, $AF        ; And move the block
+
+                PLP
+                PLA
+                PLY
+                PLX
+                RTL
+
+;
+; SCRSHIFTLR
+;
+; Shift all the characters on the current line right one cell, starting from the character to the right of the cursor
+; The character under the cursor should be replaced with a space.
+;
+; Modifies: none
+;
+SCRSHIFTLR      PHX
+                PHA
+                PHP
+
+                setaxl
+                LDA CURSORPOS       ; Get the current cursor position
+                AND #$FF80          ; Mask off the column bits
+                ORA #$007F          ; And compute the address of the last cell
+                TAY                 ; And set that as the destination address
+                DEC A               ; Compute the address of the character to the left
+                TAX                 ; And make it the source
+
+                SEC                 ; Calculate the length of the block to move
+                LDA #127            ; as 127 - X
+                SBC CURSORX
+
+                MVP $AF, $AF        ; And move the block
+
+                setas
+                LDA #CHAR_SP        ; Put a blank space at the cursor position
+                STA [CURSORPOS]
+
+                PLP
+                PLA
+                PLX
                 RTL
 
 ;
@@ -419,85 +625,88 @@ IPUTB
 ; Prints a carriage return.
 ; This moves the cursor to the beginning of the next line of text on the screen
 ; Modifies: Flags
+;
 IPRINTCR	      PHX
                 PHY
                 PHP
+
                 LDX #0
                 LDY CURSORY
                 INY
                 JSL ILOCATE
+
                 PLP
                 PLY
-                PLX
-                RTL
-;
-; IPRINTBS
-; Prints a carriage return.
-; This moves the cursor to the beginning of the next line of text on the screen
-; Modifies: Flags
-IPRINTBS	PHX
-                PHY
-                PHP
-                LDX CURSORX
-                LDY CURSORY
-                DEX
-                JSL ILOCATE
-                PLP
-                PLY
-                PLX
-                RTL
-;
-;ICSRRIGHT
-; Move the cursor right one space
-; Modifies: none
-;
-ICSRRIGHT	; move the cursor right one space
-                PHX
-                PHB
-                setal
-                setxl
-                setdp $0
-                INC CURSORPOS
-                LDX CURSORX
-                INX
-                CPX COLS_VISIBLE
-                BCC icsr_nowrap  ; wrap if the cursor is at or past column 80
-                LDX #0
-                PHY
-                LDY CURSORY
-                INY
-                JSL ILOCATE
-                PLY
-icsr_nowrap     STX CURSORX
-                PHA
-                TXA
-                STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
-                PLA
-                PLB
                 PLX
                 RTL
 
-;ISRLEFT
-;Move the cursor left one space
+;
+; ICSRRIGHT
+; Move the cursor right one space
 ; Modifies: none
 ;
-ISRLEFT
+ICSRRIGHT       PHX
+                PHY
+                PHA
+                PHD
+                PHP
+
+                setal
+                setxl
+                setdp $0
+
+                LDX CURSORX           ; Get the new column
+                INX
+                LDY CURSORY           ; Get the current row
+
+                CPX COLS_VISIBLE      ; Are we off screen?
+                BCC icsrright_nowrap  ; No: just set the position
+
+                LDX #0                ; Yes: move to the first column
+                INY                   ; And move to the next row
+                CPY LINES_VISIBLE     ; Are we still off screen?
+                BCC icsrright_nowrap  ; No: just set the position
+
+                DEY                   ; Yes: lock to the last row
+                JSL ISCROLLUP         ; But scroll the screen up
+
+icsrright_nowrap
+                JSL ILOCATE           ; Set the cursor position       
+
+                PLP
+                PLD
+                PLA
+                PLY
+                PLX
+                RTL
+
+;
+; ICSRLEFT
+; Move the cursor left one space
+; Modifies: none
+;
+ICSRLEFT
                 PHX
                 PHY
-                PHB
                 PHA
+                PHD
+                PHP
+
                 setaxl
                 setdp $0
                 LDA CURSORX
-                BEQ isrleft_done_already_zero ; Check that we are not already @ Zero
+                BEQ icsrleft_done_already_zero ; Check that we are not already @ Zero
+
                 LDX CURSORX
                 DEX
                 STX CURSORX
                 LDY CURSORY
                 JSL ILOCATE
-isrleft_done_already_zero
+
+icsrleft_done_already_zero
+                PLP
+                PLD
                 PLA
-                PLB
                 PLY
                 PLX
                 RTL
@@ -510,10 +719,13 @@ isrleft_done_already_zero
 ICSRUP
                 PHX
                 PHY
-                PHB
                 PHA
+                PHD
+                PHP
+
                 setaxl
                 setdp $0
+
                 LDA CURSORY
                 BEQ isrup_done_already_zero ; Check if we are not already @ Zero
                 LDY CURSORY
@@ -521,20 +733,44 @@ ICSRUP
                 STY CURSORY
                 LDX CURSORX
                 JSL ILOCATE
+
 isrup_done_already_zero
+                PLP
+                PLD
                 PLA
-                PLB
                 PLY
                 PLX
                 RTL
 
-;ICSRUP
-;Move the cursor down one space
+;
+; ICSRDOWN
+; Move the cursor down one space
 ; When it reaches the bottom. Every time it go over the limit, the screen is scrolled up. (Text + Color)
 ; It will replicate the Color of the last line before it is scrolled up.
 ; Modifies: none
 ;
-ICSRDOWN
+ICSRDOWN        PHX
+                PHY
+                PHD
+
+                setaxl
+                setdp $0
+
+                LDX CURSORX                 ; Get the current column
+                LDY CURSORY                 ; Get the new row
+                INY
+                CPY LINES_VISIBLE           ; Check to see if we're off screen
+                BCC icsrdown_noscroll       ; No: go ahead and set the position
+
+                DEY                         ; Yes: go back to the last row
+                JSL ISCROLLUP               ; But scroll the screen up
+
+icsrdown_noscroll
+                JSL ILOCATE                 ; And set the cursor position
+
+                PLD
+                PLY
+                PLX
                 RTL
 
 ;ILOCATE
@@ -545,8 +781,12 @@ ICSRDOWN
 ; Y: row to set cursor
 ;Modifies: none
 ILOCATE         PHA
+                PHD
                 PHP
+
+                setdp 0
                 setaxl
+
 ilocate_scroll  ; If the cursor is below the bottom row of the screen
                 ; scroll the screen up one line. Keep doing this until
                 ; the cursor is visible.
@@ -556,20 +796,24 @@ ilocate_scroll  ; If the cursor is below the bottom row of the screen
                 DEY
                 ; repeat until the cursor is visible again
                 BRA ilocate_scroll
+
 ilocate_scrolldone
                 ; done scrolling store the resultant cursor positions.
                 STX CURSORX
                 STY CURSORY
                 LDA SCREENBEGIN
+
 ilocate_row     ; compute the row
                 CPY #$0
                 BEQ ilocate_right
+
                 ; move down the number of rows in Y
 ilocate_down    CLC
                 ADC COLS_PER_LINE
                 DEY
                 BEQ ilocate_right
                 BRA ilocate_down
+
                 ; compute the column
 ilocate_right   CLC
                 ADC CURSORX             ; move the cursor right X columns
@@ -579,7 +823,9 @@ ilocate_right   CLC
                 STA @lVKY_TXT_CURSOR_Y_REG_L  ;Store in Vicky's registers
                 TXA
                 STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
+
 ilocate_done    PLP
+                PLD
                 PLA
                 RTL
 ;
@@ -1918,8 +2164,6 @@ ISETLFS         BRK ; Obsolete (done in OPEN)
 ISETNAM         BRK ; Obsolete (done in OPEN)
 IOPEN           BRK ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 ICLOSE          BRK ; Close a channel
-ISETIN          BRK ; Set the current input channel
-ISETOUT         BRK ; Set the current output channel
 IGETB           BRK ; Get a byte from input channel. Return 0 if no input. Carry is set if no input.
 IGETBLOCK       BRK ; Get a X byes from input channel. If Carry is set, wait. If Carry is clear, do not wait.
 IGETCH          BRK ; Get a character from the input channel. A=0 and Carry=1 if no data is wating
@@ -1935,7 +2179,6 @@ IPRINTAI        BRK ; Prints integer value in A
 IPRINTAH        BRK ; Prints hex value in A. Printed value is 2 wide if M flag is 1, 4 wide if M=0
 IPUSHKEY        BRK ;
 IPUSHKEYS       BRK ;
-ICSRLEFT        BRK ;
 ICSRHOME        BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
@@ -1950,7 +2193,9 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: December 16th, 2019",$0D,$00
+                .text "www.c256foenix.com - Kernel Date: "
+                .include "version.asm"
+                .text $0D,$00
 
 old_pc_style_stat
 ;                .text $D6, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C2

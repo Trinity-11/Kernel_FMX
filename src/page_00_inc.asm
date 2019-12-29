@@ -188,6 +188,13 @@ SDOS_FILE_NAME   = $000380 ; // Max of 128 Chars
 SDOS_BLK_BEGIN   = $000400 ; 512 Bytes to Store SD Card Incoming or Outcoming Block
 SDOS_BLK_END     = $0006FF ;
 
+;
+; Channel and UART variables
+;
+CURRUART         = $000700 ; 3-bytes: the base address of the current UART
+CHAN_OUT         = $000703 ; 1-byte: the number of the current output channel (for PUTC, etc.)
+CHAN_IN          = $000704 ; 1-byte: the number of the current input channel (for GETCH, etc.)
+
 ; COMMAND PARSER Variables
 ; Command Parser Stuff between $000F00 -> $000F84 (see CMD_Parser.asm)
 KEY_BUFFER       = $000F00 ;64 Bytes keyboard buffer
@@ -198,6 +205,7 @@ COMMAND_SIZE_STR = $000F84 ; 1 Byte
 COMMAND_COMP_TMP = $000F86 ; 2 Bytes
 KEYBOARD_SC_FLG  = $000F87 ;1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
 KEYBOARD_SC_TMP  = $000F88 ;1 Byte, Interrupt Save Scan Code while Processing
+
 
 
 
