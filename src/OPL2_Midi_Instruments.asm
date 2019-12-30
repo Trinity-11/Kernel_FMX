@@ -27,6 +27,7 @@
 ;LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 ;OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;SOFTWARE.
+
 ; Instrument definition is based on Adlib instrument bank format.
 ;  0 - Rhythm mode drum channel
 ;		Drum channels are predefined by the YM3812 and cannot be redefined. Regular instruments have their channel set
