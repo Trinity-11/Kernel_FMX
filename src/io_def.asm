@@ -1,3 +1,9 @@
+; Channel numbers for PUTC/GETCH/etc.
+CHAN_CONSOLE = 0        ; Channel number for the screen/keyboard
+CHAN_COM1 = 1           ; Channel number for the external serial port
+CHAN_COM2 = 2           ; Channel number for the internal serial port
+CHAN_LPT = 3            ; Channel number for the parallel port
+
 ; Joystick Ports
 JOYSTICK0     = $AFE800  ;(R) Joystick 0 - J7 (Next to Buzzer)
 JOYSTICK1     = $AFE801  ;(R) Joystick 1 - J8

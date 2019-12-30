@@ -27,6 +27,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "ide_library.asm"
 .include "YM26XX.asm"
 .include "keyboard.asm"       ; Include the keyboard reading code
+.include "uart.asm"           ; The code to handle the UART
 ;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
@@ -129,10 +130,20 @@ CLEAR_MEM_LOOP
                 JSL ICLRSCREEN  ; Clear Screen and Set a standard color in Color Memory
                 ; Init Globacl Look-up Table
 
+                ; Initialize the UARTs
+                LDA #CHAN_COM1    ; Initialize COM1
+                JSL UART_SELECT
+                JSL UART_INIT
+                LDA #CHAN_COM2    ; Initialize COM2
+                JSL UART_SELECT
+                JSL UART_INIT
+
                 ; Set the default I/O devices to the screen and keyboard
                 LDA #0
                 JSL SETIN
                 JSL SETOUT
+
+                setal
 
                 LDX #0
                 LDY #0
@@ -349,42 +360,32 @@ IGETCHE         JSL IGETCHW
 ; Carry: 1 if no valid data
 ;
 IGETCHW         .proc
-                PHX
-                PHD
                 PHP
 
-                setdp KEY_BUFFER
-
                 setas
-                setxl
+                LDA @lCHAN_IN       ; Get the current input channel
+                BEQ getc_keyboard   ; If it's keyboard, read from the key buffer
 
-                CLI                     ; Make sure interrupts can happen
+                CMP #CHAN_COM1      ; Check to see if it's the COM1 port
+                BEQ getc_uart       ; Yes: handle reading from the UART
+                CMP #CHAN_COM2      ; Check to see if it's the COM2 port
+                BEQ getc_uart       ; Yes: handle reading from the UART                
 
-get_wait        LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
-                CPX KEY_BUFFER_WPOS
-                BCC read_buff           ; Yes: a key is present, read it
-                BRA get_wait            ; Otherwise, keep waiting
+                ; TODO: handle other devices
 
-read_buff       SEI                     ; Don't interrupt me!
-
-                LDA KEY_BUFFER,X        ; Get the key
-
-                INX                     ; And move to the next key
-                CPX KEY_BUFFER_WPOS     ; Did we just read the last key?
-                BEQ reset_indexes       ; Yes: return to 0 position
-
-                STX KEY_BUFFER_RPOS     ; Otherwise: Update the read index
-
-                CLI
-
-done            PLP                     ; Restore status and interrupts
-                PLD
-                PLX
+                LDA #0              ; Return 0 if no valid device
+                PLP
+                SEC                 ; And return carry set
                 RTL
 
-reset_indexes   STZ KEY_BUFFER_RPOS     ; Reset read index to the beginning
-                STZ KEY_BUFFER_WPOS     ; Reset the write index to the beginning
-                BRA done
+getc_uart       JSL UART_SELECT     ; Select the correct COM port
+                JSL UART_GETC       ; Get the charater from the COM port
+                BRA done            
+
+getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
+done            PLP
+                CLC                 ; Return carry clear for valid data
+                RTL
                 .pend
 ;
 ; IPRINT
@@ -432,18 +433,29 @@ IPUTC           .proc
                 PHB
                 PHP                 ; stash the flags (we'll be changing M)
 
-                setas
-                setxl
                 setdp 0
                 setdbr 0
+                setas
+                setxl
 
                 PHA                 ; Save the character to print
                 LDA @lCHAN_OUT      ; Check the output channel #
                 BEQ putc_screen     ; If it's 0: print to the screen
 
+                CMP #CHAN_COM1      ; Check to see if it's the COM1 port
+                BEQ putc_uart       ; Yes: handle printing to the UART
+                CMP #CHAN_COM2      ; Check to see if it's the COM2 port
+                BEQ putc_uart       ; Yes: handle printing to the UART
+
                 ; TODO: handle other output channels
 
                 PLA                 ; Otherwise, just exit
+                BRA done
+
+putc_uart       JSL UART_SELECT     ; Point to the correct UART
+
+                PLA                 ; Recover the character to send
+                JSL UART_PUTC       ; Send the character
                 BRA done
 
 putc_screen     PLA                 ; Get the character to print
@@ -622,19 +634,41 @@ IPUTB
 ; This moves the cursor to the beginning of the next line of text on the screen
 ; Modifies: Flags
 ;
-IPRINTCR	      PHX
+IPRINTCR	      .proc
+                PHX
                 PHY
                 PHP
 
-                LDX #0
+                setas
+                LDA @lCHAN_OUT
+                BEQ scr_printcr
+
+                CMP #CHAN_COM1      ; Check to see if it's the COM1 port
+                BEQ uart_printcr    ; Yes: handle printing to the UART
+                CMP #CHAN_COM2      ; Check to see if it's the COM2 port
+                BEQ uart_printcr    ; Yes: handle printing to the UART
+
+                ; TODO: handle other devices
+
+                BRA done
+
+uart_printcr    JSL UART_SELECT
+                LDA #CHAR_CR
+                JSL IPUTC
+                LDA #CHAR_LF
+                JSL IPUTC
+                BRA done
+
+scr_printcr     LDX #0
                 LDY CURSORY
                 INY
                 JSL ILOCATE
 
-                PLP
+done            PLP
                 PLY
                 PLX
                 RTL
+                .pend
 
 ;
 ; ICSRRIGHT
