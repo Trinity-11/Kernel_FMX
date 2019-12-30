@@ -77,6 +77,7 @@ RHIRQ           setaxl
 ;
 ; Interrupt Vectors
 ;
+.if TARGET = TARGET_FLASH
 * = VECTORS_BEGIN
 JUMP_READY      JML IMREADY     ; Kernel READY routine. Rewrite this address to jump to a custom kernel.
 RVECTOR_COP     .addr HCOP     ; FFE4
@@ -94,3 +95,4 @@ RVECTOR_EABORT  .addr HABORT   ; FFF8
 RVECTOR_ENMI    .addr HNMI     ; FFFA
 RVECTOR_ERESET  .addr HRESET   ; FFFC
 RVECTOR_EIRQ    .addr HIRQ     ; FFFE
+.endif

@@ -40,19 +40,17 @@ SDCARD_FILE_PTR  = $000038 ; 3 Bytes Pointer to Filename to open
 SDCARD_BYTE_NUM  = $00003C ; 2Bytes
 SDCARD_PRSNT_MNT = $00003F ; 1 Byte, Indicate that the SDCard is Present and that it is Mounted
 ; Command Line Parser Variables
-CMD_PARSER_TMPX  = $000040 ; <<< Command Parser 2Bytes
-CMD_PARSER_TMPY  = $000042 ; <<< Command Parser 2Bytes
-CMD_LIST_PTR     = $000044 ; <<< Command Parser 3 Bytes
-CMD_PARSER_PTR   = $000048 ; <<< Command Parser 3 Bytes
-CMD_ATTRIBUTE    = $00004B ; <<< Command Parser 2 Bytes (16bits Attribute Field)
-CMD_EXEC_ADDY    = $00004D ; <<< Command Parser 3 Bytes 24 Bits Address Jump to execute the Command
-KEY_BUFFER_RPOS  = $000050 ;
-KEY_BUFFER_WPOS  = $000052 ;
-CMD_VARIABLE_TMP = $000054 ;
-CMD_ARG_DEV      = $000056 ;
-CMD_ARG_SA       = $000057 ;
-CMD_ARG_EA       = $00005A ;
-CMD_VALID        = $00005D ;
+; CMD_PARSER_TMPX  = $000040 ; <<< Command Parser 2Bytes
+; CMD_PARSER_TMPY  = $000042 ; <<< Command Parser 2Bytes
+; CMD_LIST_PTR     = $000044 ; <<< Command Parser 3 Bytes
+; CMD_PARSER_PTR   = $000048 ; <<< Command Parser 3 Bytes
+; CMD_ATTRIBUTE    = $00004B ; <<< Command Parser 2 Bytes (16bits Attribute Field)
+; CMD_EXEC_ADDY    = $00004D ; <<< Command Parser 3 Bytes 24 Bits Address Jump to execute the Command
+; CMD_VARIABLE_TMP = $000050 ;
+; CMD_ARG_DEV      = $000052 ;
+; CMD_ARG_SA       = $000053 ;
+; CMD_ARG_EA       = $000056 ;
+; CMD_VALID        = $00005A ;
 
 
 ; Bitmap Clear Routine
@@ -205,9 +203,10 @@ COMMAND_SIZE_STR = $000F84 ; 1 Byte
 COMMAND_COMP_TMP = $000F86 ; 2 Bytes
 KEYBOARD_SC_FLG  = $000F87 ;1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
 KEYBOARD_SC_TMP  = $000F88 ;1 Byte, Interrupt Save Scan Code while Processing
-
-
-
+KEYBOARD_LOCKS   = $000F89 ;1 Byte, the status of the various lock keys
+KEYFLAG          = $000F8A ;1 Byte, flag to indicate if CTRL-C has been pressed
+KEY_BUFFER_RPOS  = $000F8B ;2 Byte, position of the character to read from the KEY_BUFFER
+KEY_BUFFER_WPOS  = $000F8D ;2 Byte, position of the character to write to the KEY_BUFFER
 
 TEST_BEGIN       = $001000 ;28672 Bytes Test/diagnostic code for prototype.
 TEST_END         = $007FFF ;0 Byte
@@ -215,6 +214,16 @@ TEST_END         = $007FFF ;0 Byte
 STACK_BEGIN      = $008000 ;32512 Bytes The default beginning of stack space
 STACK_END        = $00FEFF ;0 Byte  End of stack space. Everything below this is I/O space
 
+.if TARGET = TARGET_RAM
+ISR_BEGIN        = $00FF00 ; Byte  Beginning of CPU vectors in Direct page
+HRESET           = $00FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
+HCOP             = $00FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
+HBRK             = $00FF20 ;16 Bytes Handle the BRK instruction. Returns to BASIC Ready prompt.
+HABORT           = $00FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prompt with an error message.
+HNMI             = $00FF40 ;32 Bytes Handle NMI
+HIRQ             = $00FF60 ;32 Bytes Handle IRQ
+Unused_FF80      = $00FF80 ;End of direct page Interrrupt handlers
+.elsif TARGET = TARGET_FLASH
 ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
 HRESET           = $38FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
 HCOP             = $38FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
@@ -223,6 +232,7 @@ HABORT           = $38FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prom
 HNMI             = $38FF40 ;32 Bytes Handle NMI
 HIRQ             = $38FF60 ;32 Bytes Handle IRQ
 Unused_FF80      = $38FF80 ;End of direct page Interrrupt handlers
+.endif
 
 VECTORS_BEGIN    = $38FFE0 ;0 Byte  Interrupt vectors
 JMP_READY        = $00FFE0 ;4 Bytes Jumps to ROM READY routine. Modified whenever alternate command interpreter is loaded.

@@ -1,4 +1,8 @@
 .cpu "65816"
+
+TARGET_FLASH = 1              ; The code is being assembled for Flash
+TARGET_RAM = 2                ; The code is being assembled for RAM
+
 .include "macros_inc.asm"
 .include "characters.asm"     ; Definition of special ASCII control codes
 .include "simulator_inc.asm"
@@ -14,7 +18,7 @@
 .include "SID_def.asm"        ; SID, but not the latest - Deprecated for now.
 .include "RTC_def.asm"        ; Real-Time Clock Register Definition (BQ4802)
 .include "io_def.asm"         ; Joystick, DipSwitch, CODEC, SDCard Controller Registers
-.include "CMD_Parser.asm"
+;.include "CMD_Parser.asm"
 .include "monitor.asm"
 ;.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
 .include "Interrupt_Handler.asm" ; Interrupt Handler Routines
@@ -22,6 +26,7 @@
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
 .include "ide_library.asm"
 .include "YM26XX.asm"
+.include "keyboard.asm"       ; Include the keyboard reading code
 ;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
@@ -234,20 +239,7 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 setas
                 setdbr `greet_msg      ;set data bank to 19 (Kernel Variables)
 
-endlessloop     NOP
-                LDA KEY_BUFFER_CMD
-                CMP #$01
-                BEQ GoProcessCommandLine
-
-                JML endlessloop
-GoProcessCommandLine
-                LDA #$00  ; Clear the Flag
-                STA KEY_BUFFER_CMD
-                JSL PROCESS_COMMAND_LINE
-                LDX #<>ready_msg
-                JSL IPRINT
-                BRA  endlessloop
-
+                JMP IREADYWAIT
 
 greet_done      BRK             ;Terminate boot routine and go to Ready handler.
 
@@ -356,40 +348,44 @@ IGETCHE         JSL IGETCHW
 ; A: Character read
 ; Carry: 1 if no valid data
 ;
-IGETCHW         ;PHD
-                ;PHX
-                ;PHP
-                ;setdp $0F00
-                ;setaxl
-                ; Read from the keyboard buffer
-                ; If the read position and write position are the same
-                ; no data is waiting.
-;igetchw1        LDX KEY_BUFFER_RPOS
-                ;;CPX KEY_BUFFER_WPOS
-                ; If data is waiting. return it.
-                ;; Otherwise wait for data.
-                ;BNE igetchw2
-                ;;SEC            ; In non-waiting version, set the Carry bit and return
-                ;;BRA igetchw_done
-                ;; Simulator should wait for input
-                ;SIM_WAIT
-;                JMP igetchw1
-;igetchw2        LDA $0,D,X  ; Read the value in the keyboard buffer
-                ;PHA
-                ; increment the read position and wrap it when it reaches the end of the buffer
-                ;TXA
-                ;CLC
-                ;ADC #$02
-                ;CMP #KEY_BUFFER_SIZE
-                ;BCC igetchw3
-                ;LDA #$0
-;igetchw3        STA KEY_BUFFER_RPOS
-                ;PLA
-;
-;igetchw_done    PLP
-                ;PLX             ; Restore the saved registers and return
-;                PLD
+IGETCHW         .proc
+                PHX
+                PHD
+                PHP
+
+                setdp KEY_BUFFER
+
+                setas
+                setxl
+
+                CLI                     ; Make sure interrupts can happen
+
+get_wait        LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
+                CPX KEY_BUFFER_WPOS
+                BCC read_buff           ; Yes: a key is present, read it
+                BRA get_wait            ; Otherwise, keep waiting
+
+read_buff       SEI                     ; Don't interrupt me!
+
+                LDA KEY_BUFFER,X        ; Get the key
+
+                INX                     ; And move to the next key
+                CPX KEY_BUFFER_WPOS     ; Did we just read the last key?
+                BEQ reset_indexes       ; Yes: return to 0 position
+
+                STX KEY_BUFFER_RPOS     ; Otherwise: Update the read index
+
+                CLI
+
+done            PLP                     ; Restore status and interrupts
+                PLD
+                PLX
                 RTL
+
+reset_indexes   STZ KEY_BUFFER_RPOS     ; Reset read index to the beginning
+                STZ KEY_BUFFER_WPOS     ; Reset the write index to the beginning
+                BRA done
+                .pend
 ;
 ; IPRINT
 ; Print a string, followed by a carriage return
@@ -2273,21 +2269,22 @@ hello_ml        .null "G 020000",$0D
 
 error_01        .null "ABORT ERROR"
 hex_digits      .text "0123456789ABCDEF",0
+
+; Keyboard scan code -> ASCII conversion tables
 .align 256
-;                           $00, $01, $02, $03, $04, $05, $06, $07, $08, $09, $0A, $0B, $0C, $0D, $0E, $0F
 ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
                       .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
                       .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $63, $76    ; $20
                       .text $62, $6E, $6D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
-                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
-                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $11, $00, $00, $9D, $00, $1D, $00, $00    ; $40
+                      .text $91, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
 
 ScanCode_Shift_Set1   .text $00, $00, $21, $40, $23, $24, $25, $5E, $26, $2A, $28, $29, $5F, $2B, $08, $09    ; $00
                       .text $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $7B, $7D, $0D, $00, $41, $53    ; $10
                       .text $44, $46, $47, $48, $4A, $4B, $4C, $3A, $22, $7E, $00, $5C, $5A, $58, $43, $56    ; $20
-                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
+                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $18, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
@@ -2295,7 +2292,7 @@ ScanCode_Shift_Set1   .text $00, $00, $21, $40, $23, $24, $25, $5E, $26, $2A, $2
 
 ScanCode_Ctrl_Set1    .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
                       .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
-                      .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $63, $76    ; $20
+                      .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $03, $76    ; $20
                       .text $62, $6E, $6D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
@@ -2319,6 +2316,16 @@ ScanCode_NumLock_Set1 .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $3
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
+
+ScanCode_Prefix_Set1  .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $00
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $10
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $20
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $30
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $11, $00, $00, $9D, $00, $1D, $00, $00    ; $40
+                      .text $91, $00, $0F, $7F, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
+                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
+
 ; Gamma Table 2.2
 .align 256
 GAMMA_2_2_Tbl         .text  $00, $14, $1c, $21, $26, $2a, $2e, $31, $34, $37, $3a, $3d, $3f, $41, $44, $46
