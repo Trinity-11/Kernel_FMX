@@ -69,6 +69,13 @@ RAD_CHANNEL_DATA = $00004A ; 2 Bytes
 RAD_CHANNE_EFFCT = $00004C
 RAD_TEMP         = $00004D
 
+RAD_ADDR         = $000050 ; 3 bytes to avoid OPL2 errors.
+RAD_PATTRN       = $000053 ; 1 bytes - offset to patter
+RAD_PTN_DEST     = $000054 ; 3 bytes - where to write the pattern data
+RAD_CHANNEL      = $000057 ; 2 bytes - 0 to 8 
+RAD_LAST_NOTE    = $000059 ; 1 if this is the last note
+RAD_LINE_PTR     = $00005A ; 2 bytes - offset to memory location
+
 ; BMP File Parser Variables (Can be shared if BMP Parser not used)
 ; Used for Command Parser Mainly
 BMP_X_SIZE       = $000040 ; 2 Bytes
@@ -95,6 +102,7 @@ MOUSE_POS_Y_LO   = $0000E3
 MOUSE_POS_Y_HI   = $0000E4
 
 USER_TEMP        = $0000F0 ;32 Bytes Temp space for user programs
+
 ;;///////////////////////////////////////////////////////////////
 ;;; NO CODE or Variable ought to be Instatied in this REGION
 ;; BEGIN
@@ -124,6 +132,10 @@ D1_RESULT        = $000114 ;2 Bytes Signed quotient result of A/B ex: 7/2 = 3 r 
 D1_REMAINDER     = $000116 ;2 Bytes Signed remainder of A/B ex: 1 in 7/2=3 r 1
 ; Reserved
 ADDER_SIGNED_32  = $000120 ; The 32 Bit Adders takes 12Byte that are NOT RAM Location
+ADDER_A          = $000120 ; 4 bytes (32 bit) Accumulator A
+ADDER_B          = $000124 ; 4 bytes (32 bit) Accumulator B
+ADDER_R          = $000128 ; 4 bytes (32 bit) Result
+
 ; Reserved
 INT_CONTROLLER   = $000140 ; $000140...$00015F Interrupt Controller
 
@@ -182,9 +194,12 @@ SDOS_FILE_SIZE   = $000328 ;
 SDOS_BYTE_NUMBER = $00032C ; Number of Byte to Read or Write before changing the Pointer
 SDOS_REG_WR32_AD = $000330 ; 4 Bytes (Used to read and Write Values in/from CH376S)
 SDOS_BYTE_PTR    = $000334
+SDOS_FILE_REC_PTR= $000337 ; 3 byte pointer to a simple file struct
+SDOS_LOOP        = $00033A ; variable to count file length
 SDOS_FILE_NAME   = $000380 ; // Max of 128 Chars
 SDOS_BLK_BEGIN   = $000400 ; 512 Bytes to Store SD Card Incoming or Outcoming Block
 SDOS_BLK_END     = $0006FF ;
+
 
 ;
 ; Channel and UART variables

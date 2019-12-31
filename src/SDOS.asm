@@ -44,7 +44,15 @@ SDOS_EXEC     JML ISDOS_EXEC
 ;  None
 ; Affects:
 ;   None
-ISDOS_INIT    setas
+ISDOS_INIT    PHA
+              PHX
+              PHY
+              PHP
+              PHD
+
+              setdp SDOS_BLOCK_BEGIN
+
+              setas
               LDA @lINT_PENDING_REG1    ; Read the Pending Register &
               AND #~FNX1_INT07_SDCARD   ; Enable
               STA @lINT_PENDING_REG1
@@ -89,12 +97,21 @@ ISDOS_INIT    setas
               BRA SD_INIT_DONE
               
     SD_INIT_DONE
+              PLD
+              PLP
+              PLY
+              PLX
+              PLA
               RTL
 
 ; ***************************************************************
 ; * Clear the current FAT record
 ; ***************************************************************
 ISDOS_CLEAR_FAT_REC
+              PHD
+
+              setdp SDOS_BLOCK_BEGIN
+
               LDY #0
               LDA #0
     CLEAR_LOOP
@@ -102,6 +119,8 @@ ISDOS_CLEAR_FAT_REC
               INY
               CPY #32
               BNE CLEAR_LOOP
+
+              PLD
               RTS
               
 ;////////////////////////////////////////////////////////
@@ -112,14 +131,21 @@ ISDOS_CLEAR_FAT_REC
 ; Located @ $000030..$000032 - SDCARD_FLNMPTR_L
 ; Affects:
 ;   None
-ISDOS_DIR
+ISDOS_DIR     PHA
+              PHX
+              PHY
+              PHD
+              PHP
+
+              setdp SDOS_BLOCK_BEGIN
+
               setas
               setxl
               JSR ISDOS_MOUNT_CARD;     First to See if the Card is Present
               
               JSR ISDOS_CLEAR_FAT_REC
               
-              STZ SDOS_LINE_SELECT
+              ; STZ SDOS_LINE_SELECT
 
               JSR SDOS_FILE_OPEN     ; Now that the file name is set, go open File
 
@@ -172,6 +198,12 @@ ISDOS_DIR
 
     ISDOS_DIR_DONE
               JSR SDOS_FILE_CLOSE
+
+              PLP
+              PLD
+              PLY
+              PLX
+              PLA
               RTL
 
 ; Upon the Call of this Routine will Change the pointer to a new Sub-Directory
@@ -217,7 +249,8 @@ ISDOS_MOUNT_CARD
 
     SDCARD_ERROR_MOUNT
               LDX #<>sd_card_msg3         ; Print Screen the Message "Card Detected"
-              JSL DISPLAY_MSG       ; print the first line
+              ; JSL DISPLAY_MSG           ; print the first line
+              BRK
               RTS
 
     ISDOS_NO_CARD 
@@ -534,6 +567,8 @@ SDOS_SET_FILE_LENGTH
 ;   A = Number of byte Fetched
 ;  Buffer @ SDOS_SECTOR_BEGIN
 SDOS_READ_BLOCK
+              PHD
+              setdp BANK0_BEGIN
               .as
               .xl
               LDA #CH_CMD_RD_DATA0
@@ -550,6 +585,7 @@ SDOS_READ_BLOCK
               CPY SDCARD_BYTE_NUM
               BNE SDOS_READ_MORE
               LDA SDCARD_BYTE_NUM  ; Reload the Number of Byte Read
+              PLD
               RTS
 ;
 ; MESSAGES

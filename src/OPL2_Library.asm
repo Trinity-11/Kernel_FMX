@@ -90,6 +90,8 @@ OPL2_Get_FrequencyBlock
 ; Return
 ;A  = Value ;
 OPL2_GET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
+              setdp BANK0_BEGIN
+
               setal
               CLC
               LDA #<>OPL2_S_BASE
@@ -102,6 +104,8 @@ OPL2_GET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
               RTL
 
 OPL2_GET_WAVEFORM_SELECT   ; Return Bool
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE
               ADC #$0001
@@ -114,6 +118,8 @@ OPL2_GET_WAVEFORM_SELECT   ; Return Bool
               RTL
 
 OPL2_GET_SCALINGLEVEL  ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
               setal
               LDA #$0040  ;
               STA OPL2_REG_REGION
@@ -131,6 +137,8 @@ OPL2_GET_SCALINGLEVEL  ; Return Byte, Param: (byte channel, byte operatorNum);
 
 ;OPL2_GET_BLOCK
 OPL2_GET_BLOCK            ; Return Byte, Param: (byte channel);
+              setdp BANK0_BEGIN
+
               setas
               CLC
               LDA OPL2_CHANNEL
@@ -155,6 +163,8 @@ OPL2_GET_BLOCK            ; Return Byte, Param: (byte channel);
               RTL
 
 OPL2_GET_KEYON            ; Return Bool, Param: (byte channel);
+              setdp BANK0_BEGIN
+
               setas
               CLC
               LDA OPL2_CHANNEL
@@ -177,6 +187,8 @@ OPL2_GET_KEYON            ; Return Bool, Param: (byte channel);
               RTL
 
 OPL2_GET_FEEDBACK         ; Return Byte, Param: (byte channel);
+              setdp BANK0_BEGIN
+
               setas
               CLC
               LDA OPL2_CHANNEL
@@ -200,6 +212,8 @@ OPL2_GET_FEEDBACK         ; Return Byte, Param: (byte channel);
               RTL
 
 OPL2_GET_SYNTHMODE        ; Return Bool, Param: (byte channel);
+              setdp BANK0_BEGIN
+
               setas
               CLC
               LDA OPL2_CHANNEL
@@ -222,6 +236,8 @@ OPL2_GET_SYNTHMODE        ; Return Bool, Param: (byte channel);
               RTL
 
 OPL2_GET_DEEPTREMOLO      ; Return Bool, Param: (none);
+              setdp BANK0_BEGIN
+
               setal
               LDA #$00BD;
               STA OPL2_REG_REGION
@@ -232,6 +248,8 @@ OPL2_GET_DEEPTREMOLO      ; Return Bool, Param: (none);
               RTL
 
 OPL2_GET_DEEPVIBRATO      ; Return Bool, Param: (none);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE
               ADC #$00BD
@@ -244,6 +262,8 @@ OPL2_GET_DEEPVIBRATO      ; Return Bool, Param: (none);
               RTL
 
 OPL2_GET_PERCUSSION       ; Return Bool, Param: (none);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE
               ADC #$00BD
@@ -256,6 +276,8 @@ OPL2_GET_PERCUSSION       ; Return Bool, Param: (none);
               RTL
 
 OPL2_GET_DRUMS          ; Return Byte, Param: (none);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE
               ADC #$00BD
@@ -280,6 +302,8 @@ OPL2_Get_WaveForm         ; Return Byte, Param: (byte channel, byte operatorNum)
 ; OPL2_OCTAVE  @ $000031 ;
 ; OPL2_PARAMETER0 Will Change
 OPL2_PLAYNOTE   ;Return void, Param: (byte channel, byte octave, byte note);
+              setdp BANK0_BEGIN
+
                 setas
                 PHX
                 LDA #$00
@@ -322,6 +346,8 @@ OPL2_PLAYDRUM             ;Return void, Param: (byte drum, byte octave, byte not
 ; OPL2_ADDY_PTR_HI @ $00:000A  ;
 ; OPL2_PARAMETER3 @ $00:0035
 OPL2_SET_INSTRUMENT         ;Return Byte, Param: (byte channel, const unsigned char *instrument);
+              setdp BANK0_BEGIN
+
               SEC ; Set the WaveFormSelect to True
               JSL OPL2_SET_WAVEFORMSELECT;
               setas
@@ -558,6 +584,8 @@ Percussion_6
 ;OPL2_PARAMETER0  = Register ;
 ;OPL2_PARAMETER1  = Value ;
 OPL2_SET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
+              setdp BANK0_BEGIN
+
               setal
               CLC
               LDA #<>OPL2_S_BASE
@@ -571,6 +599,8 @@ OPL2_SET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
               RTL
 
 OPL2_SET_WAVEFORMSELECT     ;Return Byte, Param: (bool enable);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE + $0001
               STA OPL2_IND_ADDY_LL
@@ -584,6 +614,8 @@ OPL2_SET_WAVEFORMSELECT     ;Return Byte, Param: (bool enable);
               STA [OPL2_IND_ADDY_LL]
               RTL
 OPL2_Set_WaveFormSelect_set
+              setdp BANK0_BEGIN
+
               ;set
               LDA [OPL2_IND_ADDY_LL]
               ORA #$20
@@ -601,6 +633,8 @@ OPL2_Set_WaveFormSelect_set
 ;
 ; Note: Only Support Stereo (dual Write) - No Individual (R-L Channel) Target
 OPL2_SET_TREMOLO            ;Return Byte, Param: (byte channel, byte operatorNum, bool enable);
+              setdp BANK0_BEGIN
+
                 PHP ; Push the Carry
                 setal
                 CLC
@@ -634,6 +668,8 @@ OPL2_Set_Tremolo_Exit
 ; Output
 ; A = Tremolo Status Bit7
 OPL2_GET_TREMOLO          ; Return Bool, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0020;
                 STA OPL2_REG_REGION
@@ -652,6 +688,8 @@ OPL2_GET_TREMOLO          ; Return Bool, Param: (byte channel, byte operatorNum)
 ;OPL2_REG_OFFSET  = $00002A ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_VIBRATO            ;Return Byte, Param: (byte channel, byte operatorNum, bool enable);
+              setdp BANK0_BEGIN
+
                 PHP ; Push the Carry
                 setal
                 CLC
@@ -685,6 +723,8 @@ OPL2_Set_Vibrato_Exit
 ; Output
 ; A = Tremolo Status Bit6
 OPL2_GET_VIBRATO          ; Return Bool, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0020;
                 STA OPL2_REG_REGION
@@ -703,6 +743,8 @@ OPL2_GET_VIBRATO          ; Return Bool, Param: (byte channel, byte operatorNum)
 ;OPL2_REG_OFFSET  = $00002B ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_MAINTAINSUSTAIN    ;Return Byte, Param: (byte channel, byte operatorNum, bool enable);
+              setdp BANK0_BEGIN
+
               PHP ; Push the Carry
               setal
               CLC
@@ -727,6 +769,8 @@ OPL2_Set_MaintainSustain_Exit
                 RTL
 ;OPL2_GET_MAINTAINSUSTAIN
 OPL2_GET_MAINTAINSUSTAIN  ; Return Bool, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
               setal
               LDA #$0020;
               STA OPL2_REG_REGION
@@ -744,6 +788,8 @@ OPL2_GET_MAINTAINSUSTAIN  ; Return Bool, Param: (byte channel, byte operatorNum)
 ;OPL2_REG_OFFSET  = $00002B ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_ENVELOPESCALING    ;Return Byte, Param: (byte channel, byte operatorNum, bool enable);
+              setdp BANK0_BEGIN
+
               PHP ; Push the Carry
               setal
               CLC
@@ -768,6 +814,8 @@ OPL2_Set_EnvelopeScaling_Exit
                 RTL
 ;
 OPL2_GET_ENVELOPESCALING  ; Return Bool, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
               setal
               LDA #$0020;
               STA OPL2_REG_REGION
@@ -778,6 +826,8 @@ OPL2_GET_ENVELOPESCALING  ; Return Bool, Param: (byte channel, byte operatorNum)
                 RTL
 
 OPL2_GET_MODFREQMULTIPLE       ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
               setal
               LDA #$0020;
               STA OPL2_REG_REGION
@@ -794,6 +844,8 @@ OPL2_GET_MODFREQMULTIPLE       ; Return Byte, Param: (byte channel, byte operato
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Multiplier
 OPL2_SET_MODFREQMULTIPLE         ;Return Byte, Param: (byte channel, byte operatorNum, byte multiplier);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0020;
                 STA OPL2_REG_REGION
@@ -818,6 +870,8 @@ OPL2_SET_MODFREQMULTIPLE         ;Return Byte, Param: (byte channel, byte operat
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = ScalingLevel
 OPL2_SET_SCALINGLEVEL       ;Return Byte, Param: (byte channel, byte operatorNum, byte scaling);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0040;
                 STA OPL2_REG_REGION
@@ -844,6 +898,8 @@ OPL2_SET_SCALINGLEVEL       ;Return Byte, Param: (byte channel, byte operatorNum
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Volume
 OPL2_SET_VOLUME             ;Return Byte, Param: (byte channel, byte operatorNum, byte volume);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0040  ;
                 STA OPL2_REG_REGION
@@ -865,6 +921,8 @@ OPL2_SET_VOLUME             ;Return Byte, Param: (byte channel, byte operatorNum
 ; Output
 ; A = Volume
 OPL2_GET_VOLUME           ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0040  ;
                 STA OPL2_REG_REGION
@@ -884,6 +942,8 @@ OPL2_GET_VOLUME           ; Return Byte, Param: (byte channel, byte operatorNum)
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Attack
 OPL2_SET_ATTACK             ;Return Byte, Param: (byte channel, byte operatorNum, byte attack);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0060  ;
                 STA OPL2_REG_REGION
@@ -910,6 +970,8 @@ OPL2_SET_ATTACK             ;Return Byte, Param: (byte channel, byte operatorNum
 ; Output
 ; A = Attack
 OPL2_GET_ATTACK           ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0060
                 STA OPL2_REG_REGION
@@ -929,6 +991,8 @@ OPL2_GET_ATTACK           ; Return Byte, Param: (byte channel, byte operatorNum)
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Decay
 OPL2_SET_DECAY              ;Return Byte, Param: (byte channel, byte operatorNum, byte decay);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0060;
                 STA OPL2_REG_REGION
@@ -951,6 +1015,8 @@ OPL2_SET_DECAY              ;Return Byte, Param: (byte channel, byte operatorNum
 ; Output
 ; A = Decay
 OPL2_GET_DECAY           ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0060
                 STA OPL2_REG_REGION
@@ -969,6 +1035,8 @@ OPL2_GET_DECAY           ; Return Byte, Param: (byte channel, byte operatorNum);
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Sustain
 OPL2_SET_SUSTAIN            ;Return Byte, Param: (byte channel, byte operatorNum, byte sustain);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0080;
                 STA OPL2_REG_REGION
@@ -995,6 +1063,8 @@ OPL2_SET_SUSTAIN            ;Return Byte, Param: (byte channel, byte operatorNum
 ; Output
 ; A = Decay
 OPL2_GET_SUSTAIN          ; Return Byte, Param: (byte channel, byte operatorNum);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0080
                 STA OPL2_REG_REGION
@@ -1015,6 +1085,8 @@ OPL2_GET_SUSTAIN          ; Return Byte, Param: (byte channel, byte operatorNum)
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Decay
 OPL2_SET_RELEASE            ;Return Byte, Param: (byte channel, byte operatorNum, byte release);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0080;
                 STA OPL2_REG_REGION
@@ -1037,6 +1109,8 @@ OPL2_SET_RELEASE            ;Return Byte, Param: (byte channel, byte operatorNum
 ; Output
 ; A = Decay
 OPL2_GET_RELEASE          ; Return Byte, Param: (byte channel);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #$0080
                 STA OPL2_REG_REGION
@@ -1056,6 +1130,8 @@ OPL2_GET_RELEASE          ; Return Byte, Param: (byte channel);
 ; OPL2_PARAMETER0 = LSB fNumber
 ; OPL2_PARAMETER1 = MSB fNumber
 OPL2_SET_FNUMBER            ;Return Byte, Param: (byte channel, short fNumber);
+              setdp BANK0_BEGIN
+
                 setas
                 CLC
                 LDA OPL2_CHANNEL
@@ -1099,6 +1175,8 @@ OPL2_SET_FNUMBER            ;Return Byte, Param: (byte channel, short fNumber);
 ; OPL2_PARAMETER0 = LSB fNumber
 ; OPL2_PARAMETER1 = MSB fNumber
 OPL2_GET_FNUMBER
+              setdp BANK0_BEGIN
+
                 setas
                 CLC
                 LDA OPL2_CHANNEL
@@ -1142,6 +1220,8 @@ OPL2_Get_Frequency        ; Return Float, Param: (byte channel);
 ; OPL2_OCTAVE      = $000031 ; Destructive
 ; OPL2_PARAMETER0 = Block
 OPL2_SET_BLOCK           ;Return Byte, Param: (byte channel, byte block);
+              setdp BANK0_BEGIN
+
                 setas
                 CLC
                 LDA OPL2_CHANNEL
@@ -1177,6 +1257,8 @@ OPL2_SET_BLOCK           ;Return Byte, Param: (byte channel, byte block);
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER0 = Key On
 OPL2_SET_KEYON              ;Return Byte, Param: (byte channel, bool keyOn);
+              setdp BANK0_BEGIN
+
                 setas
                 CLC
                 LDA OPL2_CHANNEL
@@ -1213,6 +1295,8 @@ OPL2_SET_KEYON              ;Return Byte, Param: (byte channel, bool keyOn);
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER1 = Feedback
 OPL2_SET_FEEDBACK           ;Return Byte, Param: (byte channel, byte feedback);
+              setdp BANK0_BEGIN
+
               setas
               CLC
               LDA OPL2_CHANNEL
@@ -1247,6 +1331,8 @@ OPL2_SET_FEEDBACK           ;Return Byte, Param: (byte channel, byte feedback);
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER1 = Feedback
 OPL2_SET_SYNTHMODE          ;Return Byte, Param: (byte channel, bool isAdditive);
+              setdp BANK0_BEGIN
+
               PHP ; Push the Carry
               setas
               CLC
@@ -1287,6 +1373,8 @@ OPL2_Set_Synthmode_Exit
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_DEEPTREMOLO        ;Return Byte, Param: (bool enable);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE + $00BD
               STA OPL2_IND_ADDY_LL
@@ -1313,6 +1401,8 @@ OPL2_Set_DeepTremolo_Exit
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_DEEPVIBRATO        ;Return Byte, Param: (bool enable);
+              setdp BANK0_BEGIN
+
               setal
               LDA #<>OPL2_S_BASE + $00BD
               STA OPL2_IND_ADDY_LL
@@ -1339,6 +1429,8 @@ OPL2_Set_DeepVibrato_Exit
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; C = Enable (1 = Enable, 0 = Disable)
 OPL2_SET_PERCUSSION         ;Return Byte, Param: (bool enable);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #<>OPL2_S_BASE + $00BD
                 STA OPL2_IND_ADDY_LL
@@ -1371,6 +1463,8 @@ OPL2_Set_Percussion_Exit
 ; OPL2_PARAMETER0[0] = DRUM_HI_HAT 0x01
 ; Changes OPL2_PARAMETER1
 OPL2_SET_DRUMS              ;Return Byte, Param: (bool bass, bool snare, bool tom, bool cymbal, bool hihat);
+              setdp BANK0_BEGIN
+
                 setal
                 LDA #<>OPL2_S_BASE + $00BD
                 STA OPL2_IND_ADDY_LL
@@ -1395,6 +1489,8 @@ OPL2_SET_DRUMS              ;Return Byte, Param: (bool bass, bool snare, bool to
 ; OPL2_REG_OFFSET  @ $00002A ;
 ; OPL2_PARAMETER1 = waveForm
 OPL2_SET_WAVEFORM           ;Return Byte, Param: (byte channel, byte operatorNum, byte waveForm);
+              setdp BANK0_BEGIN
+              
                 setal
                 LDA #$00E0;
                 STA OPL2_REG_REGION
