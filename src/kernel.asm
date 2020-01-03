@@ -9,20 +9,19 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "page_00_inc.asm"
 .include "page_00_data.asm"
 .include "page_00_code.asm"
-.include "Math_def.asm"       ; Math Co_processor Definition
-.include "interrupt_def.asm"  ; Interrupr Controller Registers Definitions
-.include "dram_inc.asm"       ; old Definition file that was supposed to be a Memory map
-.include "vicky_def.asm"      ; VICKY's registers Definitions
-.include "super_io_def.asm"   ; SuperIO Registers Definitions
-.include "keyboard_def.asm"   ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
-.include "SID_def.asm"        ; SID, but not the latest - Deprecated for now.
-.include "RTC_def.asm"        ; Real-Time Clock Register Definition (BQ4802)
-.include "io_def.asm"         ; Joystick, DipSwitch, CODEC, SDCard Controller Registers
-.include "joystick.asm"
-.include "Trinity_CFP9301_def.asm"
-.include "Unity_CFP9307_def.asm"
-;.include "CMD_Parser.asm"
-;.include "monitor.asm"
+.include "Math_def.asm"                     ; Math Co_processor Definition
+.include "interrupt_def.asm"                ; Interrupr Controller Registers Definitions
+.include "dram_inc.asm"                     ; old Definition file that was supposed to be a Memory map
+.include "vicky_def.asm"                    ; VICKY's registers Definitions
+.include "super_io_def.asm"                 ; SuperIO Registers Definitions
+.include "keyboard_def.asm"                 ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
+.include "SID_def.asm"                      ; SID, but not the latest - Deprecated for now.
+.include "RTC_def.asm"                      ; Real-Time Clock Register Definition (BQ4802)
+.include "io_def.asm"                       ; CODEC, SDCard Controller Registers
+.include "Trinity_CFP9301_def.asm"          ; Definitions for Trinity chip: Joystick, DipSwitch
+.include "Unity_CFP9307_def.asm"            ; Definitions for Unity chip (IDE)
+.include "GABE_Control_Registers_def.asm"   ; Definitions for GABE registers
+
 .include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
 ;.include "OPL2_Rad_Player.asm"
 
@@ -41,7 +40,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 ;.include "YM26XX.asm"
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
-
+.include "joystick.asm"       ; Code for the joysticks and gamepads
 
 * = $390400
 
