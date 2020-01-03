@@ -238,18 +238,7 @@ HABORT           = $00FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prom
 HNMI             = $00FF40 ;32 Bytes Handle NMI
 HIRQ             = $00FF60 ;32 Bytes Handle IRQ
 Unused_FF80      = $00FF80 ;End of direct page Interrrupt handlers
-.elsif TARGET = TARGET_FLASH
-ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
-HRESET           = $38FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
-HCOP             = $38FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
-HBRK             = $38FF20 ;16 Bytes Handle the BRK instruction. Returns to BASIC Ready prompt.
-HABORT           = $38FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prompt with an error message.
-HNMI             = $38FF40 ;32 Bytes Handle NMI
-HIRQ             = $38FF60 ;32 Bytes Handle IRQ
-Unused_FF80      = $38FF80 ;End of direct page Interrrupt handlers
-.endif
-
-VECTORS_BEGIN    = $38FFE0 ;0 Byte  Interrupt vectors
+VECTORS_BEGIN    = $00FFE0 ;0 Byte  Interrupt vectors
 JMP_READY        = $00FFE0 ;4 Bytes Jumps to ROM READY routine. Modified whenever alternate command interpreter is loaded.
 VECTOR_COP       = $00FFE4 ;2 Bytes Native COP Interrupt vector
 VECTOR_BRK       = $00FFE6 ;2 Bytes Native BRK Interrupt vector
@@ -265,5 +254,34 @@ VECTOR_ENMI      = $00FFFA ;2 Bytes Emulation mode interrupt handler
 VECTOR_ERESET    = $00FFFC ;2 Bytes Emulation mode interrupt handler
 VECTOR_EIRQ      = $00FFFE ;2 Bytes Emulation mode interrupt handler
 VECTORS_END      = $400000 ;*End of vector space
+
+.elsif TARGET = TARGET_FLASH
+ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
+HRESET           = $38FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
+HCOP             = $38FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
+HBRK             = $38FF20 ;16 Bytes Handle the BRK instruction. Returns to BASIC Ready prompt.
+HABORT           = $38FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prompt with an error message.
+HNMI             = $38FF40 ;32 Bytes Handle NMI
+HIRQ             = $38FF60 ;32 Bytes Handle IRQ
+Unused_FF80      = $38FF80 ;End of direct page Interrrupt handlers
+
+VECTORS_BEGIN    = $38FFE0 ;0 Byte  Interrupt vectors
+JMP_READY        = $38FFE0 ;4 Bytes Jumps to ROM READY routine. Modified whenever alternate command interpreter is loaded.
+VECTOR_COP       = $38FFE4 ;2 Bytes Native COP Interrupt vector
+VECTOR_BRK       = $38FFE6 ;2 Bytes Native BRK Interrupt vector
+VECTOR_ABORT     = $38FFE8 ;2 Bytes Native ABORT Interrupt vector
+VECTOR_NMI       = $38FFEA ;2 Bytes Native NMI Interrupt vector
+VECTOR_RESET     = $38FFEC ;2 Bytes Unused (Native RESET vector)
+VECTOR_IRQ       = $38FFEE ;2 Bytes Native IRQ Vector
+RETURN           = $38FFF0 ;4 Bytes RETURN key handler. Points to BASIC or MONITOR subroutine to execute when RETURN is pressed.
+VECTOR_ECOP      = $38FFF4 ;2 Bytes Emulation mode interrupt handler
+VECTOR_EBRK      = $38FFF6 ;2 Bytes Emulation mode interrupt handler
+VECTOR_EABORT    = $38FFF8 ;2 Bytes Emulation mode interrupt handler
+VECTOR_ENMI      = $38FFFA ;2 Bytes Emulation mode interrupt handler
+VECTOR_ERESET    = $38FFFC ;2 Bytes Emulation mode interrupt handler
+VECTOR_EIRQ      = $38FFFE ;2 Bytes Emulation mode interrupt handler
+VECTORS_END      = $400000 ;*End of vector space
+.endif
+
 BANK0_END        = $00FFFF ;End of Bank 00 and Direct page
 ;
