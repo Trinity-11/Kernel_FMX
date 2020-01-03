@@ -530,36 +530,5 @@ YM2612_test_piano__LOOP_FOR_EVER
 						PLP
 						RTL
 
-ILOOP           NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                RTL
 
-ILOOP_1         JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                JSL ILOOP
-                RTL
 
-ILOOP_1MS       JSL ILOOP_1
-                RTL
-
-ILOOP_MS        CPX #0
-                BEQ LOOP_MS_END
-                JSL ILOOP_1MS
-                DEX
-                BRA ILOOP_MS
-LOOP_MS_END     RTL

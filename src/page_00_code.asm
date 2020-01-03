@@ -79,7 +79,7 @@ RHIRQ           setaxl
 ;
 .if TARGET = TARGET_FLASH
 * = VECTORS_BEGIN
-JUMP_READY      JML IMREADY     ; Kernel READY routine. Rewrite this address to jump to a custom kernel.
+JUMP_READY      JML MONITOR    ; Kernel READY routine. Rewrite this address to jump to a custom kernel.
 RVECTOR_COP     .addr HCOP     ; FFE4
 RVECTOR_BRK     .addr HBRK     ; FFE6
 RVECTOR_ABORT   .addr HABORT   ; FFE8

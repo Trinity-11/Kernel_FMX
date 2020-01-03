@@ -18,16 +18,12 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "SID_def.asm"        ; SID, but not the latest - Deprecated for now.
 .include "RTC_def.asm"        ; Real-Time Clock Register Definition (BQ4802)
 .include "io_def.asm"         ; Joystick, DipSwitch, CODEC, SDCard Controller Registers
+.include "joystick.asm"
+.include "Trinity_CFP9301_def.asm"
+.include "Unity_CFP9307_def.asm"
 ;.include "CMD_Parser.asm"
-.include "monitor.asm"
-;.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
-.include "Interrupt_Handler.asm" ; Interrupt Handler Routines
-.include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
-.include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "ide_library.asm"
-.include "YM26XX.asm"
-.include "keyboard.asm"       ; Include the keyboard reading code
-.include "uart.asm"           ; The code to handle the UART
+;.include "monitor.asm"
+.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
 ;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
@@ -37,6 +33,15 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 ; Loads to $18:0000
 
 .include "kernel_jumptable.asm"
+
+.include "Interrupt_Handler.asm" ; Interrupt Handler Routines
+.include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
+.include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
+.include "ide_library.asm"
+;.include "YM26XX.asm"
+.include "keyboard.asm"       ; Include the keyboard reading code
+.include "uart.asm"           ; The code to handle the UART
+
 
 * = $390400
 
@@ -228,31 +233,58 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 LDA #$10
                 STA SID0_V1_CTRL
                 LDA #$00
-                STA OPM_1B_CT_W
-                LDA #$00
-                STA OPM_1B_CT_W
+                ; STA OPM_1B_CT_W
+                ; LDA #$00
+                ; STA OPM_1B_CT_W
 
-                ;setaxl
-                JSL YM2151_test
-                ;JSL YM2151_test_2_from_Chibisound
-                JSL YM2612_test_piano
-                JSL YM2612_test_piano
+                ; ;setaxl
+                ; JSL YM2151_test
+                ; ;JSL YM2151_test_2_from_Chibisound
+                ; JSL YM2612_test_piano
+                ; JSL YM2612_test_piano
 
-                ;JSL OPL2_TONE_TEST
-                ;JSL OPL2_INIT_PLAYER
+                ; ;JSL OPL2_TONE_TEST
+                ; ;JSL OPL2_INIT_PLAYER
 
-                setaxl
-                LDX #<>ready_msg
-                JSL IPRINT       ; print the first line
-
-                CLI ; Make sure no Interrupt will come and fuck up Init before this point.
+                CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
 
                 setas
-                setdbr `greet_msg      ;set data bank to 19 (Kernel Variables)
+                setxl
+                setdbr `greet_msg     ;set data bank to 39 (Kernel Variables)
 
-                JMP IREADYWAIT
+                ;
+                ; Determine the boot mode on the DIP switches and complete booting as specified
+                ;
 
-greet_done      BRK             ;Terminate boot routine and go to Ready handler.
+                LDA @lDIP_BOOTMODE    ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], BOOT_MODE[0]}
+                AND #%00000011        ; Look at the mode bits
+                CMP #DIP_BOOT_IDE     ; DIP set for IDE?
+                BEQ BOOTIDE           ; Yes: Boot from the IDE
+
+                CMP #DIP_BOOT_SDCARD  ; DIP set for SD card?
+                BEQ BOOTSDC           ; Yes: try to boot from the SD card
+                
+                CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
+                BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
+
+BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
+
+BOOTSDC         ; TODO: implement boot from SD card
+
+                LDX #<>sdcard_notimpl ; Print a message saying SD card booting is not implemented
+                BRA PR_BOOT_ERROR
+
+BOOTIDE         ; TODO: implement boot from IDE
+
+                LDX #<>ide_notimpl    ; Print a message saying SD card booting is not implemented
+                BRA PR_BOOT_ERROR
+
+BOOTFLOPPY      ; TODO: implement boot from floppy
+
+                LDX #<>floppy_notimpl ; Print a message saying SD card booting is not implemented
+PR_BOOT_ERROR   JSL IPRINT
+LOOP_FOREVER    NOP
+                BRA LOOP_FOREVER
 
 ;
 ; IBREAK
@@ -284,7 +316,7 @@ IBREAK          setdp 0
                 LDA #<>STACK_END   ; initialize stack pointer back to the bootup value
                                 ;<> is "lower word"
                 TAS
-                JML JMP_READY   ; Run READY routine (usually BASIC or MONITOR)
+                JML MONITOR
 
 IREADY          setdbr `ready_msg
                 setas
@@ -2182,8 +2214,43 @@ BMP_PARSER_COMPUTE_Y_DST
                 ADC #$0000
                 STA BMP_PRSE_DST_PTR+2
                 RTS
-;
 
+ILOOP           NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                RTL
+
+ILOOP_1         JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                JSL ILOOP
+                RTL
+
+ILOOP_1MS       JSL ILOOP_1
+                RTL
+
+; A delay loop
+ILOOP_MS        CPX #0
+                BEQ LOOP_MS_END
+                JSL ILOOP_1MS
+                DEX
+                BRA ILOOP_MS
+LOOP_MS_END     RTL
+
+;
 ;Not-implemented routines
 ;
 IRESTORE        BRK ; Warm boot routine
@@ -2293,13 +2360,13 @@ bmp_parser_msg0 .text "BMP LOADED.", $00
 bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
 IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
 
+boot_invalid    .text "Boot DIP switch settings are invalid", $00
+sdcard_notimpl  .text "Booting from SD card is not yet implemented.", $00
+ide_notimpl     .text "Booting from IDE drive is not yet implemented.", $00
+floppy_notimpl  .text "Booting from floppy drive is not yet implemented.", $00
+
 ready_msg       .null $0D,"READY."
 
-hello_ml        .null "G 020000",$0D
-                .null "HELLO WORLD",$0D
-                .null $0D
-                .null " PC     A    X    Y    SP   DBR DP   NVMXDIZC",$0D
-                .null ";002112 0019 F0AA 0000 D6FF F8  0000 --M-----"
 
 error_01        .null "ABORT ERROR"
 hex_digits      .text "0123456789ABCDEF",0
@@ -2437,3 +2504,6 @@ FONT_4_BANK0
 .binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
 FONT_4_BANK1
 .binary "FONT/CBM-ASCII_8x8.bin", 0, 2048
+
+* = $3A0000
+.binary "binaries/basic816.bin"
