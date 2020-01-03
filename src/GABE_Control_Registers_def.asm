@@ -3,10 +3,10 @@
 ;$AFE820..$AFE827
 
 GABE_MSTR_CTRL      = $AFE820
-GABE_CTRL_PWR_LED = $01 ; Controls the LED in the Front of the case (Next to the reset button)
-GABE_CTRL_SDC_LED = $02 ; Controls the LED in the Front of the Case (Next to SDCard)
-GABE_CTRL_BUZZER  = $10 ; Controls the Buzzer
-GABE_CTRL_WRM_RST = $80 ; Warm Reset (needs to Setup other registers)
+GABE_CTRL_PWR_LED   = $01 ; Controls the LED in the Front of the case (Next to the reset button)
+GABE_CTRL_SDC_LED   = $02 ; Controls the LED in the Front of the Case (Next to SDCard)
+GABE_CTRL_BUZZER    = $10 ; Controls the Buzzer
+GABE_CTRL_WRM_RST   = $80 ; Warm Reset (needs to Setup other registers)
 
 GABE_NOTUSED        = $AFE821 ; Reserved for future use
 GABE_RST_AUTH0      = $AFE822 ; Must Contain the BYTE $AD for Reset to Activate
@@ -21,18 +21,18 @@ GABE_RNG_SEED_HI    = $AFE825 ; Hi Part of 16Bit RNG Generator
 
 ; READ
 GABE_RNG_STAT       = $AFE826 ;
-GABE_RNG_LFSR_DONE = $80    ; indicates that Output = SEED Database
+GABE_RNG_LFSR_DONE  = $80     ; indicates that Output = SEED Database
 ; WRITE
 GABE_RNG_CTRL       = $AFE826 ;
-GABE_RNG_CTRL_EN = $01    ; Enable the LFSR BLOCK_LEN
-GABE_RNG_CTRL_DV = $02    ; After Setting the Seed Value, Toggle that Bit for it be registered
+GABE_RNG_CTRL_EN    = $01     ; Enable the LFSR BLOCK_LEN
+GABE_RNG_CTRL_DV    = $02     ; After Setting the Seed Value, Toggle that Bit for it be registered
 
 GABE_SYS_STAT       = $AFE827 ;
-GABE_SYS_STAT_MID0 = $01 ;
-GABE_SYS_STAT_MID1 = $02 ;
-GABE_SYS_STAT_EXP  = $08  ; if Zero, there is an Expansion Card Preset
-GABE_SYS_STAT_CPUA = $40  ; Indicates the (8bit/16bit) Size of the Accumulator
-GABE_SYS_STAT_CPUX = $80  ; Indicates the (8bit/16bit) Size of the Accumulator
+GABE_SYS_STAT_MID0  = $01   ;
+GABE_SYS_STAT_MID1  = $02   ;
+GABE_SYS_STAT_EXP   = $08   ; if Zero, there is an Expansion Card Preset
+GABE_SYS_STAT_CPUA  = $40   ; Indicates the (8bit/16bit) Size of the Accumulator
+GABE_SYS_STAT_CPUX  = $80   ; Indicates the (8bit/16bit) Size of the Accumulator
 
 
 

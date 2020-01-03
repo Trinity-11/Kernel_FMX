@@ -702,6 +702,23 @@ done            PLP
                 .pend
 
 ;
+; ICSRHOME
+; Move the cursor to the "home" position in the upper-left corner
+;
+ICSRHOME        PHX
+                PHY
+                PHP
+
+                LDX #0
+                LDY #0
+                JSL ILOCATE
+
+                PLP
+                PLY
+                PLX
+                RTL
+
+;
 ; ICSRRIGHT
 ; Move the cursor right one space
 ; Modifies: none
@@ -2275,7 +2292,6 @@ IPRINTAI        BRK ; Prints integer value in A
 IPRINTAH        BRK ; Prints hex value in A. Printed value is 2 wide if M flag is 1, 4 wide if M=0
 IPUSHKEY        BRK ;
 IPUSHKEYS       BRK ;
-ICSRHOME        BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
 
