@@ -16,7 +16,7 @@
 ; So the BASIC PRINT routine would be labeled "BPRINT" on the jump table and "IBPRINT" in the BASIC.ASM
 ; source file.
 ;
-* = $390000
+* = $381000
 
 BOOT            JML IBOOT
 RESTORE         JML IRESTORE

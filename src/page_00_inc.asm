@@ -223,7 +223,10 @@ KEYFLAG          = $000F8A ;1 Byte, flag to indicate if CTRL-C has been pressed
 KEY_BUFFER_RPOS  = $000F8B ;2 Byte, position of the character to read from the KEY_BUFFER
 KEY_BUFFER_WPOS  = $000F8D ;2 Byte, position of the character to write to the KEY_BUFFER
 
-TEST_BEGIN       = $001000 ;28672 Bytes Test/diagnostic code for prototype.
+KERNEL_JMP_BEGIN = $001000 ; Reserved for the Kernel jump table
+KERNEL_JMP_END   = $001FFF
+
+TEST_BEGIN       = $002000 ;28672 Bytes Test/diagnostic code for prototype.
 TEST_END         = $007FFF ;0 Byte
 
 STACK_BEGIN      = $008000 ;32512 Bytes The default beginning of stack space

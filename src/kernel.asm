@@ -29,7 +29,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 ; The Kernel is located in flash @ F8:0000 but not accessible by CPU
 ; Kernel Transfered by GAVIN @ Cold Reset to $18:0000 - $1F:FFFF
 
-; Loads to $18:0000
+; Loads to $38:0000
 
 .include "kernel_jumptable.asm"
 
