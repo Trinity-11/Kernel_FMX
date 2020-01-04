@@ -111,6 +111,9 @@ CLEAR_MEM_LOOP
                 LDY #64
                 STY LINES_MAX
 
+                LDA #$ED
+                STA CURCOLOR
+
 
                 ; Init CODEC
                 JSL INITCODEC
@@ -267,6 +270,9 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
 
 BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
+
+CREDIT_LOCK     NOP
+                BRA CREDIT_LOCK
 
 BOOTSDC         ; TODO: implement boot from SD card
 
@@ -993,31 +999,31 @@ iprint_digit    PHX
 ; ICLRSCREEN
 ; Clear the screen and set the background and foreground colors to the
 ; currently selected colors.
-ICLRSCREEN	    PHD
-                PHP
-                PHA
+ICLRSCREEN	    PHA
                 PHX
+                PHP
+
                 setas
-                setxl 			; Set 16bits
-                LDX #$0000		; Only Use One Pointer
-                LDA #$20		; Fill the Entire Screen with Space
+                setxl 			            ; Set 16bits
+
+                LDX #$0000		          ; Only Use One Pointer
+                LDA #$20		            ; Fill the Entire Screen with Space
 iclearloop0	    STA CS_TEXT_MEM_PTR, x	;
                 inx
                 cpx #$2000
                 bne iclearloop0
+
                 ; Now Set the Colors so we can see the text
-                LDX	#$0000		; Only Use One Pointer
-                LDA #$ED		; Fill the Color Memory with Foreground: 75% Purple, Background 12.5% White
+                LDX	#$0000		          ; Only Use One Pointer
+                LDA @lCURCOLOR          ; Fill the Color Memory with the current color
 iclearloop1	    STA CS_COLOR_MEM_PTR, x	;
                 inx
                 cpx #$2000
                 bne iclearloop1
-                setxl
-                setal
+
+                PLP
                 PLX
                 PLA
-                PLP
-                PLD
                 RTL
 
 ;
@@ -2267,6 +2273,49 @@ ILOOP_MS        CPX #0
 LOOP_MS_END     RTL
 
 ;
+; Show the credits screen
+;
+SHOW_CREDITS    .proc
+                PHA
+                PHX
+                PHY
+                PHP
+
+                setas
+                setxl
+
+                LDA @lVKY_TXT_CURSOR_CTRL_REG   ; Disable the cursor
+                AND #~Vky_Cursor_Enable
+                STA @lVKY_TXT_CURSOR_CTRL_REG
+
+                LDX #0
+
+credit_loop     LDA @lCREDITS_TEXT,X            ; Copy a byte of text
+                STA @lCS_TEXT_MEM_PTR,X
+
+                LDA @lCREDITS_COLOR,X           ; Copy a byte of color
+                STA @lCS_COLOR_MEM_PTR,X
+
+                INX
+                CPX #128 * 64
+                BNE credit_loop
+
+                JSL IGETCHW                     ; Wait for a keypress
+                JSL ICLRSCREEN                  ; Then clear the screen and return
+                JSL ICSRHOME                    ; Move cursor to the home position
+
+                LDA @lVKY_TXT_CURSOR_CTRL_REG   ; Enable the cursor
+                ORA #Vky_Cursor_Enable
+                STA @lVKY_TXT_CURSOR_CTRL_REG
+
+                PLP
+                PLY
+                PLX
+                PLA
+                RTL
+                .pend
+
+;
 ;Not-implemented routines
 ;
 IRESTORE        BRK ; Warm boot routine
@@ -2305,7 +2354,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: "
+                .text "www.c256foenix.com - Kernel Date 2: "
                 .include "version.asm"
                 .text $0D,$00
 
@@ -2514,6 +2563,9 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
                       .text $00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$01,$00,$00,$00,$00,$00
                       .text $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
+
+            
+
 * = $3FF000
 FONT_4_BANK0
 .binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
@@ -2522,3 +2574,22 @@ FONT_4_BANK1
 
 * = $3A0000
 .binary "binaries/basic816.bin"
+
+* = $3B0000
+
+; Credits screen
+
+TXTLINE         .macro txt
+                .text \txt
+                .fill 128 - len(\txt), $20
+                .endm
+
+.align 256
+CREDITS_TEXT    TXTLINE "This is the credits screen!"
+                TXTLINE "I would like to thank the academy."
+                TXTLINE ""
+                TXTLINE "Press any key to go back..."
+                .fill 128 * 60,$20
+
+.align 256
+CREDITS_COLOR   .fill 128 * 64, $F3

@@ -46,3 +46,7 @@ KB_PR_LED		= $40
 KB_SCROLL_LOCK  = $01
 KB_NUM_LOCK     = $02
 KB_CAPS_LOCK    = $04
+
+; Special key flags
+KB_CTRL_C = $80             ; CTRL-C was pressed
+KB_CREDITS = $60            ; Credits key was pressed

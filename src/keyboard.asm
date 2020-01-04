@@ -67,8 +67,14 @@ NOT_KB_SET_NUM  CMP #$46                ; Scroll Lock Pressed
                 BRL KB_TOG_SCRLOCK
 
 NOT_KB_SET_SCR  CMP #$3A                ; Caps Lock Pressed
-                BNE KB_UNPRESSED
+                BNE NOT_KB_CAPSLOCK
                 BRL KB_TOG_CAPLOCK
+
+NOT_KB_CAPSLOCK CMP #$58                ; F12 Pressed
+                BNE KB_UNPRESSED
+                LDA #KB_CREDITS         ; Yes: flag that the CREDITS key has been pressed
+                STA @lKEYFLAG
+                BRL KB_CHECK_B_DONE
 
 KB_UNPRESSED    AND #$80                ; See if the Scan Code is press or Depressed
                 CMP #$80                ; Depress Status - We will not do anything at this point
@@ -247,7 +253,7 @@ no_break        LDX KEY_BUFFER_WPOS     ; So the Receive Character is saved in t
 done            RTS
 
 flag_break      setas
-                LDA #$80                ; Flag that an interrupt key has been pressed
+                LDA #KB_CTRL_C          ; Flag that an interrupt key has been pressed
                 STA KEYFLAG             ; The interpreter should see this soon and throw a BREAK
                 RTS
                 .pend
@@ -271,7 +277,17 @@ KBD_GETC        .proc
 
                 CLI                     ; Make sure interrupts can happen
 
-get_wait        LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
+get_wait        LDA @lKEYFLAG           ; Check the keyboard control flag
+                AND #KB_CREDITS         ; Are the credits flagged?
+                CMP #KB_CREDITS
+                BNE check_buffer        ; No: check the key buffer
+
+                LDA #0                  ; Yes: clear the flags
+                STA @lKEYFLAG
+
+                JSL SHOW_CREDITS        ; Then show the credits screen and wait for a key press
+
+check_buffer    LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
                 CPX KEY_BUFFER_WPOS
                 BCC read_buff           ; Yes: a key is present, read it
                 BRA get_wait            ; Otherwise, keep waiting

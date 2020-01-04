@@ -253,7 +253,7 @@ VECTOR_EABORT    = $00FFF8 ;2 Bytes Emulation mode interrupt handler
 VECTOR_ENMI      = $00FFFA ;2 Bytes Emulation mode interrupt handler
 VECTOR_ERESET    = $00FFFC ;2 Bytes Emulation mode interrupt handler
 VECTOR_EIRQ      = $00FFFE ;2 Bytes Emulation mode interrupt handler
-VECTORS_END      = $400000 ;*End of vector space
+VECTORS_END      = $010000 ;*End of vector space
 
 .elsif TARGET = TARGET_FLASH
 ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
