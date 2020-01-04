@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 --long-address --flat --intel-hex -o kernel.hex --list kernel_hex.lst --labels=kernel_hex.lbl src\kernel.asm
-; Sat Jan 04 12:40:50 2020
+; Sat Jan 04 13:27:25 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -7522,7 +7522,7 @@
 >3a0e98	c0 e2 20 a5 e7 e2 20 a0 00 00 97 c0 a0 01 00 a9
 >3a0ea8	00 97 c0 2b 28 38 60 08 c2 20 38 a5 bd e9 08 00
 >3a0eb8	85 c0 e2 20 a5 bf e9 00 85 c2 28 60 08 e2 20 a5
->3a0ec8	c2 f0 04 c9 17 b0 12 c2 20 a5 c0 f0 0c e2 20 a0
+>3a0ec8	c2 f0 04 c9 36 b0 12 c2 20 a5 c0 f0 0c e2 20 a0
 >3a0ed8	01 00 b7 c0 1a 97 c0 28 60 00 ea 08 e2 20 a5 c2
 >3a0ee8	f0 04 c9 17 b0 17 c2 20 a5 c0 f0 11 e2 20 a0 01
 >3a0ef8	00 b7 c0 3a 97 c0 d0 03 20 07 0f 28 60 00 ea 08
