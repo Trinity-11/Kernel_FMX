@@ -976,6 +976,47 @@ iprinth1        setas
                 PLA
                 PLP
                 RTL
+              
+;
+; IPRINTAH
+; Prints hex value in A. Printed value is 2 wide if M flag is 1, 4 wide if M=0
+;
+; Inputs:
+;   A: 8 or 16 bit value to print
+;
+IPRINTAH        .proc
+                PHA
+                PHP
+                STA @lCPUA            ; Save A where we can use it multiple times
+
+                PHP                   ; Get the processor status into A
+                setas
+                setxl
+                PLA
+                AND #%00100000        ; Is M = 1?
+                CMP #%00100000
+                BEQ eight_bit
+
+                LDA @lCPUA+2          ; Get nibble [15..12]
+                .rept 4
+                LSR A
+                .next
+                JSL iprint_digit      ; And print it
+                LDA @lCPUA+2          ; Get nibble [11..8]
+                JSL iprint_digit      ; And print it
+
+eight_bit       LDA @lCPUA            ; Get nibble [7..4]
+                .rept 4
+                LSR A
+                .next
+                JSL iprint_digit      ; And print it
+                LDA @lCPUA            ; Get nibble [3..0]
+                JSL iprint_digit      ; And print it
+
+                PLP
+                PLA
+                RTL
+                .pend
 
 ;
 ; iprint_digit
@@ -2338,7 +2379,6 @@ IPRINTS         BRK ; Print string to screen. Handles terminal commands
 IPRINTF         BRK ; Print a float value
 IPRINTI         BRK ; Prints integer value in TEMP
 IPRINTAI        BRK ; Prints integer value in A
-IPRINTAH        BRK ; Prints hex value in A. Printed value is 2 wide if M flag is 1, 4 wide if M=0
 IPUSHKEY        BRK ;
 IPUSHKEYS       BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.

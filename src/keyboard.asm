@@ -18,8 +18,23 @@ IRQ_HANDLER_FETCH
                 LDA @lKBD_INPT_BUF      ; Get Scan Code from KeyBoard
                 STA KEYBOARD_SC_TMP     ; Save Code Immediately
 
+                LDA KEYBOARD_SC_FLG     ; Check to See if the Prefix was picked up before
+                AND #$80
+                CMP #$80
+                BNE CHK_LSHIFT          ; No: do normal scan-code checks
+
+PREFIX_ON       LDA KEYBOARD_SC_FLG     ; Otherwise: clear prefix
+                AND #$7F
+                STA KEYBOARD_SC_FLG
+
+                LDA KEYBOARD_SC_TMP     ; Get the prefixed scan-code's character
+                TAX
+                LDA @lScanCode_Prefix_Set1, x
+                JMP KB_WR_2_SCREEN      ; And save it
+
                 ; Check for Shift Press or Unpressed
-NOT_SCROLLLOCK  CMP #$2A                ; Left Shift Pressed
+CHK_LSHIFT      LDA KEYBOARD_SC_TMP
+                CMP #$2A                ; Left Shift Pressed
                 BNE NOT_KB_SET_LSHIFT
                 BRL KB_SET_SHIFT
 NOT_KB_SET_LSHIFT
@@ -98,11 +113,6 @@ KB_NORM_SC      LDA KEYBOARD_SC_TMP       ;
                 CMP #$40
                 BEQ ALT_KEY_ON
 
-                LDA KEYBOARD_SC_FLG     ; Check to See if the Prefix was picked up before
-                AND #$80
-                CMP #$80
-                BEQ PREFIX_ON
-
                 ; Pick and Choose the Right Bank of Character depending if the Shift/Ctrl/Alt or none are chosen
                 LDA @lScanCode_Press_Set1, x
                 BRL KB_WR_2_SCREEN
@@ -116,11 +126,6 @@ CTRL_KEY_ON     LDA @lScanCode_Ctrl_Set1, x
 ALT_KEY_ON      LDA @lScanCode_Alt_Set1, x
                 BRL KB_WR_2_SCREEN
 
-PREFIX_ON       LDA KEYBOARD_SC_FLG
-                AND #$7F
-                STA KEYBOARD_SC_FLG
-                
-                LDA @lScanCode_Prefix_Set1, x
                 ; Write Character to Screen (Later in the buffer)
 KB_WR_2_SCREEN  CMP #$18                ; Is it SysRq?
                 BNE savechar

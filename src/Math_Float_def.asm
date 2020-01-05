@@ -19,7 +19,7 @@ FP_MATH_CTRL2 = $AFE202     ; Not Used - Reserved
 FP_MATH_CTRL3 = $AFE203     ; Not Used - Reserved
 ;Read Only
 FP_MATH_MULT_STAT = $AFE204
-FP_MULT_STAT_NAN  = $01      ; Not a number Status
+FP_MULT_STAT_NAN  = $01      ; (NAN) Not a Number Status
 FP_MULT_STAT_OVF  = $02      ; Overflow
 FP_MULT_STAT_UDF  = $04      ; Underflow
 FP_MULT_STAT_ZERO = $08      ; Zero
@@ -28,6 +28,7 @@ FP_DIV_STAT_NAN  = $01      ; Not a number Status
 FP_DIV_STAT_OVF  = $02      ; Overflow
 FP_DIV_STAT_UDF  = $04      ; Underflow
 FP_DIV_STAT_ZERO = $08      ; Zero
+FP_DIV_STAT_DIVBYZERO = $10  ; Division by Zero
 FP_MATH_ADD_STAT  = $AFE206
 FP_ADD_STAT_NAN  = $01      ; Not a number Status
 FP_ADD_STAT_OVF  = $02      ; Overflow
