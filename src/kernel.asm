@@ -75,15 +75,20 @@ CLEAR_MEM_LOOP
                 setaxl
                 LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
                 STA SCREENBEGIN
+                STA CURSORPOS
+
+                LDA #<>CS_COLOR_MEM_PTR   ; Set the initial COLOR cursor position
+                STA COLORPOS
+
                 setas
                 LDA #`SCREEN_PAGE0
                 STA SCREENBEGIN+2
-                setaxl
-                LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
-                STA CURSORPOS
-                setas
-                LDA #`SCREEN_PAGE0
                 STA CURSORPOS+2
+
+                LDA #`CS_COLOR_MEM_PTR    ; Set the initial COLOR cursor position
+                STA COLORPOS+2
+                
+                setas
                 LDA #$00
                 STA KEYBOARD_SC_FLG     ; Clear the Keyboard Flag
                 ; Shutdown the SN76489 before the CODEC enables all the channels
@@ -111,9 +116,8 @@ CLEAR_MEM_LOOP
                 LDY #64
                 STY LINES_MAX
 
-                LDA #$ED
+                LDA #$ED                  ; Set the default text color to light gray on dark gray 
                 STA CURCOLOR
-
 
                 ; Init CODEC
                 JSL INITCODEC
@@ -156,8 +160,6 @@ CLEAR_MEM_LOOP
                 LDY #0
                 JSL ILOCATE
 
-                ; Go set the Color Text Memory so we can have color for the LOGO
-                JSL ICOLORFLAG  ; This is to set the Color Memory for the Logo
                 ; Write the Greeting Message Here, after Screen Cleared and Colored
 ;greet           setdbr `greet_msg       ;Set data bank to ROM
                 setas
@@ -178,11 +180,10 @@ CLEAR_MEM_LOOP
 greet           setdbr `greet_msg       ;Set data bank to ROM
                 LDX #<>greet_msg
                 JSL IPRINT       ; print the first line
-                 ; Let's Change the Color Memory For the Logo
-                ;LDX #<>version_msg
-                ;LDX #<>old_pc_style_stat
-                ;JSL IPRINT       ; print the first line
-                ;JSL ENTRY_CMD_DIR
+
+                ; Go set the Color Text Memory so we can have color for the LOGO
+                JSL ICOLORFLAG  ; This is to set the Color Memory for the Logo
+
                 setdp 0
                 ; Init the Keyboard
                 JSL INITKEYBOARD ;
@@ -529,7 +530,11 @@ check_ctrl0     CMP #CHAR_TAB       ; If it's a TAB...
                 BEQ do_ins          ; ... insert a space
 
 printc          STA [CURSORPOS]     ; Save the character on the screen
-                JSL ICSRRIGHT
+
+                LDA CURCOLOR        ; Set the color based on CURCOLOR
+                STA [COLORPOS]
+
+                JSL ICSRRIGHT       ; And advance the cursor
 
 done            PLP
                 PLB
@@ -907,6 +912,12 @@ ilocate_right   CLC
                 STA @lVKY_TXT_CURSOR_Y_REG_L  ;Store in Vicky's registers
                 TXA
                 STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
+
+                setal
+                CLC
+                LDA CURSORPOS
+                ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
+                STA COLORPOS
 
 ilocate_done    PLP
                 PLD

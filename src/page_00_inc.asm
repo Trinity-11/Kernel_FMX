@@ -15,8 +15,8 @@ LINES_MAX        = $000015 ;2 Bytes The number of rows in memory for the screen.
 CURSORPOS        = $000017 ;3 Bytes The next character written to the screen will be written in this location.
 CURSORX          = $00001A ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
 CURSORY          = $00001C ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
-CURCOLOR         = $00001E ;2 Bytes Color of next character to be printed to the screen.
-CURATTR          = $000020 ;2 Bytes Attribute of next character to be printed to the screen.
+CURCOLOR         = $00001E ;1 Byte Color of next character to be printed to the screen.
+COLORPOS         = $00001F ;3 Byte address of cursor's position in the color matrix
 STACKBOT         = $000022 ;2 Bytes Lowest location the stack should be allowed to write to. If SP falls below this value, the runtime should generate STACK OVERFLOW error and abort.
 STACKTOP         = $000024 ;2 Bytes Highest location the stack can occupy. If SP goes above this value, the runtime should generate STACK OVERFLOW error and abort.
 ; OPL2 Library Variable (Can be shared if Library is not used)
