@@ -61,16 +61,19 @@ CLEAR_MEM_LOOP
                 CPX #$0100
                 BNE CLEAR_MEM_LOOP
                 NOP
+
                 ; Setup the Interrupt Controller
                 ; For Now all Interrupt are Falling Edge Detection (IRQ)
                 LDA #$FF
                 STA @lINT_EDGE_REG0
                 STA @lINT_EDGE_REG1
                 STA @lINT_EDGE_REG2
+                STA @lINT_EDGE_REG3
                 ; Mask all Interrupt @ This Point
                 STA @lINT_MASK_REG0
                 STA @lINT_MASK_REG1
                 STA @lINT_MASK_REG2
+                STA @lINT_MASK_REG3
 
                 setaxl
                 LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
@@ -160,21 +163,6 @@ CLEAR_MEM_LOOP
                 LDY #0
                 JSL ILOCATE
 
-                ; Write the Greeting Message Here, after Screen Cleared and Colored
-;greet           setdbr `greet_msg       ;Set data bank to ROM
-                setas
-                ;LDA @lDIP_BOOTMODE  ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], BOOT_MODE[0]}
-                ;AND #HD_INSTALLED
-                ;CMP #HD_INSTALLED
-                ;BNE BYPASS_FIND_HDD
-                ;setaxl
-                ;LDX #<>IDE_HDD_Present_msg0
-                ;JSL IPRINT       ; print the first line
-                ;JSL IDE_INIT
-                ;JSL IDE_GET_INFO
-                ;JSL IDE_DISPLAY_INFO
-;BYPASS_FIND_HDD
-
                 setaxl
                 ; Write the Greeting Message Here, after Screen Cleared and Colored
 greet           setdbr `greet_msg       ;Set data bank to ROM
@@ -208,37 +196,6 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
           		 	JSL ILOOP_MS
                 LDA #$9F ; Channel Two - No Atteniation
                 STA $AFF100
-                ;LDA #$80
-                ;STA OPM_1B_CT_W
-                ;LDA #$40
-                ;STA OPM_1B_CT_W
-                ;setas
-                ; Set the Volume to Max
-                LDA #$0F
-                STA SID0_MODE_VOL
-                LDA #$62
-                STA SID0_V1_FREQ_LO
-                LDA #$08
-                STA SID0_V1_FREQ_HI
-                LDA #$00
-                STA SID0_V1_PW_LO
-                LDA #$08
-                STA SID0_V1_PW_HI
-                LDA #$08
-                STA SID0_V1_ATCK_DECY
-                LDA #198
-                STA SID0_V1_SSTN_RLSE
-
-                LDA #$11
-                STA SID0_V1_CTRL
-                LDX #32768      ; 100ms
-    						JSL ILOOP_MS
-                LDA #$10
-                STA SID0_V1_CTRL
-                LDA #$00
-                ; STA OPM_1B_CT_W
-                ; LDA #$00
-                ; STA OPM_1B_CT_W
 
                 ; ;setaxl
                 ; JSL YM2151_test
