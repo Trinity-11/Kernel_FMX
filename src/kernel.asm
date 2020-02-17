@@ -895,22 +895,38 @@ ISCROLLUP       ; Scroll the screen up by one row
                 PHY
                 PHB
                 PHP
-                ; Scroll Text Up
+
                 setaxl
+                ; Calculate the number of bytes to move
+                LDA @lCOLS_PER_LINE
+                STA @lM0_OPERAND_A
+                LDA @lLINES_VISIBLE
+                STA @lM0_OPERAND_B
+                LDA @lM0_RESULT
+                STA @lTMPPTR1
+
+                ; Scroll Text Up
                 CLC
-                LDY #$A000
-                LDX #$A080
-                LDA #128 * 63 - 1
+                LDA #$A000
+                TAY
+                ADC @lCOLS_PER_LINE
+                TAX
+                LDA @lTMPPTR1
                 ; Move the data
                 MVN $AF,$AF
+
                 ; Scroll Color Up
                 setaxl
-                LDY #$C000
-                LDX #$C080
+                CLC
+                LDA #$C000
+                TAY
+                ADC @lCOLS_PER_LINE
+                TAX
                 ; for now, should be 8064 or $1f80 bytes
-                LDA #128 * 63 - 1
+                LDA @lTMPPTR1
                 ; Move the data
                 MVN $AF,$AF
+
                 PLP
                 PLB
                 PLY
@@ -1036,31 +1052,115 @@ iclearloop1	    STA CS_COLOR_MEM_PTR, x	;
                 RTL
 
 ;
+; Copy 42 Bytes
+;
+; Inputs:
+;   TMPPTR1 = pointer to the source
+;   TMPPTR2 = pointer to the destination
+;
+COPYBYTES42     .proc
+                PHP
+                PHD
+
+                setdp TMPPTR1
+
+                setas
+                setxl
+                LDY #0
+copy_loop       LDA [TMPPTR1],Y
+                STA [TMPPTR2],Y
+                INY
+                CPY #42
+                BNE copy_loop
+
+                PLD
+                PLP
+                RTS
+                .pend
+
+;
 ; ICOLORFLAG
 ; Set the colors of the flag on the welcome screen
 ;
-ICOLORFLAG      PHA
+ICOLORFLAG      .proc
+                PHA
                 PHX
+                PHY
                 PHP
-                setaxs
-                LDX #$00
-iclearloop2	    LDA @lgreet_clr_line1,x
-                STA CS_COLOR_MEM_PTR,x
-                LDA @lgreet_clr_line2,x
-                STA CS_COLOR_MEM_PTR + $80,x
-                LDA @lgreet_clr_line3,x
-                STA CS_COLOR_MEM_PTR + $100,x
-                LDA @lgreet_clr_line4,x
-                STA CS_COLOR_MEM_PTR + $180,x
-                LDA @lgreet_clr_line5,x
-                STA CS_COLOR_MEM_PTR + $200,x
-                inx
-                cpx #42
-                bne iclearloop2
+                PHB
+                PHD
+
+                setdp 0
+
+                setaxl
+                LDA #<>CS_COLOR_MEM_PTR
+                STA TMPPTR2
+                LDA #`CS_COLOR_MEM_PTR
+                STA TMPPTR2+2
+
+                LDA #<>greet_clr_line1
+                STA TMPPTR1
+                LDA #`greet_clr_line1
+                STA TMPPTR1+2
+
+                JSR COPYBYTES42
+
+                CLC
+                LDA TMPPTR2
+                ADC COLS_PER_LINE
+                STA TMPPTR2
+
+                LDA #<>greet_clr_line2
+                STA TMPPTR1
+                LDA #`greet_clr_line2
+                STA TMPPTR1+2
+
+                JSR COPYBYTES42
+
+                CLC
+                LDA TMPPTR2
+                ADC COLS_PER_LINE
+                STA TMPPTR2
+
+                LDA #<>greet_clr_line3
+                STA TMPPTR1
+                LDA #`greet_clr_line3
+                STA TMPPTR1+2
+
+                JSR COPYBYTES42
+
+                CLC
+                LDA TMPPTR2
+                ADC COLS_PER_LINE
+                STA TMPPTR2
+
+                LDA #<>greet_clr_line4
+                STA TMPPTR1
+                LDA #`greet_clr_line4
+                STA TMPPTR1+2
+
+                JSR COPYBYTES42
+
+                CLC
+                LDA TMPPTR2
+                ADC COLS_PER_LINE
+                STA TMPPTR2
+
+                LDA #<>greet_clr_line5
+                STA TMPPTR1
+                LDA #`greet_clr_line5
+                STA TMPPTR1+2
+
+                JSR COPYBYTES42
+
+                PLD
+                PLB
                 PLP
+                PLY
                 PLX
                 PLA
                 RTL
+                .pend
 ;
 ; IINITCHLUT
 ; Author: Stefany
@@ -1221,9 +1321,30 @@ IINITVKYTXTMODE PHA
                 ; Enable the Text Mode Only
                 LDA #Mstr_Ctrl_Text_Mode_En
                 STA MASTER_CTRL_REG_L
+
+                LDA #0
+                STA @lMASTER_CTRL_REG_H
+
                 setaxl        ; Set Acc back to 16bits before setting the Cursor Position
+
+                LDA #80 ;80 / 100
+                STA @lCOLS_PER_LINE
+                LDA #60 ;60 / 75
+                STA @lLINES_MAX
+
+                SEC
+                LDA @lCOLS_PER_LINE
+                SBC #8
+                STA @lCOLS_VISIBLE
+
+                SEC
+                LDA @lLINES_MAX
+                SBC #8
+                STA @lLINES_VISIBLE
+
                 PLA
                 RTL
+
 ; IINITVKYTXTMODE
 ; Author: Stefany
 ;Init the Text Mode

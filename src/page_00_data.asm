@@ -7,7 +7,7 @@
 ;* = SCREENBEGIN
                 .long $AFA000       ; SCREENBEGIN, 3 bytes, Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
                 .word 76            ; COLS_VISIBLE, 2 bytes, Columns visible per screen line. A virtual line can be longer than displayed, up to COLS_PER_LINE long. Default = 80
-                .word 128           ; COLS_PER_LINE, 2 bytes, Columns in memory per screen line. A virtual line can be this long. Default=128
+                .word 100           ; COLS_PER_LINE, 2 bytes, Columns in memory per screen line. A virtual line can be this long. Default=128
                 .word 56            ; LINES_VISIBLE, 2 bytes, The number of rows visible on the screen. Default=25
                 .word 64            ; LINES_MAX, 2 bytes, The number of rows in memory for the screen. Default=64
                 .long $AFA000       ; CURSORPOS, 3 bytes, The next character written to the screen will be written in this location.

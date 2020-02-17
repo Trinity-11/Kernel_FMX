@@ -3,8 +3,9 @@
 ;
 ;* Addresses are the byte AFTER the block. Use this to confirm block locations and check for overlaps
 BANK0_BEGIN      = $000000 ;Start of bank 0 and Direct page
-unused_0000      = $000000 ;12 Bytes unused
-OPL2_ADDY_PTR_LO = $000008  ; THis Points towards the Instruments Database
+TMPPTR1          = $000000 ; 4 byte temporary pointer
+TMPPTR2          = $000004 ; 4 byte temporary pointer
+OPL2_ADDY_PTR_LO = $000008 ; THis Points towards the Instruments Database
 OPL2_ADDY_PTR_MD = $000009
 OPL2_ADDY_PTR_HI = $00000A
 SCREENBEGIN      = $00000C ;3 Bytes Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
