@@ -45,12 +45,20 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 * = $390400
 
 IBOOT           ; boot the system
-                CLC           ; clear the carry flag
-                XCE           ; move carry to emulation flag.
-                SEI
+                CLC               ; clear the carry flag
+                XCE               ; move carry to emulation flag.
+
+                SEI               ; Disable interrupts
+
                 setaxl
-                LDA #STACK_END   ; initialize stack pointer
+                LDA #STACK_END    ; initialize stack pointer
                 TAS
+
+                LDX #<>BOOT       ; Copy the kernel jump table to bank 0
+                LDY #<>BOOT       ; Ordinarily, this is done by GAVIN, but
+                LDA #$0100        ; this is ensures it can be reloaded in case of errors
+                MVN `BOOT,$00     ; Or during soft loading of the kernel from the debug port
+
                 setdp 0
                 setas
                 LDX #$0000
@@ -558,6 +566,7 @@ do_locate       JSL ILOCATE         ; Set the cursor position
 SCRSHIFTLL      PHX
                 PHY
                 PHA
+                PHD
                 PHP
 
                 setdp 0
@@ -569,12 +578,13 @@ SCRSHIFTLL      PHX
                 INX                 ; And set the next cell as the source
 
                 SEC                 ; Calculate the length of the block to move
-                LDA #127            ; as 127 - X
+                LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
                 MVN $AF, $AF        ; And move the block
 
                 PLP
+                PLD
                 PLA
                 PLY
                 PLX
@@ -590,7 +600,10 @@ SCRSHIFTLL      PHX
 ;
 SCRSHIFTLR      PHX
                 PHA
+                PHD
                 PHP
+
+                setdp 0
 
                 setaxl
                 LDA CURSORPOS       ; Get the current cursor position
@@ -601,7 +614,7 @@ SCRSHIFTLR      PHX
                 TAX                 ; And make it the source
 
                 SEC                 ; Calculate the length of the block to move
-                LDA #127            ; as 127 - X
+                LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
                 MVP $AF, $AF        ; And move the block
@@ -611,6 +624,7 @@ SCRSHIFTLR      PHX
                 STA [CURSORPOS]
 
                 PLP
+                PLD
                 PLA
                 PLX
                 RTL
@@ -894,24 +908,27 @@ ISCROLLUP       ; Scroll the screen up by one row
                 PHX
                 PHY
                 PHB
+                PHD
                 PHP
+
+                setdp 0
 
                 setaxl
                 ; Calculate the number of bytes to move
-                LDA @lCOLS_PER_LINE
+                LDA COLS_PER_LINE
                 STA @lM0_OPERAND_A
-                LDA @lLINES_VISIBLE
+                LDA LINES_VISIBLE
                 STA @lM0_OPERAND_B
                 LDA @lM0_RESULT
-                STA @lTMPPTR1
+                STA TMPPTR1
 
                 ; Scroll Text Up
                 CLC
                 LDA #$A000
                 TAY
-                ADC @lCOLS_PER_LINE
+                ADC COLS_PER_LINE
                 TAX
-                LDA @lTMPPTR1
+                LDA TMPPTR1
                 ; Move the data
                 MVN $AF,$AF
 
@@ -920,14 +937,44 @@ ISCROLLUP       ; Scroll the screen up by one row
                 CLC
                 LDA #$C000
                 TAY
-                ADC @lCOLS_PER_LINE
+                ADC COLS_PER_LINE
                 TAX
                 ; for now, should be 8064 or $1f80 bytes
-                LDA @lTMPPTR1
+                LDA TMPPTR1
                 ; Move the data
                 MVN $AF,$AF
 
+                ; Clear the last line of text on the screen
+                LDA TMPPTR1
+                PHA
+
+                CLC
+                ADC #<>CS_TEXT_MEM_PTR
+                STA TMPPTR1
+
+                LDY #0
+                LDA #' '
+clr_text        STA [TMPPTR1],Y
+                INY
+                CPY COLS_VISIBLE
+                BNE clr_text
+
+                ; Set the last line of color on the screen to the current color
+                PLA
+
+                CLC
+                ADC #<>CS_COLOR_MEM_PTR
+                STA TMPPTR1
+
+                LDY #0
+                LDA CURCOLOR
+clr_color       STA [TMPPTR1],Y
+                INY
+                CPY COLS_VISIBLE
+                BNE clr_color
+
                 PLP
+                PLD
                 PLB
                 PLY
                 PLX
@@ -1405,7 +1452,15 @@ frac_width      LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 
 store_width     STA TMPPTR1
                 STZ TMPPTR1+1
 
+                setas
+                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
+                BIT #Mstt_Ctrl_Video_Mode1
+                BEQ adjust_width            ; No... just adjust the width of the screen
+
                 setal
+                LSR TMPPTR1                 ; Yes... cut the adjustment in half
+
+adjust_width    setal
                 SEC
                 LDA COLS_PER_LINE
                 SBC TMPPTR1
@@ -1427,7 +1482,15 @@ frac_height     LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 
 store_height    STA TMPPTR1
                 STZ TMPPTR1+1
 
+                setas
+                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
+                BIT #Mstt_Ctrl_Video_Mode1
+                BEQ adjust_height           ; No... just adjust the height of the screen
+
                 setal
+                LSR TMPPTR1                 ; Yes... cut the adjustment in half
+
+adjust_height   setal
                 SEC
                 LDA LINES_MAX
                 SBC TMPPTR1
