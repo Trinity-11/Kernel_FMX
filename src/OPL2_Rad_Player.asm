@@ -739,10 +739,10 @@ RAD_SETINSTRUMENT
               STA OPL2_REG_OFFSET+1;
               setaxl
               CLC
-              LDA #OPL2_S_BASE_LL
+              LDA #OPL3_R_BASE_LL
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #OPL2_S_BASE_HL
+              LDA #OPL3_R_BASE_HL
               STA OPL2_IND_ADDY_HL
               setas
               LDY #$0008

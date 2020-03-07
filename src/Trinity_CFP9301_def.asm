@@ -93,7 +93,7 @@ SNES0_DAT_HI0       = $AFE809   ; Contains the extra 4 bit from the SNES Control
 NES_SNES1_DAT_LO    = $AFE80A
 SNES1_DAT_HI0       = $AFE80B
 
-; CPLD Revsion
+; CPLD Revision
 CFP9301_REV         = $AFE80C   ; Hardware Revision of the CPLD Code
 
 ; Dip switch Ports
