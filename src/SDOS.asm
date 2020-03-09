@@ -480,10 +480,10 @@ ISDOS_READ_FILE
               CMP #$FFFF
               BNE SDOS_READ_DONE                  ; if it equal 64K, then the file is bigger than 64K
               ; Now let's go compute the Nu Value for the Next Batch
-              LDA @lADDER_R
-              STA @lADDER_A
-              LDA @lADDER_R+2
-              STA @lADDER_A+2
+              LDA @lADDER32_R_LL
+              STA @lADDER32_A_LL
+              LDA @lADDER32_R_LL+2
+              STA @lADDER32_A_LL+2
               JSR SDOS_SET_FILE_LENGTH ;
               JSR SDOS_COMPUTE_LOCATE_POINTER
               setas

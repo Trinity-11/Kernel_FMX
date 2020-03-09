@@ -104,37 +104,10 @@ MOUSE_POS_Y_HI   = $0000E4
 USER_TEMP        = $0000F0 ;32 Bytes Temp space for user programs
 
 ;;///////////////////////////////////////////////////////////////
-;;; NO CODE or Variable ought to be Instatied in this REGION
+;;; NO CODE or Variable ought to be Instantiated in this REGION
 ;; BEGIN
 ;;///////////////////////////////////////////////////////////////
 GAVIN_BLOCK      = $000100 ;256 Bytes Gavin reserved, overlaps debugging registers at $1F0
-
-MULTIPLIER_0     = $000100 ;0 Byte  Unsigned multiplier
-M0_OPERAND_A     = $000100 ;2 Bytes Operand A (ie: A x B)
-M0_OPERAND_B     = $000102 ;2 Bytes Operand B (ie: A x B)
-M0_RESULT        = $000104 ;4 Bytes Result of A x B
-
-MULTIPLIER_1     = $000108 ;0 Byte  Signed Multiplier
-M1_OPERAND_A     = $000108 ;2 Bytes Operand A (ie: A x B)
-M1_OPERAND_B     = $00010A ;2 Bytes Operand B (ie: A x B)
-M1_RESULT        = $00010C ;4 Bytes Result of A x B
-
-DIVIDER_0        = $000108 ;0 Byte  Unsigned divider
-D0_OPERAND_A     = $000108 ;2 Bytes Divider 0 Dividend ex: A in  A/B
-D0_OPERAND_B     = $00010A ;2 Bytes Divider 0 Divisor ex B in A/B
-D0_RESULT        = $00010C ;2 Bytes Quotient result of A/B ex: 7/2 = 3 r 1
-D0_REMAINDER     = $00010E ;2 Bytes Remainder of A/B ex: 1 in 7/2=3 r 1
-
-DIVIDER_1        = $000110 ;0 Byte  Signed divider
-D1_OPERAND_A     = $000110 ;2 Bytes Divider 1 Dividend ex: A in  A/B
-D1_OPERAND_B     = $000112 ;2 Bytes Divider 1 Divisor ex B in A/B
-D1_RESULT        = $000114 ;2 Bytes Signed quotient result of A/B ex: 7/2 = 3 r 1
-D1_REMAINDER     = $000116 ;2 Bytes Signed remainder of A/B ex: 1 in 7/2=3 r 1
-; Reserved
-ADDER_SIGNED_32  = $000120 ; The 32 Bit Adders takes 12Byte that are NOT RAM Location
-ADDER_A          = $000120 ; 4 bytes (32 bit) Accumulator A
-ADDER_B          = $000124 ; 4 bytes (32 bit) Accumulator B
-ADDER_R          = $000128 ; 4 bytes (32 bit) Result
 
 ; Reserved
 INT_CONTROLLER   = $000140 ; $000140...$00015F Interrupt Controller
@@ -210,18 +183,18 @@ CHAN_IN          = $000704 ; 1-byte: the number of the current input channel (fo
 
 ; COMMAND PARSER Variables
 ; Command Parser Stuff between $000F00 -> $000F84 (see CMD_Parser.asm)
-KEY_BUFFER       = $000F00 ;64 Bytes keyboard buffer
-KEY_BUFFER_SIZE  = $0080 ;128 Bytes (constant) keyboard buffer length
-KEY_BUFFER_END   = $000F7F ;1 Byte  Last byte of keyboard buffer
-KEY_BUFFER_CMD   = $000F83 ;1 Byte  Indicates the Command Process Status
-COMMAND_SIZE_STR = $000F84 ; 1 Byte
-COMMAND_COMP_TMP = $000F86 ; 2 Bytes
-KEYBOARD_SC_FLG  = $000F87 ;1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
-KEYBOARD_SC_TMP  = $000F88 ;1 Byte, Interrupt Save Scan Code while Processing
-KEYBOARD_LOCKS   = $000F89 ;1 Byte, the status of the various lock keys
-KEYFLAG          = $000F8A ;1 Byte, flag to indicate if CTRL-C has been pressed
-KEY_BUFFER_RPOS  = $000F8B ;2 Byte, position of the character to read from the KEY_BUFFER
-KEY_BUFFER_WPOS  = $000F8D ;2 Byte, position of the character to write to the KEY_BUFFER
+KEY_BUFFER       = $000F00 ; 64 Bytes keyboard buffer
+KEY_BUFFER_SIZE  = $0080   ;128 Bytes (constant) keyboard buffer length
+KEY_BUFFER_END   = $000F7F ;  1 Byte  Last byte of keyboard buffer
+KEY_BUFFER_CMD   = $000F83 ;  1 Byte  Indicates the Command Process Status
+COMMAND_SIZE_STR = $000F84 ;  1 Byte
+COMMAND_COMP_TMP = $000F86 ;  2 Bytes
+KEYBOARD_SC_FLG  = $000F87 ;  1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
+KEYBOARD_SC_TMP  = $000F88 ;  1 Byte, Interrupt Save Scan Code while Processing
+KEYBOARD_LOCKS   = $000F89 ;  1 Byte, the status of the various lock keys
+KEYFLAG          = $000F8A ;  1 Byte, flag to indicate if CTRL-C has been pressed
+KEY_BUFFER_RPOS  = $000F8B ;  2 Byte, position of the character to read from the KEY_BUFFER
+KEY_BUFFER_WPOS  = $000F8D ;  2 Byte, position of the character to write to the KEY_BUFFER
 
 KERNEL_JMP_BEGIN = $001000 ; Reserved for the Kernel jump table
 KERNEL_JMP_END   = $001FFF

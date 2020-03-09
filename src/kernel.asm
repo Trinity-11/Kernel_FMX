@@ -2056,12 +2056,12 @@ IBMP_PARSER_CONT
                ; Y x Stride + X
   DONE_TRANSFER_LUT
                 LDA BMP_POSITION_Y
-                STA @lM0_OPERAND_A
+                STA @lUNSIGNED_MULT_A_LO
                 LDA SCRN_X_STRIDE
-                STA @lM0_OPERAND_B
-                LDA @lM0_RESULT
+                STA @lUNSIGNED_MULT_B_LO
+                LDA @lUNSIGNED_MULT_AL_LO
                 STA @lADDER32_A_LL          ; Store in 32Bit Adder (A)
-                LDA @lM0_RESULT+2
+                LDA @lUNSIGNED_MULT_AL_LO+2
                 STA @lADDER32_A_HL          ; Store in 32Bit Adder (A)
                 LDA BMP_POSITION_X
                 STA @lADDER32_B_LL          ; Put the X Position Adder (B)
