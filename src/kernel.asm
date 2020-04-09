@@ -34,9 +34,9 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "kernel_jumptable.asm"
 
 .include "Interrupt_Handler.asm" ; Interrupt Handler Routines
-.include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "ide_library.asm"
+.include "sdcard_controller_def.asm"
+.include "sdos.asm"
 ;.include "YM26XX.asm"
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
@@ -2330,13 +2330,11 @@ credit_loop     LDA @lCREDITS_TEXT,X            ; Copy a byte of text
 IRESTORE        BRK ; Warm boot routine
 ISCINIT         BRK ;
 IIOINIT         BRK ;
-IPUTBLOCK       BRK ; Ouput a binary block to the currently selected channel
 ISETLFS         BRK ; Obsolete (done in OPEN)
 ISETNAM         BRK ; Obsolete (done in OPEN)
 IOPEN           BRK ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 ICLOSE          BRK ; Close a channel
 IGETB           BRK ; Get a byte from input channel. Return 0 if no input. Carry is set if no input.
-IGETBLOCK       BRK ; Get a X byes from input channel. If Carry is set, wait. If Carry is clear, do not wait.
 IGETCH          BRK ; Get a character from the input channel. A=0 and Carry=1 if no data is wating
 IGETS           BRK ; Get a string from the input channel. NULL terminates
 IGETLINE        BRK ; Get a line of text from input channel. CR or NULL terminates.
