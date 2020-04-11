@@ -597,21 +597,81 @@ ret_success     BRL IF_SUCCESS
                 .pend
 
 ;
-; IF_RENAME
+; IF_DIRREAD
 ;
-; Rename a file.
+; Find the directory entry for a given path
+;
+; Inputs:
+;   DOS_PATH_BUFF = path to the directory entry desired
+;
+; Outputs:
+;   DOS_DIR_PTR = pointer to the directory entry
+;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
+;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
+;   C = set if success, clear on error
+;
+IF_DIRREAD      .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+
+                JSL DOS_FINDFILE              ; This is really just DOS_FINDFILE
+                BCS success
+                BRL IF_FAILURE
+
+success         BRL IF_SUCCESS
+                .pend
+
+;
+; IF_DIRWRITE
+;
+; Update the current directory entry
 ;
 ; NOT IMPLEMENTED
 ;
 ; Inputs:
-;   ???
+;   DOS_DIR_PTR = pointer to the updated directory entry
+;   DOS_DIR_CLUS = the cluster ID of the directory entry
 ;
 ; Outputs:
 ;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
 ;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
 ;   C = set if success, clear on error
 ;
-IF_RENAME       BRK
+IF_DIRWRITE     .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+                LDA DOS_DIR_CLUS_ID
+                STA DOS_CLUS_ID
+                LDA DOS_DIR_CLUS_ID+2
+                STA DOS_CLUS_ID+2
+
+                LDA #<>DOS_DIR_CLUSTER
+                STA DOS_BUFF_PTR
+                LDA #`DOS_DIR_CLUSTER
+                STA DOS_BUFF_PTR+2
+
+                JSL DOS_PUTCLUSTER
+                BCS success
+                BRL IF_FAILURE
+
+success         BRL IF_SUCCESS
+                .pend
 
 ; IF_LOAD
 ;
@@ -1093,165 +1153,5 @@ IF_SUCCESS      setas
                 PLY
                 PLX
                 RTL             
-
-; Print a directory entry
-IPRDIRENTRY     .proc
-                PHB
-                PHD
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                setxl
-                setas
-
-                LDY #DIRENTRY.ATTRIBUTE         ; Check the file's attributes
-                LDA [DOS_DIR_PTR],Y
-                BIT #DOS_ATTR_HIDDEN            ; Is it hidden?
-                BNE ret_success                 ; Yes: skip this entry
-
-                AND #DOS_ATTR_LONGNAME          ; Is it a long name component?
-                CMP #DOS_ATTR_LONGNAME
-                BEQ ret_success                 ; Yes: skip this entry
-
-                LDY #DIRENTRY.SHORTNAME         ; Check the first byte of the name
-                LDA [DOS_DIR_PTR],Y             ; If it's NULL, we're done with the whole list
-                BEQ ret_failure
-                CMP #DOS_DIR_ENT_UNUSED         ; If it's the unused marker
-                BEQ ret_success                 ; Skip this entry
-
-loop            setas
-                LDA [DOS_DIR_PTR],Y
-                JSL IPUTC
-
-                INY
-                CPY #DIRENTRY.SHORTNAME+11
-                BNE loop
-
-                LDA #13
-                JSL IPUTC
-
-ret_success     PLP
-                SEC
-                PLD
-                PLB
-                RTL
-
-ret_failure     PLP
-                CLC
-                PLD
-                PLB
-                RTL
-                .pend
-
-; Attempt to print the directory
-IPRDIRECTORY    .proc
-                PHB
-                PHD
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                setaxl
-
-                JSL IF_DIROPEN
-                BCC not_open
-
-loop            JSL IPRDIRENTRY
-                BCC done
-                JSL IF_DIRNEXT
-                BCS loop
-
-done            PLP
-                PLD
-                PLB
-                RTL
-
-not_open        PHB
-                LDX #<>ERR_NOT_OPEN
-                setas
-                LDA #`ERR_NOT_OPEN
-                PHA
-                PLB
-                JSL IPUTS
-                PLB
-                PLP
-                PLD
-                PLB
-
-                BRK
-err_not_open    .null 13,"Could not open the directory.",13
-                .pend
-
-TESTLOAD        .proc
-                PHB
-                PHD
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-                setaxl
-
-                LDA #0                  ; Set destination address to $02:0000
-                STA DOS_DST_PTR
-                LDA #$0002
-                STA DOS_DST_PTR+2
-
-                LDA #<>load_fd          ; Set pointer to the file descriptor
-                STA DOS_FD_PTR
-                LDA #`load_fd
-                STA DOS_FD_PTR+2
-
-                LDY #FILEDESC.PATH      ; Set the path in the descriptor
-                LDA #<>load_path
-                STA [DOS_FD_PTR],Y
-                INY
-                INY
-                LDA #`load_path
-                STA [DOS_FD_PTR],Y
-
-                LDY #FILEDESC.BUFFER    ; Set the buffer in the descriptor
-                LDA #<>TESTBUFF
-                STA [DOS_FD_PTR],Y
-                INY
-                INY
-                LDA #`TESTBUFF
-                STA [DOS_FD_PTR],Y
-
-                LDY #FILEDESC.STATUS    ; Set the status to 0
-                setas
-                LDA #0
-                STA [DOS_FD_PTR],Y
-                setal
-
-                JSL IF_LOAD             ; Attempt to load the file
-                BCC not_loaded          
-
-                PLP
-                PLD
-                PLB
-                RTL
-
-not_loaded      PHB
-                LDX #<>err_loaded
-                setas
-                LDA #`err_loaded
-                PHA
-                PLB
-                JSL IPUTS
-
-                PLP
-                PLD
-                PLB
-                RTL
-
-load_fd         .dstruct FILEDESC       ; File descriptor for loading
-load_path       .null "SAMPLE.PGX"
-err_loaded      .null "Could not load the file.",13
-                .pend
-
-TESTBUFF        .fill 512
 
 .databank 0

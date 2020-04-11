@@ -64,5 +64,7 @@ F_DELETE         = %ADDR% ; delete a file / directory
 F_RENAME         = %ADDR% ; rename a file
 F_DIROPEN        = %ADDR% ; open a directory and seek the first directory entry
 F_DIRNEXT        = %ADDR% ; seek to the next directory of an open directory
+F_DIRREAD        = %ADDR% ; Read the directory entry for the specified file
+F_DIRWRITE       = %ADDR% ; Write any changes in the current directory cluster back to the drive
 F_LOAD           = %ADDR% ; load a binary file into memory, supports multiple file formats
 F_SAVE           = %ADDR% ; Save memory to a binary file

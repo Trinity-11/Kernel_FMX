@@ -87,9 +87,10 @@ F_CLOSE         JML IF_CLOSE        ; close a file (make sure last cluster is wr
 F_WRITE         JML IF_WRITE        ; write the current cluster to the file
 F_READ          JML IF_READ         ; read the next cluster from the file
 F_DELETE        JML IF_DELETE       ; delete a file / directory
-F_RENAME        JML IF_RENAME       ; rename a file
 F_DIROPEN       JML IF_DIROPEN      ; open a directory and seek the first directory entry
 F_DIRNEXT       JML IF_DIRNEXT      ; seek to the next directory of an open directory
+F_DIRREAD       JML IF_DIRREAD      ; Read the directory entry for the specified file
+F_DIRWRITE      JML IF_DIRWRITE     ; Write any changes in the current directory cluster back to the drive
 F_LOAD          JML IF_LOAD         ; load a binary file into memory, supports multiple file formats
 F_SAVE          JML IF_SAVE         ; Save memory to a binary file
 

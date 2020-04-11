@@ -1228,6 +1228,204 @@ ret_success     setal'
                 .pend
 
 ;
+; Convert the four digit BCD number in A to binary in A (16-bit)
+;
+BCD2BIN         .proc
+                PHP
+
+                ; Put the 1s digit into DOS_TEMP+2
+
+                setaxl
+                STA DOS_TEMP
+                AND #$000F
+                STA DOS_TEMP+2
+
+                ; Add the 10s digit * 10 to DOS_TEMP+2
+
+                LDA DOS_TEMP
+                .rept 4
+                LSR A
+                .next
+                STA DOS_TEMP
+
+                AND #$000F
+                STA @l UNSIGNED_MULT_A_LO
+                LDA #10
+                STA @l UNSIGNED_MULT_B_LO
+                LDA @l UNSIGNED_MULT_AL_LO
+
+                CLC
+                ADC DOS_TEMP+2
+                STA DOS_TEMP+2
+
+                ; Add the 100s digit * 100 to DOS_TEMP+2
+
+                LDA DOS_TEMP
+                .rept 4
+                LSR A
+                .next
+                STA DOS_TEMP
+
+                AND #$000F
+                STA @l UNSIGNED_MULT_A_LO
+                LDA #100
+                STA @l UNSIGNED_MULT_B_LO
+                LDA @l UNSIGNED_MULT_AL_LO
+
+                CLC
+                ADC DOS_TEMP+2
+                STA DOS_TEMP+2
+
+                ; Add the 1000s digit * 1000 to A
+
+                LDA DOS_TEMP
+                .rept 4
+                LSR A
+                .next
+
+                AND #$000F
+                STA @l UNSIGNED_MULT_A_LO
+                LDA #1000
+                STA @l UNSIGNED_MULT_B_LO
+                LDA @l UNSIGNED_MULT_AL_LO
+
+                CLC
+                ADC DOS_TEMP+2
+
+                PLP
+                RTL
+                .pend
+
+;
+; Set the CREATION date-time of a file descriptor from the real time clock
+;
+; Inputs:
+;   DOS_FD_PTR = pointer to the file descriptor to update
+;
+DOS_RTCCREATE   .proc
+                PHP
+
+                setxl
+                setas
+                LDA @l RTC_CTRL             ; Turn off the updates to the clock 
+                ORA #%00001000
+                STA @l RTC_CTRL
+
+                ;
+                ; First... set the creation date
+                ;
+
+                ; Get the current year
+                LDA @l RTC_CENTURY
+                STA DOS_TEMP+1
+                LDA @l RTC_YEAR             ; Get the year
+                STA DOS_TEMP
+
+                setal
+                LDA DOS_TEMP
+                JSL BCD2BIN                 ; Convert it to binary
+
+                SEC                         ; Year is relative to 1980
+                SBC #1980
+                
+                setal                
+                .rept 9                     ; Move the year to bits 15 - 9
+                ASL A
+                .next
+                AND #$FE00
+
+                LDY #FILEDESC.CREATE_DATE   ; And save it to the creation date field
+                STA [DOS_FD_PTR],Y
+
+                ; Get the current month
+                setas
+                LDA @l RTC_MONTH            ; Get the month
+                setal
+                AND #$00FF
+                JSL BCD2BIN                 ; Convert it to binary
+                AND #$00FF                  ; Move the year to bits 15 - 9
+                .rept 5
+                ASL A
+                .next
+                AND #$01E0                  ; Make sure only the month is covered
+
+                LDY #FILEDESC.CREATE_DATE   ; And save it to the creation date field
+                ORA [DOS_FD_PTR],Y
+                STA [DOS_FD_PTR],Y
+
+                ; Get the current day
+                setas
+                LDA @l RTC_DAY              ; Get the day
+                setal
+                AND #$00FF
+                JSL BCD2BIN                 ; Convert it to binary
+                AND #$001F                  ; Make sure only the day is covered
+
+                LDY #FILEDESC.CREATE_DATE   ; And save it to the creation date field
+                ORA [DOS_FD_PTR],Y
+                STA [DOS_FD_PTR],Y
+
+                ;
+                ; Next... set the creation time
+                ;
+
+                ; Get the current hour
+                setas
+                LDA @l RTC_HRS              ; Get the hour
+                AND #$1F                    ; Trim AM/PM bit
+                setal
+                AND #$00FF
+                JSL BCD2BIN                 ; Convert it to binary
+
+                setal
+                .rept 11                    ; Move the hour to bits 15 - 11
+                ASL A
+                .next
+                AND #$F800
+
+                LDY #FILEDESC.CREATE_TIME   ; And save it to the creation time field
+                STA [DOS_FD_PTR],Y
+
+                ; Get the current minute
+                setas
+                LDA @l RTC_MIN              ; Get the minute
+                setal
+                AND #$00FF
+                JSL BCD2BIN                 ; Convert it to binary
+
+                setal
+                .rept 5                     ; Move the hour to bits 10 - 5
+                ASL A
+                .next
+                AND #$07E0
+
+                LDY #FILEDESC.CREATE_TIME   ; And save it to the creation time field
+                ORA [DOS_FD_PTR],Y
+                STA [DOS_FD_PTR],Y
+
+                ; Get the current second
+                setas
+                LDA @l RTC_SEC              ; Get the second
+                setal
+                AND #$00FF
+                JSL BCD2BIN                 ; Convert it to binary
+
+                setal
+                AND #$001F
+
+                LDY #FILEDESC.CREATE_TIME   ; And save it to the creation time field
+                ORA [DOS_FD_PTR],Y
+                STA [DOS_FD_PTR],Y
+
+                LDA @l RTC_CTRL             ; Turn on the updates again
+                AND #%11110111
+                STA @l RTC_CTRL
+
+                PLP
+                RTL
+                .pend
+
+;
 ; Create a file on the selected block device and write its first cluster
 ;
 ; Inputs:
@@ -1356,6 +1554,18 @@ name_loop       LDA DOS_SHORT_NAME,Y            ; Copy the name over
                 LDA [DOS_FD_PTR],Y
                 LDY #DIRENTRY.SIZE+2
                 STA [DOS_DIR_PTR],Y
+
+                JSL DOS_RTCCREATE               ; Pull the creation date-time from the RTC
+
+                ; Set a reasonable default date-time
+                ; TODO: set a real date-time here
+                ; LDA #((40 << 9) + (1 << 5) + 1)
+                ; LDY #FILEDESC.CREATE_DATE
+                ; STA [DOS_FD_PTR],Y
+
+                ; LDA #((1 << 11) + (1 << 5) + 1)
+                ; LDY #FILEDESC.CREATE_TIME
+                ; STA [DOS_FD_PTR],Y
 
                 LDY #FILEDESC.CREATE_DATE       ; DOS_DIR_PTR->CREATE_DATE := DOS_FD_PTR->CREATE_DATE
                 LDA [DOS_FD_PTR],Y
