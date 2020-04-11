@@ -179,7 +179,13 @@ KB_TOG_SCRLOCK  LDA KEYBOARD_LOCKS
                 STA KEYBOARD_LOCKS
                 JMP KB_CHECK_B_DONE
 
-KB_TOG_NUMLOCK  LDA KEYBOARD_LOCKS
+KB_TOG_NUMLOCK  LDA KEYBOARD_SC_FLG         ; Check flags...
+                AND #$60                    ; ... is control-alt pressed?
+                CMP #$60
+                BNE KB_TOG_NUMLOC2
+                BRL KB_NORM_SC              ; No: treat as a BREAK key
+
+KB_TOG_NUMLOC2  LDA KEYBOARD_LOCKS
                 EOR #KB_NUM_LOCK            ; toggle the Num Lock flag
                 STA KEYBOARD_LOCKS
                 JMP KB_CHECK_B_DONE

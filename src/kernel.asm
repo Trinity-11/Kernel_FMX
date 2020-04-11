@@ -34,9 +34,9 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "kernel_jumptable.asm"
 
 .include "Interrupt_Handler.asm" ; Interrupt Handler Routines
-.include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "ide_library.asm"
+.include "sdcard_controller_def.asm"
+.include "sdos.asm"
 ;.include "YM26XX.asm"
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
@@ -74,6 +74,8 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG1
                 STA @lINT_MASK_REG2
                 STA @lINT_MASK_REG3
+
+                JSL INITRTC               ; Initialize the RTC
 
                 setaxl
                 LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
@@ -1780,11 +1782,19 @@ MOUSE_READ      .as
                 ;   None
 
 INITRTC         PHA
-                setas				    ;just make sure we are in 8bit mode
-                LDA @lRTC_CTRL
-                BRK
+                PHP
+                setas				        ; Just make sure we are in 8bit mode
 
-                setal 					; Set 16bits
+                LDA #0
+                STA @l RTC_RATES    ; Set watch dog timer and periodic interrupt rates to 0
+
+                STA @l RTC_ENABLE   ; Disable all the alarms and interrupts
+                
+                LDA @lRTC_CTRL      ; Make sure the RTC will continue to tick in battery mode
+                ORA #%00000100
+                STA @lRTC_CTRL
+
+                PLP
                 PLA
                 RTL
 ;
@@ -2330,13 +2340,11 @@ credit_loop     LDA @lCREDITS_TEXT,X            ; Copy a byte of text
 IRESTORE        BRK ; Warm boot routine
 ISCINIT         BRK ;
 IIOINIT         BRK ;
-IPUTBLOCK       BRK ; Ouput a binary block to the currently selected channel
 ISETLFS         BRK ; Obsolete (done in OPEN)
 ISETNAM         BRK ; Obsolete (done in OPEN)
 IOPEN           BRK ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 ICLOSE          BRK ; Close a channel
 IGETB           BRK ; Get a byte from input channel. Return 0 if no input. Carry is set if no input.
-IGETBLOCK       BRK ; Get a X byes from input channel. If Carry is set, wait. If Carry is clear, do not wait.
 IGETCH          BRK ; Get a character from the input channel. A=0 and Carry=1 if no data is wating
 IGETS           BRK ; Get a string from the input channel. NULL terminates
 IGETLINE        BRK ; Get a line of text from input channel. CR or NULL terminates.
@@ -2457,7 +2465,7 @@ ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $3
 ScanCode_Shift_Set1   .text $00, $00, $21, $40, $23, $24, $25, $5E, $26, $2A, $28, $29, $5F, $2B, $08, $09    ; $00
                       .text $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $7B, $7D, $0D, $00, $41, $53    ; $10
                       .text $44, $46, $47, $48, $4A, $4B, $4C, $3A, $22, $7E, $00, $5C, $5A, $58, $43, $56    ; $20
-                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $18, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
+                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $00, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
@@ -2467,7 +2475,7 @@ ScanCode_Ctrl_Set1    .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $3
                       .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
                       .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $03, $76    ; $20
                       .text $62, $6E, $6D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
-                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
+                      .text $00, $00, $00, $00, $00, $18, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
