@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 --long-address --flat --intel-hex -o kernel.hex --list kernel_hex.lst --labels=kernel_hex.lbl src\kernel.asm
-; Sat Apr 11 10:47:16 2020
+; Wed Apr 22 11:08:46 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -3813,7 +3813,7 @@
 ;******  Return to file: src\kernel.asm
 
 
-;******  Processing file: src\sdcard_controller_def.asm
+;******  Processing file: src\SDCard_Controller_def.asm
 
 =$afea00				SDC_VERSION_REG         = $AFEA00    ; Ought to read 12
 =$afea01				SDC_CONTROL_REG         = $AFEA01    ; Bit0 1 = Reset core logic, and registers. Self clearing
@@ -3853,7 +3853,7 @@
 ;******  Return to file: src\kernel.asm
 
 
-;******  Processing file: src\sdos.asm
+;******  Processing file: src\SDOS.asm
 
 
 ;******  Processing file: src\sdos_fat.asm
@@ -5229,7 +5229,7 @@
 .3845ff	28		plp		done            PLP
 .384600	6b		rtl		                RTL
 
-;******  Return to file: src\sdos.asm
+;******  Return to file: src\SDOS.asm
 
 .384601					IF_OPEN
 .384601	da		phx		                PHX
@@ -6578,7 +6578,7 @@
 ;******  Return to file: src\kernel.asm
 
 
-;******  Processing file: src\joystick.asm
+;******  Processing file: src\Joystick.asm
 
 .384f27					JOYSTICK_SET_NES_MODE
 .384f27	e2 20		sep #$20	                SEP #$20        ; set A short
@@ -8376,7 +8376,7 @@
 
 ;******  Processing file: src\version.asm
 
->391469	41 70 72 69 6c 20 31 31		.text "April 11, 2020"
+>391469	41 70 72 69 6c 20 32 32		.text "April 22, 2020"
 >391471	2c 20 32 30 32 30
 
 ;******  Return to file: src\kernel.asm

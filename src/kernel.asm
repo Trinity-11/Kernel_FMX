@@ -35,12 +35,12 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 
 .include "Interrupt_Handler.asm" ; Interrupt Handler Routines
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "sdcard_controller_def.asm"
-.include "sdos.asm"
+.include "SDCard_Controller_def.asm"
+.include "SDOS.asm"
 ;.include "YM26XX.asm"
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
-.include "joystick.asm"       ; Code for the joysticks and gamepads
+.include "Joystick.asm"       ; Code for the joysticks and gamepads
 
 * = $390400
 
