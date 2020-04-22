@@ -67,27 +67,11 @@ FAT_LAST_CLUSTER = $0FFFFFFF            ; Code to mark the last cluster of a fil
 VOLUMEMAX = 1                           ; The maximum number of mounted volumes we support
 DOS_DIR_ENTRY_SIZE = 32                 ; The size of a directory entry
 DOS_SECTOR_SIZE = 512                   ; The size of a sector
-DOS_DIR_ENT_UNUSED = $E5                ; Marker for an unused directory entry    
+DOS_DIR_ENT_UNUSED = $E5                ; Marker for an unused directory entry 
 
-; MBR Field Offsets
-
-PART0_OFF = 446                         ; Offset to the first partition in the MBR
-PART_TYPE_OFF = 4                       ; Offset to the partition's type
-PART_LBA_OFF = 8                        ; Offset to the LBA of the first sector of the partition
-PART_SECT_COUNT_OFF = 13                ; Offset to the sector count of the partition
-MBR_SIGNATURE = 510                     ; The offset to the MBR signature bytes
-
+PART_TYPE_FAT12 = $00                   ; "Partition" type: FAT12, used for floppy disks
 PART_TYPE_FAT32_LBA = $0C               ; Patition type: FAT32 with LBA addressing 
-
-; BPB Field Offsets
-
-BPB_BYTEPERSEC_OFF = $0B                ; Offset in the BPB sector to the Bytes Per Sector
-BPB_SECPERCLUS_OFF = $0D                ; Offset in the BPB sector to the Sectors Per Cluster
-BPB_RSRVCLUS_OFF = $0E                  ; Offset in the BPB sector to the Number of Reserved Clusters
-BPB_NUMFAT_OFF = $10                    ; Offset in the BPB sector to the Number of FATs
-BPB_SECPERFAT_OFF = $24                 ; Offset in the BPB sector to the Sectors Per FAT
-BPB_ROOTCLUS_OFF = $2C                  ; Offset in the BPB sector to the Root Cluster Number
-BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
+BPB_EXTENDED_RECORD = $29               ; If SIGNATUREB of the BPB has this byte, the volume label is valid
 
 ; Error Codes
 
@@ -109,6 +93,28 @@ DOS_ERR_OPEN = 15                       ; File is already open
 DOS_ERR_PGXSIG = 16                     ; File does not have the PGX signature
 DOS_ERR_NOEXEC = 17                     ; File does is not an executable format
 
+; MBR Field Offsets
+
+PART0_OFF = 446                         ; Offset to the first partition in the MBR
+PART_TYPE_OFF = 4                       ; Offset to the partition's type
+PART_LBA_OFF = 8                        ; Offset to the LBA of the first sector of the partition
+PART_SECT_COUNT_OFF = 13                ; Offset to the sector count of the partition
+MBR_SIGNATURE = 510                     ; The offset to the MBR signature bytes
+
+; BPB Field Offsets
+
+BPB_BYTEPERSEC_OFF = 11                 ; Offset in the BPB sector to the Bytes Per Sector
+BPB_SECPERCLUS_OFF = 13                 ; Offset in the BPB sector to the Sectors Per Cluster
+BPB_RSRVCLUS_OFF = 14                   ; Offset in the BPB sector to the Number of Reserved Clusters
+BPB_NUMFAT_OFF = 16                     ; Offset in the BPB sector to the Number of FATs
+BPB_ROOT_MAX_ENTRY_OFF = 17             ; Offset in the BPB sector to the Maximum # of entries in the root directory (FAT12)
+BPB_TOTAL_SECTORS = 19                  ; Offset in the BPB sector to the number of sectors on the partition or disk (FAT12)
+BPB_SECPERFAT_OFF = 22                  ; Offset in the BPB sector to the Sectors Per FAT
+BPB_SIGNATUREB = 38                     ; Offset in the BPB sector to the second signature byte
+BPB_VOLUMEID = 39                       ; Offset in the BPB sector to the volume ID
+BPB_ROOTCLUS_OFF = $2C                  ; Offset in the BPB sector to the Root Cluster Number
+BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
+
 ;;
 ;; Data storage needed by the file system (internal variables user apps shouldn't need)
 ;;
@@ -117,31 +123,35 @@ DOS_ERR_NOEXEC = 17                     ; File does is not an executable format
 
 DOS_HIGH_VARIABLES      = $37E000
 DEVICE                  = $37E000       ; 1 byte - The number of the block device
-PARTITION               = $37E001       ; 1 byte - The number of the partitions on the device
-SECTORS_PER_CLUSTER     = $37E002       ; 1 byte - The number of sectors in a cluster
+FILE_SYSTEM             = $37E001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
+PARTITION               = $37E002       ; 1 byte - The number of the partitions on the device
+SECTORS_PER_CLUSTER     = $37E003       ; 1 byte - The number of sectors in a cluster
 FIRSTSECTOR             = $37E004       ; 4 bytes - The LBA of the first sector on the volume
 SECTORCOUNT             = $37E008       ; 4 bytes - The number of sectors in the volume
 NUM_RSRV_SEC            = $37E00C       ; 2 bytes - The number of hidden or reserved sectors
 CLUSTER_SIZE            = $37E00E       ; 2 bytes - The size of a cluster in bytes 
 SEC_PER_FAT             = $37E010       ; 4 bytes - The number of sectors per FAT
-FAT_BEGIN_LBA           = $37E014       ; 4 bytes - The LBA of the first sector of the FAT
-CLUSTER_BEGIN_LBA       = $37E018       ; 4 bytes - The LBA of the first cluster in the storage area
-ROOT_DIR_FIRST_CLUSTER  = $37E01C       ; 4 bytes - The number of the first cluster in the root directory
+FAT_BEGIN_LBA           = $37E014       ; 4 bytes - The LBA of the first sector of FAT #1
+FAT2_BEGIN_LBA          = $37E018       ; 4 bytes - The LBA of the first sector of FAT #2
+CLUSTER_BEGIN_LBA       = $37E01C       ; 4 bytes - The LBA of the first cluster in the storage area
+ROOT_DIR_FIRST_CLUSTER  = $37E020       ; 4 bytes - The number of the first cluster in the root directory
+ROOT_DIR_MAX_ENTRY      = $37E024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
+VOLUME_ID               = $37E026       ; 4 bytes - The ID of the volume
 
-; Variables we don't need in bank 0
+; Other variables we don't need in bank 0
 
-DOS_CURR_CLUS           = $37E020       ; 4 bytes - The current cluster (for delete)
-DOS_NEXT_CLUS           = $37E024       ; 4 bytes - The next cluster in a file (for delete)
-DOS_DIR_CLUS_ID         = $37E028       ; 4 bytes - The cluster ID of the current directory record
-DOS_NEW_CLUSTER         = $37E02C       ; 4 bytes - Space to store a newly written cluster ID
+DOS_CURR_CLUS           = $37E02A       ; 4 bytes - The current cluster (for delete)
+DOS_NEXT_CLUS           = $37E02E       ; 4 bytes - The next cluster in a file (for delete)
+DOS_DIR_CLUS_ID         = $37E032       ; 4 bytes - The cluster ID of the current directory record
+DOS_NEW_CLUSTER         = $37E036       ; 4 bytes - Space to store a newly written cluster ID
+DOS_SHORT_NAME          = $37E03A       ; 11 bytes - The short name for a desired file
 
 ; Larger buffers
 
-DOS_SHORT_NAME          = $37E030       ; 11 bytes - The short name for a desired file
-DOS_DIR_CLUSTER         = $37E140       ; 512 bytes - A buffer for directory entries
-DOS_DIR_CLUSTER_END     = $37E340       ; The byte just past the end of the directory cluster buffer
-DOS_SECTOR              = $37E340       ; 512 bytes - A buffer for block device read/write
-DOS_SECTOR_END          = $37E540       ; The byte just past the end of the cluster buffer
+DOS_DIR_CLUSTER         = $37E100       ; 512 bytes - A buffer for directory entries
+DOS_DIR_CLUSTER_END     = $37E300       ; The byte just past the end of the directory cluster buffer
+DOS_SECTOR              = $37E300       ; 512 bytes - A buffer for block device read/write
+DOS_SECTOR_END          = $37E500       ; The byte just past the end of the cluster buffer
 
 ;;
 ;; Code for the file system

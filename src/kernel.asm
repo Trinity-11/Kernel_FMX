@@ -21,6 +21,8 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "Trinity_CFP9301_def.asm"          ; Definitions for Trinity chip: Joystick, DipSwitch
 .include "Unity_CFP9307_def.asm"            ; Definitions for Unity chip (IDE)
 .include "GABE_Control_Registers_def.asm"   ; Definitions for GABE registers
+.include "fdc_inc.asm"                      ; Definitions for the floppy drive controller
+.include "timer_def.asm"                    ; Definitions for the timers
 
 .include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
 ;.include "OPL2_Rad_Player.asm"
@@ -41,6 +43,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
 .include "joystick.asm"       ; Code for the joysticks and gamepads
+.include "fdc_library.asm"    ; Library code for the floppy drive controller
 
 * = $390400
 
@@ -229,7 +232,15 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
 
-BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
+BOOTBASIC       JSL FDC_TEST
+
+                LDA #'!'
+                JSL IPUTC
+
+FDC_DONE        NOP
+                BRA FDC_DONE
+
+                JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 
 CREDIT_LOCK     NOP
                 BRA CREDIT_LOCK
@@ -2291,6 +2302,69 @@ ILOOP_MS        CPX #0
                 BRA ILOOP_MS
 LOOP_MS_END     RTL
 
+;
+; IDELAY -- Wait at least Y:X ticks of the system clock.
+;
+; NOTE: This routine will use the built in timer that count system clock ticks.
+;       There will be overhead for the routine, so this routine should be used
+;       To wait for at least Y:X ticks, and the caller should be tolerant of additional
+;       delays in processing the timer and book keeping.
+;
+; Inputs:
+;   Y = Bits[23:16] of the number of ticks to wait
+;   X = Bits[15:0] of the number of ticks to wait
+;
+IDELAY          .proc
+                PHB
+                PHP
+
+                setdbr 0
+
+                setas
+                LDA #0                      ; Stop the timer if it's running
+                STA @l TIMER0_CTRL_REG
+
+                LDA @l INT_MASK_REG0        ; Enable Timer 0 Interrupts
+                AND #~FNX0_INT02_TMR0
+                STA @l INT_MASK_REG0
+
+                LDA #~TIMER0TRIGGER         ; Clear the timer 0 trigger flag
+                STA @w TIMERFLAGS
+
+                LDA #0
+                STA @l TIMER0_CHARGE_L      ; Clear the comparator for count-down
+                STA @l TIMER0_CHARGE_M
+                STA @l TIMER0_CHARGE_H
+
+                setaxl
+                TXA
+                STA @l TIMER0_CMP_L         ; Set the number of ticks
+                TYA
+                setas
+                STA @l TIMER0_CMP_H
+
+                LDA #TMR0_EN | TMR0_UPDWN   ; Enable the timer to count up
+                STA @l TIMER0_CTRL_REG
+
+                LDA #TIMER0TRIGGER          ; Timer zero's trigger flag
+loop            WAI                         ; Wait for an interrupt
+                TRB @w TIMERFLAGS           ; Check for the flag
+                BEQ loop                    ; Keep checking until it's set
+
+                LDA #0                      ; Stop the timer
+                STA @l TIMER0_CTRL_REG
+
+                LDA #~TIMER0TRIGGER         ; Clear the timer 0 trigger flag
+                STA @w TIMERFLAGS
+
+                LDA @l INT_MASK_REG0        ; Disable Timer 0 Interrupts
+                ORA #FNX0_INT02_TMR0
+                STA @l INT_MASK_REG0
+
+                PLP
+                PLB
+                RTL
+                .pend
 ;
 ; Show the credits screen
 ;

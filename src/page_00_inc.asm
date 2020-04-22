@@ -160,6 +160,24 @@ BLOCK_ADDR       = $00030F ;2 Bytes (temp) Address of block being loaded
 BLOCK_BANK       = $000311 ;1 Byte  (temp) Bank of block being loaded
 BLOCK_COUNT      = $000312 ;2 Bytes (temp) Counter of bytes read as file is loaded
 
+; Floppy drive code variables
+FDC_DRIVE        = $000300 ;1 byte - The number of the selected drive
+FDC_HEAD         = $000301 ;1 byte - The head number (0 or 1)
+FDC_CYLINDER     = $000302 ;1 byte - The cylinder number
+FDC_SECTOR       = $000303 ;1 byte - The sector number
+FDC_SECTOR_SIZE  = $000304 ;1 byte - The sector size code (2 = 512)
+FDC_SECPERTRK    = $000305 ;1 byte - The number of sectors per track (18 for 1.44 MB floppy)
+FDC_ST0          = $000306 ;1 byte - Status Register 0
+FDC_ST1          = $000307 ;1 byte - Status Register 1
+FDC_ST2          = $000308 ;1 byte - Status Register 2
+FDC_ST3          = $000309 ;1 byte - Status Register 3
+FDC_PCN          = $00030A ;1 byte - Present Cylinder Number
+
+FDC_RESULTS      = $00030C ;16 byte - Buffer for results of FDC commands
+DIVIDEND         = $00030C ;4 bytes - Dividend for 32-bit division (overlaps FDC_RESULTS)
+DIVISOR          = $000310 ;4 bytes - Divisor for 32-bit division (overlaps FDC_RESULTS)
+REMAINDER        = $000314 ;4 bytes - Remainder for 32-bit division (overlaps FDC_RESULTS)
+
 ; $00:0320 to $00:06FF - Reserved for block device access and FAT file system support
 
 ; Low-level (BIOS) sector access variables
@@ -186,11 +204,15 @@ DOS_RUN_PTR      = $00035C      ; 4 bytes - Pointer for starting a loaded progra
 DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
 
 ;
-; Channel and UART variables
+; Channel, UART variables, and Timer
 ;
 CURRUART         = $000700 ; 3-bytes: the base address of the current UART
 CHAN_OUT         = $000703 ; 1-byte: the number of the current output channel (for PUTC, etc.)
 CHAN_IN          = $000704 ; 1-byte: the number of the current input channel (for GETCH, etc.)
+TIMERFLAGS       = $000705 ; 1-byte: flags to indicate that one of the timer interupts has triggered
+TIMER0TRIGGER    = $80
+TIMER1TRIGGER    = $40
+TIMER2TRIGGER    = $20
 
 ; COMMAND PARSER Variables
 ; Command Parser Stuff between $000F00 -> $000F84 (see CMD_Parser.asm)
