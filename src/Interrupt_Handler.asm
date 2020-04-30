@@ -141,8 +141,18 @@ SOF_INTERRUPT
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 STA @lINT_PENDING_REG0
-;; PUT YOUR CODE HERE
-                RTS
+
+                setal
+                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
+                BEQ sof_int_done                ; If it's zero, do nothing
+
+                DEC A                           ; Otherwise, decrement it...
+                STA @l FDC_MOTOR_TIMER
+                BNE sof_int_done                ; If it's not zero, we're done for this tick
+
+                JSL FDC_Motor_Off               ; Otherwise, turn off the motor
+
+sof_int_done    RTS
 
 ; ///////////////////////////////////////////////////////////////////
 ; ///

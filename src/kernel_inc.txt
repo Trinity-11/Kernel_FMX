@@ -68,3 +68,4 @@ F_DIRREAD        = %ADDR% ; Read the directory entry for the specified file
 F_DIRWRITE       = %ADDR% ; Write any changes in the current directory cluster back to the drive
 F_LOAD           = %ADDR% ; load a binary file into memory, supports multiple file formats
 F_SAVE           = %ADDR% ; Save memory to a binary file
+CMDBLOCK         = %ADDR% ; Send a command to a block device

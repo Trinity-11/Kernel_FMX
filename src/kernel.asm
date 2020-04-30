@@ -4,7 +4,7 @@ TARGET_FLASH = 1              ; The code is being assembled for Flash
 TARGET_RAM = 2                ; The code is being assembled for RAM
 
 .include "macros_inc.asm"
-.include "characters.asm"     ; Definition of special ASCII control codes
+.include "characters.asm"                   ; Definition of special ASCII control codes
 .include "simulator_inc.asm"
 .include "page_00_inc.asm"
 .include "page_00_data.asm"
@@ -24,7 +24,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "fdc_inc.asm"                      ; Definitions for the floppy drive controller
 .include "timer_def.asm"                    ; Definitions for the timers
 
-.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
+.include "basic_inc.asm"                    ; Pointers into BASIC and the machine language monitor
 ;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
@@ -35,24 +35,17 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 
 .include "kernel_jumptable.asm"
 
-.include "Interrupt_Handler.asm" ; Interrupt Handler Routines
-.include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "sdcard_controller_def.asm"
-.include "sdos.asm"
-;.include "YM26XX.asm"
-.include "keyboard.asm"       ; Include the keyboard reading code
-.include "uart.asm"           ; The code to handle the UART
-.include "joystick.asm"       ; Code for the joysticks and gamepads
-.include "fdc_library.asm"    ; Library code for the floppy drive controller
+.include "Interrupt_Handler.asm"          ; Interrupt Handler Routines
+.include "keyboard.asm"                   ; Include the keyboard reading code
 
 * = $390400
 
 IBOOT           ; boot the system
-                CLC           ; clear the carry flag
-                XCE           ; move carry to emulation flag.
+                CLC                       ; clear the carry flag
+                XCE                       ; move carry to emulation flag.
                 SEI
                 setaxl
-                LDA #STACK_END   ; initialize stack pointer
+                LDA #STACK_END            ; initialize stack pointer
                 TAS
                 setdp 0
                 setas
@@ -232,13 +225,15 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
 
-BOOTBASIC       JSL FDC_TEST
+BOOTBASIC       LDX #0
+jmpcopy         LDA $381000,X
+                STA $001000,X
+                INX
+                CPX #1024
+                BNE jmpcopy
 
-                LDA #'!'
-                JSL IPUTC
-
-FDC_DONE        NOP
-                BRA FDC_DONE
+                ; JSL FDC_TEST
+                JSL FDC_Init
 
                 JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 
@@ -1575,7 +1570,7 @@ IINITKEYBOARD	  PHD
                 setas				;just make sure we are in 8bit mode
                 setxl 					; Set 8bits
 
-				; Setup Foreground LUT First
+				        ; Setup Foreground LUT First
                 CLC
 
                 JSR Poll_Inbuf ;
@@ -2071,10 +2066,10 @@ IBMP_PARSER_CONT
                 BNE BMP_LUT2_PICK
                 JSR BMP_PARSER_UPDATE_LUT1   ; Go Upload the LUT1
   BMP_LUT2_PICK
-               ; Let's Compute the Pointer for the BITMAP (The Destination)
-               ; Let's use the Internal Mutliplier to Find the Destination Address
-               ; Let's Compute the Hight First
-               ; Y x Stride + X
+                ; Let's Compute the Pointer for the BITMAP (The Destination)
+                ; Let's use the Internal Mutliplier to Find the Destination Address
+                ; Let's Compute the Hight First
+                ; Y x Stride + X
   DONE_TRANSFER_LUT
                 LDA BMP_POSITION_Y
                 STA @lUNSIGNED_MULT_A_LO
@@ -2434,6 +2429,14 @@ IPUSHKEYS       BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
 
+.include "OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
+.include "sdcard_controller_def.asm"
+.include "sdos.asm"
+;.include "YM26XX.asm"
+.include "uart.asm"                       ; The code to handle the UART
+.include "joystick.asm"                   ; Code for the joysticks and gamepads
+.include "fdc_library.asm"                ; Library code for the floppy drive controller
+
 ;
 ; Greeting message and other kernel boot data
 ;
@@ -2444,7 +2447,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: "
+                .text "www.c256foenix.com - Kernel version: "
                 .include "version.asm"
                 .text $0D,$00
 

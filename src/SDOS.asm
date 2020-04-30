@@ -397,30 +397,67 @@ IF_DIROPEN      .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
-                setas
-                LDA #BIOS_DEV_SD
+                TRACE "IF_DIROPEN"
+
+                setaxl
+                LDA #$55AA                  ; Clear the buffer
+                LDX #0                      ; TODO: remove this for production code
+clr_loop        STA DOS_DIR_CLUSTER,X
+                INX
+                INX
+                CPX #512
+                BNE clr_loop
+
+                LDA #BIOS_DEV_FDC           ; TODO: let the caller set the device
                 STA BIOS_DEV
 
                 JSL DOS_MOUNT               ; Make sure we've mounted the SDC.
                 BCS get_root_dir            ; If successful: get the root directory
                 BRL IF_PASSFAILURE          ; Otherwise: pass the error up the chain
 
-get_root_dir    setal
-                LDA ROOT_DIR_FIRST_CLUSTER
-                STA DOS_DIR_CLUS_ID
+get_root_dir    setaxl
+
+                LDA #100
+                JSL ILOOP_MS
+
+                LDA ROOT_DIR_FIRST_CLUSTER  ; Set the cluster (or sector for FAT12)
+                STA DOS_DIR_CLUS_ID         ; to that of the root directory's start
                 STA DOS_CLUS_ID
                 LDA ROOT_DIR_FIRST_CLUSTER+2
                 STA DOS_CLUS_ID+2
                 STA DOS_DIR_CLUS_ID+2
 
-                LDA #<>DOS_DIR_CLUSTER
+                LDA #<>DOS_DIR_CLUSTER      ; Point to the directory cluster buffer for loading
                 STA DOS_BUFF_PTR
                 STA DOS_DIR_PTR
                 LDA #`DOS_DIR_CLUSTER
                 STA DOS_BUFF_PTR+2
                 STA DOS_DIR_PTR+2
 
-                JSL DOS_GETCLUSTER          ; Try to read the first cluster
+                setas
+                LDA FILE_SYSTEM             ; Check the file system
+                CMP #PART_TYPE_FAT12        ; Is it FAT12?
+                BNE fetch_fat32             ; No: handle processing the diretory as FAT32
+
+                ; Otherwise: treat as FAT12 and load from disk
+
+                setal
+                LDA DOS_DIR_PTR             ; Set the BIOS buffer pointer
+                STA BIOS_BUFF_PTR
+                LDA DOS_DIR_PTR+2
+                STA BIOS_BUFF_PTR+2
+
+                LDA DOS_DIR_CLUS_ID         ; Set the LBA of the sector
+                STA BIOS_LBA
+                LDA DOS_DIR_CLUS_ID+2
+                STA BIOS_LBA+2
+
+                JSL FDC_GETBLOCK            ; Get the sector from the floppy disk
+
+                BCS do_success              ; If sucessful, set the directory cursor
+                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
+
+fetch_fat32     JSL DOS_GETCLUSTER          ; Try to read the first cluster
                 BCS do_success              ; If successful: set the directory cursor
 
                 BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
@@ -457,7 +494,42 @@ IF_DIRNEXT      .proc
                 JSL DOS_DIRNEXT             ; Attempt to move to the next entry
                 BCS do_success              ; If successful, return success
 
-                setal
+                ; TODO: next decision only applies to the root directory!
+
+                setas
+                LDA FILE_SYSTEM             ; Check the file system
+                CMP #PART_TYPE_FAT12        ; Is it FAT12?
+                BNE next_fat32              ; No: handle processing the diretory as FAT32
+
+next_fat12      setal                       ; Yes: treat as the root directory of the floppy disk
+                LDA DOS_DIR_CLUS_ID
+                INC A
+                STA DOS_DIR_CLUS_ID         ; Increment the sector number (FAT12 root directory is sector based)
+                CMP #10                     ; See if we're at the end (TODO: calculate this)
+                BNE read_sector
+                
+                setas                       ; End of the line... return a failure
+                LDA #0
+                BRL IF_FAILURE
+
+read_sector     setal                       ; Load the sector from the floppy disk
+                LDA DOS_DIR_CLUS_ID         ; Set the LBA to the sector #
+                STA BIOS_LBA
+                LDA DOS_DIR_CLUS_ID+2
+                STA BIOS_LBA+2
+
+                LDA #<>DOS_DIR_CLUSTER      ; Set the pointers to the buffer
+                STA BIOS_BUFF_PTR
+                STA DOS_DIR_PTR
+                LDA #`DOS_DIR_CLUSTER
+                STA BIOS_BUFF_PTR+2
+                STA DOS_DIR_PTR+2
+
+                JSL FDC_GETBLOCK            ; Attempt to read the sector from the FDC
+                BCS do_success              ; If successful: set the directory cursor
+                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
+
+next_fat32      setal
                 LDA DOS_DIR_CLUS_ID
                 STA DOS_CLUS_ID
                 LDA DOS_DIR_CLUS_ID+2

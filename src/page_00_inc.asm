@@ -173,7 +173,6 @@ FDC_ST2          = $000308 ;1 byte - Status Register 2
 FDC_ST3          = $000309 ;1 byte - Status Register 3
 FDC_PCN          = $00030A ;1 byte - Present Cylinder Number
 
-FDC_RESULTS      = $00030C ;16 byte - Buffer for results of FDC commands
 DIVIDEND         = $00030C ;4 bytes - Dividend for 32-bit division (overlaps FDC_RESULTS)
 DIVISOR          = $000310 ;4 bytes - Divisor for 32-bit division (overlaps FDC_RESULTS)
 REMAINDER        = $000314 ;4 bytes - Remainder for 32-bit division (overlaps FDC_RESULTS)
@@ -202,6 +201,13 @@ DOS_DST_PTR      = $000354      ; 4 bytes - Pointer for transferring data
 DOS_END_PTR      = $000358      ; 4 bytes - Pointer to the last byte to save
 DOS_RUN_PTR      = $00035C      ; 4 bytes - Pointer for starting a loaded program
 DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
+
+FDC_PARAMETERS   = $000500      ; 16 bytes - a buffer of parameter data for the FDC
+FDC_RESULTS      = $000510      ; 16 bytes - Buffer for results of FDC commands
+FDC_PARAM_NUM    = $000530      ; 1 byte - The number of parameters to send to the FDC (including command)
+FDC_RESULT_NUM   = $000532      ; 1 byte - The number of results expected
+FDC_EXPECT_DAT   = $000533      ; 1 byte - 0 = the command expects no data, otherwise expects data
+FDC_CMD_RETRY    = $000534      ; 1 byte = a retry counter for commands
 
 ;
 ; Channel, UART variables, and Timer

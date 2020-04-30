@@ -145,6 +145,7 @@ DOS_NEXT_CLUS           = $37E02E       ; 4 bytes - The next cluster in a file (
 DOS_DIR_CLUS_ID         = $37E032       ; 4 bytes - The cluster ID of the current directory record
 DOS_NEW_CLUSTER         = $37E036       ; 4 bytes - Space to store a newly written cluster ID
 DOS_SHORT_NAME          = $37E03A       ; 11 bytes - The short name for a desired file
+FDC_MOTOR_TIMER         = $37E045       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
 
 ; Larger buffers
 
@@ -152,6 +153,8 @@ DOS_DIR_CLUSTER         = $37E100       ; 512 bytes - A buffer for directory ent
 DOS_DIR_CLUSTER_END     = $37E300       ; The byte just past the end of the directory cluster buffer
 DOS_SECTOR              = $37E300       ; 512 bytes - A buffer for block device read/write
 DOS_SECTOR_END          = $37E500       ; The byte just past the end of the cluster buffer
+DOS_FAT_SECTORS         = $37E500       ; 1024 bytes - two sectors worth of the FAT
+DOS_FAT_SECTORS_END     = $37E700       ; The byte just past the end of the FAT buffers
 
 ;;
 ;; Code for the file system
@@ -168,14 +171,31 @@ DOS_SECTOR_END          = $37E500       ; The byte just past the end of the clus
 ;   C set on success, clear on failure
 ;
 DOS_MOUNT       .proc
+                PHD
                 PHP
+
+                setdp SDOS_VARIABLES
 
                 setas
                 LDA BIOS_DEV            ; Check the device
                 CMP #BIOS_DEV_SD        ; Is it the SDC?
-                BNE get_mbr
+                BEQ do_sdc_mount        ; Yes: attempt to mount it
 
-                JSL SDCINIT             ; Yes: Initialize access to the SDC
+                CMP #BIOS_DEV_FDC       ; Is it the FDC?
+                BEQ do_fdc_mount        ; Yes: attempt to mount it
+
+                LDA #DOS_ERR_NOINIT     ; Otherwise: return a bad device error
+                STA DOS_STATUS
+                LDA #BIOS_ERR_BADDEV
+                STA BIOS_STATUS
+                BRL ret_failure
+
+do_fdc_mount    JSL FDC_MOUNT           ; Attempt to mount the floppy disk
+                BCS fdc_success
+                BRL ret_failure
+fdc_success     BRL ret_success
+
+do_sdc_mount    JSL SDCINIT             ; Yes: Initialize access to the SDC
                 BCS get_mbr             ; Continue if success
                 LDA #DOS_ERR_NOINIT     ; Otherwise: return an error
                 BRL ret_failure
@@ -334,12 +354,14 @@ clus_size_loop  CMP #1                                  ; If there's only one cl
 ret_success     setas
                 STZ DOS_STATUS          ; Set status code to 0
                 PLP
+                PLD
                 SEC
                 RTL
 
 ret_failure     setas              
                 STA DOS_STATUS          ; Save the status code
                 PLP
+                PLD
                 CLC
                 RTL
                 .pend
@@ -652,7 +674,7 @@ pass_failure    PLP                             ; If failure, just pass the fail
                 RTL
 
 mount           setas
-                LDA #BIOS_DEV_SD                ; Mount the drive... defaults to SDC
+                LDA #BIOS_DEV_FDC               ; Mount the drive... defaults to SDC
                 STA BIOS_DEV                    ; TODO: set from DOS_PARSE_PATH
                 JSL DOS_MOUNT
 
@@ -712,7 +734,7 @@ next_entry      JSL DOS_DIRNEXT                 ; Try to get the next directory 
 
                 ; Load the next directory clustor
                 setal
-                JSL NEXTCLUSTER32               ; Move to the next cluster of the directory
+                JSL NEXTCLUSTER                 ; Move to the next cluster of the directory
 
 set_buff_ptr    LDA #<>DOS_DIR_CLUSTER          ; Load the directory cluster into the directory buffer
                 STA DOS_BUFF_PTR
@@ -867,6 +889,43 @@ ret_failure     CLC                             ; Return failure
 ;
 ; Find the next cluster in a file
 ;
+; This subroutine calls the correct FAT code based on the file system type
+;
+; Inputs:
+;   DOS_CLUS_ID = the current cluster of the file
+;
+; Outputs:
+;   DOS_CLUS_ID = the next cluster for the file
+;   C = set if there is a next cluster, clear if there isn't
+;
+NEXTCLUSTER     .proc
+                PHP
+
+                setas
+                LDA @l FILE_SYSTEM              ; Get the file system code
+                CMP #PART_TYPE_FAT12            ; Is it FAT12?
+                BNE fat32                       ; No: assume it's FAT32
+
+fat12           JSL NEXTCLUSTER12               ; Lookup the next cluster from FAT12
+                BCC pass_failure                ; If there was an error, pass it up the chain
+                BRA ret_success
+
+fat32           JSL NEXTCLUSTER32               ; Lookup the next cluster from FAT32
+                BCC pass_failure                ; If there was an error, pass it up the chain
+
+ret_success     STZ DOS_STATUS
+                PLP
+                SEC
+                RTL
+
+pass_failure    PLP
+                CLC
+                RTL
+                .pend             
+
+;
+; Find the next cluster in a file
+;
 ; NOTE: assumes FAT32 with 512KB sectors
 ;
 ; Inputs:
@@ -932,7 +991,7 @@ DOS_READNEXT    .proc
                 PHP
 
                 setaxl
-                JSL NEXTCLUSTER32               ; Attempt to find the next cluster in the FAT
+                JSL NEXTCLUSTER                 ; Attempt to find the next cluster in the FAT
                 BCC pass_failure                ; If nothing found: pass the failure up the chain
                 JSL DOS_GETCLUSTER              ; Otherwise: attempt to read the cluster
                 BCC pass_failure                ; If nothing read: pass the failure up the chain

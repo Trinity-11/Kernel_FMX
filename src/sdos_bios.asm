@@ -12,10 +12,53 @@ BIOS_DEV_SD = 2
 BIOS_DEV_FDC = 3
 
 BIOS_ERR_BADDEV = $80           ; BIOS bad device # error
+BIOS_ERR_MOUNT = $81            ; BIOS failed to mount the device
+BIOS_ERR_READ = $82             ; BIOS failed to read from a device
+BIOS_ERR_WRITE = $83            ; BIOS failed to write to a device
+BIOS_ERR_TRACK = $84            ; BIOS failed to seek to the correct track
+BIOS_ERR_CMD = $85              ; A general block device command error
+
 
 ;;
 ;; General Routines
 ;;
+
+;
+; Send a special command code to a block device.
+; This should be used for things like spinning up or down the motor, ejecting media, etc.
+; See individual device command subroutines for specific command codes.
+;
+; Inputs:
+;   BIOS_DEV = the block device number
+;   X = the command # to send.
+;
+; Returns:
+;   BIOS_STATUS = status code for any errors (0 = fine)
+;   C = set if success, clear on error
+;
+ICMDBLOCK       .proc
+                PHP
+                
+                setas
+                LDA BIOS_DEV                ; Get the device number
+                
+                CMP #BIOS_DEV_FDC           ; Check to see if we're sending to the floppy
+                BNE ret_success             ; No: just return
+                JSL FDC_CMDBLOCK            ; Yes: call upon the floppy code
+                BCC pass_failure
+
+ret_success     setas
+                STZ BIOS_STATUS
+                PLP
+                SEC
+                RTL
+
+ret_failure     setas
+                STA BIOS_STATUS
+pass_failure    PLP
+                CLC
+                RTL
+                .pend
 
 ;
 ; Read a 512 byte block from a block device into memory

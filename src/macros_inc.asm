@@ -61,3 +61,38 @@ setdbr          .macro          ; Set the B (Data bank) register
                 PLA             ; end setdbr macro 
                 .endm 
 
+TRACE               .macro name
+;                     PHA
+;                     PHX
+;                     PHP
+;                     PHB
+;                     setas
+;                     setxl
+;                     LDA #`to_display
+;                     PHA
+;                     PLB
+;                     LDX #<>to_display
+;                     JSL IPUTS
+;                     BRA continue
+
+; to_display          .null 13,\name,": "
+
+; continue            PLB
+;                     PLP
+;                     PLX
+;                     PLA
+                    .endm
+
+LOCKIF_B            .macro address, value, message
+                    PHA
+                    LDA @l \address
+                    CMP #\value
+                    BNE continue
+
+                    TRACE \message
+
+lock                NOP
+                    BRA lock
+                    
+continue            PLA
+                    .endm

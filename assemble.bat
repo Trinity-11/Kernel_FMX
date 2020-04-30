@@ -5,7 +5,8 @@ md ..\bin\debug
 md ..\bin\debug\roms
 
 REM Generate a date stamp for the boot header
-powershell -NoProfile -ExecutionPolicy Bypass -File getversion.ps1
+python genversion.py
+REM powershell -NoProfile -ExecutionPolicy Bypass -File getversion.ps1
 
 :start
 del *.lst

@@ -108,3 +108,11 @@ FDC_CMD_SCAN_HIGH_OR_EQUAL  = 29
 FDC_CMD_MT = $80                    ; Command bit to turn on multi-track
 FDC_CMD_MFM = $40                   ; Command bit to operate in MFM format
 FDC_CMD_SK = $20                    ; Command bit to skip deleted sectors
+FDC_CMD_EIS = $40                   ; Command bit to turn on implied seek
+
+;
+; Floppy device command codes
+;
+FDC_DEVCMD_MOTOR_ON         = 1     ; Device code to turn the motor on
+FDC_DEVCMD_MOTOR_OFF        = 2     ; Device code to turn the motor off
+FDC_DEVCMD_RECAL            = 3     ; Device code to recalibrate the drive
