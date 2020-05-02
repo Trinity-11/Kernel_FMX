@@ -85,6 +85,9 @@ IGETBLOCK       .proc
                 CMP #BIOS_DEV_SD                    ; Is it for the SDC?
                 BEQ sd_getblock                     ; Yes: go to the SDC GETBLOCK routine
 
+                CMP #BIOS_DEV_FDC                   ; Is it for the floppy drive?
+                BEQ fd_getblock                     ; Yes: go to the FDC GETBLOCK routine
+
                 LDA #BIOS_ERR_BADDEV                ; Otherwise: return a bad device error
 
 ret_failure     setas
@@ -96,6 +99,12 @@ ret_failure     setas
                 RTL
 
 sd_getblock     JSL SDCGETBLOCK                     ; Call the SDC GETBLOCK routine
+                BCS ret_success
+                BRA ret_failure
+
+fd_getblock     JSL FDC_GETBLOCK                    ; Call the FDC GETBLOCK routine
+                BCS ret_success
+                BRA ret_failure
 
 ret_success     setas
                 STZ BIOS_STATUS                     ; Set BIOS STATUS to OK

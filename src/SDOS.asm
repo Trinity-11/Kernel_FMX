@@ -56,6 +56,8 @@ IF_OPEN         .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "IF_OPEN"
+
                 setas
                 LDY #FILEDESC.STATUS            ; Get the status to make sure a open is ok
                 LDA [DOS_FD_PTR],Y
@@ -228,23 +230,29 @@ IF_READ         .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "IF_READ"
+
                 setxl
                 setas
 
-                LDY #FILEDESC.STATUS            ; Get the status to make sure a read is ok
-                LDA [DOS_FD_PTR],Y
+;                 LDY #FILEDESC.STATUS            ; Get the status to make sure a read is ok
+;                 LDA [DOS_FD_PTR],Y
 
-                BIT #FD_STAT_OPEN               ; Make sure the file is open
-                BEQ chk_readable
-                LDA #DOS_ERR_NOTOPEN            ; If not: throw a NOTOPEN error
-                BRL IF_FAILURE
+;                 BIT #FD_STAT_OPEN               ; Make sure the file is open
+;                 BNE chk_readable
+;                 LDA #DOS_ERR_NOTOPEN            ; If not: throw a NOTOPEN error
+;                 BRL IF_FAILURE
             
-chk_readable    BIT #FD_STAT_READ               ; Make sure the file is readable
-                BEQ get_dev
-                LDA #DOS_ERR_NOTREAD            ; If not: throw a NOTREAD error
-                BRL IF_FAILURE
+; chk_readable    TRACE "chk_readable"
+;                 setas
+;                 BIT #FD_STAT_READ               ; Make sure the file is readable
+;                 BNE get_dev
+;                 LDA #DOS_ERR_NOTREAD            ; If not: throw a NOTREAD error
+;                 BRL IF_FAILURE
 
-get_dev         LDY #FILEDESC.DEV               ; Get the device number from the file descriptor
+get_dev         TRACE "get_dev"
+                setas
+                LDY #FILEDESC.DEV               ; Get the device number from the file descriptor
                 LDA [DOS_FD_PTR],Y
                 STA BIOS_DEV
 
@@ -257,6 +265,9 @@ get_dev         LDY #FILEDESC.DEV               ; Get the device number from the
                 LDA [DOS_FD_PTR],Y
                 STA DOS_CLUS_ID+2
 
+                JSL NEXTCLUSTER                 ; Find the next cluster of the file
+                BCC pass_failure                ; If not OK: pass the failure up the chaing
+
                 LDY #FILEDESC.BUFFER            ; Get the pointer to the file's cluster buffer
                 LDA [DOS_FD_PTR],Y
                 STA DOS_BUFF_PTR
@@ -264,21 +275,11 @@ get_dev         LDY #FILEDESC.DEV               ; Get the device number from the
                 INY
                 LDA [DOS_FD_PTR],Y
                 STA DOS_BUFF_PTR+2
-
-                JSL NEXTCLUSTER32               ; Find the next cluster of the file
-                BCC pass_failure                ; If not OK: pass the failure up the chaing
-
-                LDY #FILEDESC.CLUSTER           ; Update the file's current cluster
-                LDA DOS_CLUS_ID
-                STA [DOS_FD_PTR],Y
-                INY
-                INY
-                LDA DOS_CLUS_ID+2
-                STA [DOS_FD_PTR],Y
                 
                 JSL DOS_GETCLUSTER              ; Get the cluster
                 BCS ret_success                 ; If ok: return success
-pass_failure    BRL IF_PASSFAILURE              ; Otherwise: bubble up the failure
+pass_failure    TRACE "IF_READ FAIL"
+                BRL IF_PASSFAILURE              ; Otherwise: bubble up the failure
 
 ret_success     BRL IF_SUCCESS
                 .pend
@@ -491,6 +492,8 @@ IF_DIRNEXT      .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "IF_DIRNEXT"
+
                 JSL DOS_DIRNEXT             ; Attempt to move to the next entry
                 BCS do_success              ; If successful, return success
 
@@ -542,7 +545,7 @@ next_fat32      setal
                 STA DOS_BUFF_PTR+2
                 STA DOS_DIR_PTR+2
 
-                JSL NEXTCLUSTER32           ; Try to find the next cluster
+                JSL NEXTCLUSTER             ; Try to find the next cluster
                 BCS set_next
                 BRL IF_PASSFAILURE          ; If error: pass it up the chain
 
@@ -603,7 +606,7 @@ get_first_clus  ; Get the first cluster of the file
                 STA DOS_CURR_CLUS+2
 
                 ; Get the next cluster ID
-del_loop        JSL NEXTCLUSTER32
+del_loop        JSL NEXTCLUSTER
                 BCC del_one
 
                 ; Save the next cluster ID
@@ -777,6 +780,8 @@ IF_LOAD         .proc
 
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
+
+                TRACE "IF_LOAD"
 
                 setaxl
 
@@ -955,7 +960,7 @@ next_byte       INY                                 ; Otherwise, move to the nex
                 CPY CLUSTER_SIZE                    ; Are we at the end of the cluster?
                 BNE copy_loop                       ; No: keep copying
 
-                JSL NEXTCLUSTER32                   ; Yes: Load the next cluster
+                JSL NEXTCLUSTER                     ; Yes: Load the next cluster
                 BCS next_cluster
                 BRL IF_PASSFAILURE                  ; If failed: pass that up the chain
 
@@ -982,9 +987,12 @@ done            BRL IF_SUCCESS
 IF_LOADRAW      .proc
                 ; The usual PH* and other preamble instructions are handled by IF_LOAD
 
+                TRACE "IF_LOADRAW"
+
                 setaxl
 
-copy_cluster    LDY #0
+copy_cluster    TRACE "copy_cluster"
+                LDY #0
 copy_loop       setas
                 LDA [DOS_SRC_PTR],Y         ; Copy byte from cluster to destination
                 STA [DOS_DST_PTR],Y
@@ -1015,12 +1023,13 @@ continue        INY
                 ADC #0
                 STA DOS_DST_PTR+2
 
-                JSL NEXTCLUSTER32           ; Yes: load the next cluster
-                BCC copy_cluster            ; And start copying it
+                JSL IF_READ                 ; Yes: load the next cluster
+                BCS copy_cluster            ; And start copying it
 
-close_file      JSL IF_CLOSE                ; Close the file
-                BCS ret_success             ; If success: we're done
-                BRL IF_PASSFAILURE          ; Otherwise: pass the failure up the chain
+close_file      TRACE "IF_LOADRAW.close_file"
+                ; JSL IF_CLOSE                ; Close the file
+                ; BCS ret_success             ; If success: we're done
+                ; BRL IF_PASSFAILURE          ; Otherwise: pass the failure up the chain
 
 ret_success     BRL IF_SUCCESS
                 .pend

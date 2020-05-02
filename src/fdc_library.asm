@@ -38,23 +38,46 @@ init_ok             JSL FDC_MOUNT
 mount_err           TRACE "Error: FDC_MOUNT failed"
                     BRL motor_off
 
-is_ok               setal
-                    LDA #2
-                    STA DOS_CLUS_ID
+is_ok               setas
+                    LDX #0
                     LDA #0
-                    STA DOS_CLUS_ID+2
+fd_clr_loop         STA TEST_FD,X
+                    INX
+                    CPX #size(FILEDESC)
+                    BNE fd_clr_loop
 
-                    JSL NEXTCLUSTER12
-                    BCS is_ok2
+                    LDX #0
+buff_clr_loop       STA TEST_LOCATION,X
+                    INX
+                    CPX #1024
+                    BNE buff_clr_loop
 
-                    TRACE "Error: Could not read FAT."
+                    setal
+                    LDA #<>TEST_FILE
+                    STA TEST_FD.PATH
+                    LDA #`TEST_FILE
+                    STA TEST_FD.PATH+2
+
+                    LDA #<>TEST_BUFFER
+                    STA TEST_FD.BUFFER
+                    LDA #`TEST_BUFFER
+                    STA TEST_FD.BUFFER+2
+
+                    LDA #<>TEST_FD
+                    STA DOS_FD_PTR
+                    LDA #`TEST_FD
+                    STA DOS_FD_PTR+2
+
+                    LDA #<>TEST_LOCATION
+                    STA DOS_DST_PTR
+                    LDA #`TEST_LOCATION
+                    STA DOS_DST_PTR+2
+
+                    JSL IF_LOAD
+                    BCS is_ok3
+
+                    TRACE "Could not load CYBERIAD.TXT"
                     BRA motor_off
-
-is_ok2              ; JSL IF_DIROPEN
-                    ; BCS is_ok3
-
-                    ; TRACE "Error: Could not read directory."
-                    ; BRA motor_off                    
 
 is_ok3              TRACE "OK"
 
@@ -83,6 +106,11 @@ lock                NOP
 done                PLP
                     RTL
                     .pend
+
+TEST_FD             .dstruct FILEDESC
+TEST_FILE           .null "cyberiad.txt"    ; Path to file to try to load
+TEST_LOCATION = $020000                     ; Location to try to load it
+TEST_BUFFER = $030000                       ; Temporary location for a cluster buffer
 
 ;
 ; Wait for the FDC to be ready for a transfer from the CPU
@@ -174,7 +202,7 @@ loop                LDA @l SIO_FDC_MSR
 ;   FDC_PARAMETERS = buffer containing the bytes to send to start the command
 ;   FDC_PARAM_NUM = The number of parameter bytes to send to the FDC (including command)
 ;   FDC_RESULT_NUM = The number of result bytes expected ()
-;   FDC_EXPECT_DAT = 0: the command expects no data, otherwise expects data
+;   FDC_EXPECT_DAT = 0: the command expects no data, otherwise command will read data from the FDC
 ;   BIOS_BUFF_PTR = pointer to the buffer to store data
 ;
 ; Outputs:
@@ -607,7 +635,7 @@ FDC_Configure_Command .proc
                     STA SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
-                    LDA #$08                ; FIFOTHR = 8 byte
+                    LDA #$44                ; Implied Seek, FIFOTHR = 4 byte
                     STA SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
@@ -872,7 +900,117 @@ FDC_Read_Sector     .proc
                     LDA #7
                     STA FDC_RESULT_NUM                  ; 7 results
 
-;LOCKIF_B            BIOS_LBA,19,"Reading first directory sector..."
+command             JSL FDC_COMMAND                     ; Issue the command
+                    PHP
+
+get_results         LDA FDC_RESULTS
+                    STA FDC_ST0                         ; --- ST0 ----
+
+                    LDA FDC_RESULTS+1
+                    STA FDC_ST1                         ; --- ST1 ----
+
+                    LDA FDC_RESULTS+2
+                    STA FDC_ST2                         ; --- ST2 ----
+
+                    LDA FDC_RESULTS+3
+                    STA FDC_CYLINDER                    ; -- C ---
+
+                    LDA FDC_RESULTS+4
+                    STA FDC_HEAD                        ; --- H ---
+
+                    LDA FDC_RESULTS+5
+                    STA FDC_SECTOR                      ; --- R ---
+
+                    LDA FDC_RESULTS+6
+                    STA FDC_SECTOR_SIZE                 ; --- N ---
+
+                    PLP
+                    BCC pass_failure
+
+done                PLP
+                    PLD
+                    PLB
+                    RTL
+
+pass_failure        PLP
+                    PLD
+                    PLB
+                    CLC
+                    RTL
+                    .pend
+
+;
+; Write a sector from a buffer provided by the caller
+;
+; Inputs;
+;   BIOS_BUFF_PTR = pointer to the destination to write the sector
+;   FDC_DRIVE = the number of the drive to access
+;   FDC_HEAD = the head to access (0/1)
+;   FDC_CYLINDER = the cylinder or track to access
+;   FDC_SECTOR = the sector to access (1..?)
+;
+; Outputs:
+;   FDC_ST0 = Status register 0
+;   FDC_ST1 = Status register 1
+;   FDC_ST2 = Status register 2
+;   FDC_CYLINDER = the current cylinder
+;   FDC_HEAD = the current HEAD
+;   FDC_SECTOR = the current sector
+;   FDC_SECTOR_SIZE = the sector size code
+;
+FDC_Write_Sector    .proc
+                    PHB
+                    PHD
+                    PHP
+
+                    setdbr 0
+                    setdp FDC_DRIVE
+
+                    TRACE "FDC_Write_Sector"
+
+                    JSL FDC_MOTOR_NEEDED                ; Reset the spindle motor timeout clock
+
+                    setas                  
+                    LDA #FDC_CMD_WRITE_DATA             ; The WRITE_DATA command
+                    ORA #FDC_CMD_MFM                    ; Turn on MFM mode
+                    STA FDC_PARAMETERS
+
+                    LDA FDC_HEAD                        ; Get the head
+                    AND #$01
+                    ASL A
+                    ASL A
+                    ORA FDC_DRIVE                       ; And the drive number
+                    STA FDC_PARAMETERS+1
+
+                    LDA FDC_CYLINDER                    ; Send the cylinder number
+                    STA FDC_PARAMETERS+2
+
+                    LDA FDC_HEAD                        ; Send the head number
+                    STA FDC_PARAMETERS+3
+
+                    LDA FDC_SECTOR                      ; Send the sector number
+                    STA FDC_PARAMETERS+4
+
+                    LDA #$02                            ; --- N ---- Sector Size (2 = 512Bytes)
+                    STA FDC_PARAMETERS+5
+
+                    LDA #18                             ; --- EOT ---- End of Track
+                    STA FDC_PARAMETERS+6
+
+                    LDA #$1B                            ; --- GPL ---- End of Track
+                    STA FDC_PARAMETERS+7
+
+                    LDA #$FF                            ; --- DTL ---- Special sector size
+                    STA FDC_PARAMETERS+8
+
+                    LDA #9
+                    STA FDC_PARAM_NUM                   ; 9 parameter (the command)
+
+                    LDA #1
+                    STA FDC_EXPECT_DAT                  ; Expect data
+
+                    LDA #7
+                    STA FDC_RESULT_NUM                  ; 7 results
 
 command             JSL FDC_COMMAND                     ; Issue the command
                     PHP
@@ -1057,21 +1195,6 @@ FDC_GETBLOCK        .proc
                     setaxl                   
                     JSL LBA2CHS                 ; Convert the LBA to CHS
 
-seek                JSL FDC_Seek_Track          ; Try to move to that track
-                    BCC pass_failure
-
-                    LDX #<>FDC_SEEK_TIME
-                    LDY #`FDC_SEEK_TIME
-                    JSL IDELAY
-                    
-                    JSL FDC_Sense_Int_Status
-                    BCC pass_failure
-
-                    setas
-                    LDA FDC_ST0
-                    AND #%11010000              ; Check the error bits
-                    BNE seek_failure            ; If anything set: fail
-
                     JSL FDC_Read_Sector         ; Read the sector
                     BCC pass_failure
 
@@ -1216,6 +1339,9 @@ parse_boot          setas
                     LDA DOS_SECTOR+BPB_RSRVCLUS_OFF         ; Get the number of reserved clusters
                     STA @l NUM_RSRV_SEC
 
+                    LDA #DOS_SECTOR_SIZE                    ; Set the size of a FAT12 cluster
+                    STA @l CLUSTER_SIZE
+
                     ; Check for an extended boot record with a volume label
 
                     setas
@@ -1264,9 +1390,14 @@ pass_failure        PLP
 ;   C set on success, clear on failure
 ;
 FATFORCLUSTER12 .proc
+                PHB
+                PHD
                 PHP
 
                 TRACE "FATFORCLUSTER12"
+
+                setdbr 0
+                setdp FDC_DRIVE
 
                 setaxl
                 LDA DOS_CLUS_ID                 ; DOS_TEMP := DOS_CLUS_ID * 3
@@ -1330,6 +1461,8 @@ FATFORCLUSTER12 .proc
                 TAX                             ; And move that to X
 
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
@@ -1338,6 +1471,8 @@ error           setas
                 STA DOS_STATUS
 
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -1355,9 +1490,14 @@ error           setas
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 NEXTCLUSTER12       .proc
+                    PHB
+                    PHD
                     PHP
 
                     TRACE "NEXTCLUSTER12"
+
+                    setdbr 0
+                    setdp FDC_DRIVE
 
                     setaxl
 
@@ -1384,7 +1524,6 @@ is_odd              TRACE "is_odd"
                     LDA DOS_FAT_SECTORS,X           ; DOS_CLUS_ID := DOS_FAT_SECTORS[X] >> 4
                     .rept 4
                     LSR A
-                    ROR A
                     .next
                     STA DOS_CLUS_ID
                     STZ DOS_CLUS_ID+2
@@ -1398,6 +1537,8 @@ check_id            setal
 ret_success         setas
                     STZ DOS_STATUS
                     PLP
+                    PLD
+                    PLB
                     SEC
                     RTL
 
@@ -1405,6 +1546,8 @@ no_more             setas                           ; Return that there are no m
                     LDA #DOS_ERR_NOCLUSTER
                     STA DOS_STATUS
 pass_failure        PLP
+                    PLD
+                    PLB
                     CLC
                     RTL
                     .pend
@@ -1457,3 +1600,106 @@ pass_failure        PLP
                     CLC
                     RTL
                     .pend
+
+;
+; Find the next free cluster in the FAT, and flag it as used in the FAT (FAT12)
+;
+; Outputs:
+;   DOS_CLUS_ID = the cluster found
+;   DOS_STATUS = the status code for the operation
+;   C set on success, clear on failure
+;
+DOS_FREECLUS12  .proc
+                PHP
+
+                setaxl
+
+                ; Get the first sector of the FAT
+
+                LDA #<>DOS_SECTOR               ; Set the location to store the sector
+                STA BIOS_BUFF_PTR
+                LDA #`DOS_SECTOR
+                STA BIOS_BUFF_PTR+2
+
+                LDA FAT_BEGIN_LBA               ; Set the LBA to that of the first FAT sector
+                STA BIOS_LBA
+                LDA FAT_BEGIN_LBA+2
+                STA BIOS_LBA+2
+
+                JSL GETBLOCK                    ; Load the sector into memory
+                BCS initial_entry               ; If OK: set the initial entry to check
+
+                setas
+                LDA #DOS_ERR_FAT                ; Return a NOFAT error
+                BRL ret_failure
+
+                ; Start at cluster #2
+
+initial_entry   setal
+                LDA #2                          ; Set DOS_CLUS_ID to 2
+                STA DOS_CLUS_ID
+                LDA #0
+                STA DOS_CLUS_ID+2
+
+                LDX #8                          ; Set the offset to DOS_CLUS_ID * 4
+
+chk_entry       LDA DOS_SECTOR,X                ; Is the cluster entry == $00000000?
+                BNE next_entry                  ; No: move to the next entry
+                LDA DOS_SECTOR+2,X
+                BEQ found_free                  ; Yes: go to allocate and return it
+
+                ; No: move to next entry and update the cluster number
+
+next_entry      INC DOS_CLUS_ID                 ; Move to the next cluster
+                BNE inc_ptr
+                INC DOS_CLUS_ID+2
+
+inc_ptr         INX                             ; Update the index to the entry
+                INX
+                INX
+                INX                
+                CPX #DOS_SECTOR_SIZE            ; Are we outside the sector?
+                BLT chk_entry                   ; No: check this entry
+                
+                ; Yes: load the next sector
+
+                CLC                             ; Point to the next sector in the FAT
+                LDA BIOS_LBA
+                ADC #DOS_SECTOR_SIZE
+                STA BIOS_LBA
+                LDA BIOS_LBA+2
+                ADC #0
+                STA BIOS_LBA+2
+
+                ; TODO: check for end of FAT
+
+                JSL GETBLOCK                    ; Attempt to read the block
+                BCS set_ptr                     ; If OK: set the pointer and check it
+
+set_ptr         LDX #0                          ; Set index pointer to the first entry
+                BRA chk_entry                   ; Check this entry
+
+found_free      setal
+                LDA #<>FAT_LAST_CLUSTER         ; Set the entry to $0FFFFFFF to make it the last entry in its chain
+                STA DOS_SECTOR,X
+                LDA #(FAT_LAST_CLUSTER >> 16)
+                STA DOS_SECTOR+2,X
+
+                JSL PUTBLOCK                    ; Write the sector back to the block device
+                BCS ret_success                 ; If OK: return success
+
+                setas
+                LDA #DOS_ERR_FAT                ; Otherwise: return NOFAT error
+
+ret_failure     setas
+                STA DOS_STATUS
+                PLP
+                CLC
+                RTL
+
+ret_success     setas
+                STZ DOS_STATUS
+                PLP
+                SEC
+                RTL
+                .pend

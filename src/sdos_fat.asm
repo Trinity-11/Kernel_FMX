@@ -431,6 +431,8 @@ add_offset      CLC
 DOS_GETCLUSTER  .proc
                 PHP
 
+                TRACE "DOS_GETCLUSTER"
+
                 setal
                 LDA DOS_BUFF_PTR                    ; Set the BIOS BUFFER
                 STA BIOS_BUFF_PTR
@@ -679,17 +681,7 @@ mount           setas
                 JSL DOS_MOUNT
 
 get_directory   setal
-                LDA #<>DOS_DIR_CLUSTER          ; Load the directory cluster into the directory buffer
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-
-                LDA ROOT_DIR_FIRST_CLUSTER      ; Queue up loading the first sector of the root directory
-                STA DOS_CLUS_ID
-                LDA ROOT_DIR_FIRST_CLUSTER+2
-                STA DOS_CLUS_ID+2
-
-                JSL DOS_GETCLUSTER              ; Get the directory
+                JSL IF_DIROPEN                  ; Get the directory
                 BCS scan_entries                ; If success: start scanning the directory entries
 
                 setas
@@ -901,12 +893,15 @@ ret_failure     CLC                             ; Return failure
 NEXTCLUSTER     .proc
                 PHP
 
+                TRACE "NEXTCLUSTER"
+
                 setas
                 LDA @l FILE_SYSTEM              ; Get the file system code
                 CMP #PART_TYPE_FAT12            ; Is it FAT12?
                 BNE fat32                       ; No: assume it's FAT32
 
-fat12           JSL NEXTCLUSTER12               ; Lookup the next cluster from FAT12
+fat12           TRACE "fat12"
+                JSL NEXTCLUSTER12               ; Lookup the next cluster from FAT12
                 BCC pass_failure                ; If there was an error, pass it up the chain
                 BRA ret_success
 
