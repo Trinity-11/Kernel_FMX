@@ -7,6 +7,61 @@ FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
 
 FDC_MOTOR_ON_TIME = 60 * 30     ; Time (in SOF interrupt counts) for the motor to stay on: ~30s?
 
+;
+; Read a sector from the FDC quickly (for debugging purposes)
+;
+; Inputs:
+;   BIOS_LBA = the desired LBA
+;
+; Outputs:
+;   Data is written to DOS_SECTOR
+;
+FDC_QUICKREAD       .proc
+                    PHP
+
+                    setas
+                    LDA #BIOS_DEV_FDC
+                    STA @l BIOS_DEV
+
+                    setaxl
+                    LDA @l BIOS_LBA+2
+                    PHA
+                    LDA @l BIOS_LBA
+                    PHA
+
+                    JSL FDC_Mount
+
+                    LDA #100
+                    JSL ILOOP_MS
+
+                    PLA
+                    STA @l BIOS_LBA
+                    PLA
+                    STA @l BIOS_LBA+2
+
+                    BCC fail
+
+                    LDA #<>DOS_SECTOR           ; Point to DOS_SECTOR as the destination buffer
+                    STA @l BIOS_BUFF_PTR
+                    LDA #`DOS_SECTOR
+                    STA @l BIOS_BUFF_PTR+2
+
+                    JSL GETBLOCK                ; Try to read
+                    BCC fail
+
+                    JSL FDC_Motor_Off
+
+                    PLP
+                    RTL
+
+fail                setas
+                    LDA #'!'
+                    JSL PUTC
+                    JSL PRINTCR
+                    PLP
+                    RTL
+                    .pend
+
 FDC_TEST            .proc
                     PHB
                     PHD
@@ -29,59 +84,74 @@ FDC_TEST            .proc
                     JSL FDC_Init
                     BCS init_ok
 
-                    TRACE "Error: FDC_Init failed"
+                    TRACE "Could not initialize drive"
                     BRL motor_off
 
-init_ok             JSL FDC_MOUNT
-                    BCS is_ok
+init_ok             JSL FDC_CHK_MEDIA
+                    BCC no_media
+                    BRL is_ok1
 
-mount_err           TRACE "Error: FDC_MOUNT failed"
+no_media            TRACE "No media was found."
                     BRL motor_off
 
-is_ok               setas
+is_ok1              JSL FDC_MOUNT
+                    BCC mount_err
+                    BRL is_ok2
+
+mount_err           TRACE "Could not mount drive."
+                    BRL motor_off
+
+is_ok2              setas
                     LDX #0
                     LDA #0
-fd_clr_loop         STA TEST_FD,X
+fill_loop           STA TEST_BUFFER,X
+                    INC A
                     INX
-                    CPX #size(FILEDESC)
-                    BNE fd_clr_loop
+                    CPX #512
+                    BNE fill_loop
 
-                    LDX #0
-buff_clr_loop       STA TEST_LOCATION,X
-                    INX
-                    CPX #1024
-                    BNE buff_clr_loop
+                    LDA #BIOS_DEV_FDC               ; Set the device #
+                    STA TEST_FD.DEV
 
                     setal
-                    LDA #<>TEST_FILE
+                    LDA #<>NEW_NAME                 ; Set the path
                     STA TEST_FD.PATH
-                    LDA #`TEST_FILE
+                    LDA #`NEW_NAME
                     STA TEST_FD.PATH+2
 
-                    LDA #<>TEST_BUFFER
+                    LDA #<>TEST_BUFFER              ; Set the buffer
                     STA TEST_FD.BUFFER
                     LDA #`TEST_BUFFER
                     STA TEST_FD.BUFFER+2
 
-                    LDA #<>TEST_FD
+                    LDA #1024                       ; Set the size to 512 bytes
+                    STA TEST_FD.SIZE
+                    LDA #0
+                    STA TEST_FD.SIZE+2
+
+                    LDA #<>TEST_FD                  ; Set the file descriptor
                     STA DOS_FD_PTR
                     LDA #`TEST_FD
                     STA DOS_FD_PTR+2
 
-                    LDA #<>TEST_LOCATION
-                    STA DOS_DST_PTR
-                    LDA #`TEST_LOCATION
-                    STA DOS_DST_PTR+2
-
-                    JSL IF_LOAD
+                    JSL IF_CREATE
                     BCS is_ok3
 
-                    TRACE "Could not load CYBERIAD.TXT"
-                    BRA motor_off
+                    TRACE "Can't create file"
+                    BRL motor_off
 
-is_ok3              TRACE "OK"
+is_ok3              JSL IF_WRITE
+                    BCS all_ok
 
-motor_off           JSL FDC_Motor_Off
+fail2               TRACE "Could not append to the file"
+                    BRL motor_off
+
+NEW_NAME            .null "GENFILE1.TXT"
+
+all_ok              TRACE "Everything worked OK!"
+
+motor_off           JSL PRINTCR
+                    JSL FDC_Motor_Off
 
                     PLP
                     PLD
@@ -96,9 +166,6 @@ FDC_BRK_ON_ERR      .proc
                     LDA @l FDC_ST0
                     AND #%11010000          ; Check only the error bits
                     BEQ done
-
-                    LDA #'#'
-                    JSL IPUTC
 
 lock                NOP
                     BRA lock
@@ -121,7 +188,7 @@ FDC_Check_RQM       .proc
                     PHP
                     setas
 
-loop                LDA SIO_FDC_MSR
+loop                LDA @l SIO_FDC_MSR
                     BIT #FDC_MSR_RQM
                     BEQ loop
 
@@ -138,7 +205,7 @@ FDC_Check_DRV0_BSY  .proc
                     PHP
                     setas
 
-fdc_drv0bsy_loop    LDA SIO_FDC_MSR
+fdc_drv0bsy_loop    LDA @l SIO_FDC_MSR
                     BIT #FDC_MSR_DRV0BSY
                     BNE fdc_drv0bsy_loop
 
@@ -202,7 +269,9 @@ loop                LDA @l SIO_FDC_MSR
 ;   FDC_PARAMETERS = buffer containing the bytes to send to start the command
 ;   FDC_PARAM_NUM = The number of parameter bytes to send to the FDC (including command)
 ;   FDC_RESULT_NUM = The number of result bytes expected ()
-;   FDC_EXPECT_DAT = 0: the command expects no data, otherwise command will read data from the FDC
+;   FDC_EXPECT_DAT = 0: the command expects no data,
+;                   >0: the command expects to read data from the drive
+;                   <0: the command expects to write data to the drive
 ;   BIOS_BUFF_PTR = pointer to the buffer to store data
 ;
 ; Outputs:
@@ -211,6 +280,7 @@ loop                LDA @l SIO_FDC_MSR
 ;   C = set if success, clear on error
 ;
 FDC_COMMAND         .proc
+                    PHX
                     PHB
                     PHD
                     PHP
@@ -227,9 +297,6 @@ clr_results         STA FDC_RESULTS,X                       ; Clear the result b
                     INX
                     CPX #16
                     BNE clr_results
-
-                    LDA #3                                  ; Default to 3 retries
-                    STA FDC_CMD_RETRY
 
                     LDA @l SIO_FDC_MSR                      ; Validate we can send a command
                     AND #FDC_MSR_RQM | FDC_MSR_DIO
@@ -249,36 +316,87 @@ send_loop           JSR FDC_Check_RQM                       ; Wait until we can 
                     CPX FDC_PARAM_NUM
                     BNE send_loop                           ; Keep sending until we've sent them all
 
-                    LDA FDC_EXPECT_DAT
-                    BEQ result_phase
+                    LDA FDC_EXPECT_DAT                      ; Check the data expectation byte
+                    BEQ result_phase                        ; If 0: we just want a result
+                    BPL rd_data                             ; If >0: we want to read data
 
-                    JSR FDC_Can_Read_Data
+                    ; Write data...
 
-wait_for_data_rdy   LDA @l SIO_FDC_MSR                      ; Wait for data to be ready
+wr_data             ; JSR FDC_CAN_WRITE
+
+wr_data_rdy         LDA @l SIO_FDC_MSR                      ; Wait for ready to write
+                    BIT #FDC_MSR_RQM
+                    BEQ wr_data_rdy
+
+                    BIT #FDC_MSR_NONDMA                     ; Check if in execution mode
+                    BNE wr_data_phase                       ; If so: transfer the data
+
+                    ; AND #FDC_MSR_RQM | FDC_MSR_DIO
+                    ; CMP #FDC_MSR_RQM
+                    ; BNE wr_data_rdy
+
+                    ; LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
+
+                    BRL result_phase                          ; If not: it's an error
+
+                    ; Data write phase
+
+wr_data_phase       setxl
+                    LDY #0
+wr_data_loop        LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
+                    BIT #FDC_MSR_NONDMA
+                    BEQ result_phase                        ; If not: break out to result phase
+
+                    ; LDA @l SIO_FDC_MSR                      ; Wait for the FDC to be ready to accept a byte
+                    BIT #FDC_MSR_RQM
+                    BEQ wr_data_loop
+                    ; AND #FDC_MSR_RQM | FDC_MSR_DIO
+                    ; CMP #FDC_MSR_RQM
+                    ; BNE wr_data_loop
+
+                    LDA [BIOS_BUFF_PTR],Y                   ; Get the data byte
+                    STA @l SIO_FDC_DTA                      ; And save it to the buffer
+
+                    INY                                     ; Move to the next position
+                    CPY #512                                ; TODO: set this from the parameters?
+                    BNE wr_data_loop                        ; If not at the end, keep fetching
+                    BRA result_phase                        ; ready for the result phase
+
+                    ; Read data
+
+rd_data             JSR FDC_Can_Read_Data
+
+rd_data_rdy         LDA FDC_STATUS                          ; Check that the motor is still spinning
+                    BMI chk_rd_rdy                          ; If so, check to see if the data is ready
+
+                    LDA #BIOS_ERR_NOMEDIA                   ; Otherwise: throw a NOMEDIA error
+                    BRL pass_error
+
+chk_rd_rdy          LDA @l SIO_FDC_MSR                      ; Wait for data to be ready
                     AND #FDC_MSR_RQM | FDC_MSR_DIO
                     CMP #FDC_MSR_RQM | FDC_MSR_DIO
-                    BNE wait_for_data_rdy
+                    BNE rd_data_rdy
 
                     LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
                     BIT #FDC_MSR_NONDMA
-                    BNE data_phase                          ; If so: transfer the data
+                    BNE rd_data_phase                       ; If so: transfer the data
                     BRL error                               ; If not: it's an error
 
                     ; Data read phase
 
-data_phase          setxl
+rd_data_phase       setxl
                     LDY #0
-data_loop           LDA @l SIO_FDC_MSR                      ; Wait for the next byte to be ready
+rd_data_loop        LDA @l SIO_FDC_MSR                      ; Wait for the next byte to be ready
                     AND #FDC_MSR_RQM | FDC_MSR_DIO
                     CMP #FDC_MSR_RQM | FDC_MSR_DIO
-                    BNE data_loop
+                    BNE rd_data_loop
 
                     LDA @l SIO_FDC_DTA                      ; Get the data byte
                     STA [BIOS_BUFF_PTR],Y                   ; And save it to the buffer
 
                     INY                                     ; Move to the next position
                     CPY #512                                ; TODO: set this from the parameters?
-                    BNE data_loop                           ; If not at the end, keep fetching
+                    BNE rd_data_loop                        ; If not at the end, keep fetching
 
                     ; Result read phase
 
@@ -318,24 +436,22 @@ chk_busy            setxl
                     INX
                     BRA chk_busy                            ; And keep checking
 
-done                STZ BIOS_STATUS
+done                TRACE "done"
+                    STZ BIOS_STATUS
                     PLP
                     PLD
                     PLB
+                    PLX
                     SEC
                     RTL
 
-retry               setas
-                    DEC FDC_CMD_RETRY                       ; Decrement the retry counter
-                    BMI error                               ; If it's negative, we've failed
-                    BRL fdc_reset                           ; Otherwise, try to reset and try again
-
 error               setas
                     LDA #BIOS_ERR_CMD
-                    STA BIOS_STATUS
+pass_error          STA BIOS_STATUS
                     PLP
                     PLD
                     PLB
+                    PLX
                     CLC
                     RTL
                     .pend
@@ -366,9 +482,9 @@ FDC_Init            .proc
                     NOP
 
                     LDA #$00                    ; Make sure the Speed and Compensation has been set
-                    STA SIO_FDC_DSR             
+                    STA @l SIO_FDC_DSR             
                     LDA #$00                    ; Precompensation set to 0
-                    STA SIO_FDC_CCR
+                    STA @l SIO_FDC_CCR
 
                     LDX #<>FDC_SEEK_TIME
                     LDY #`FDC_SEEK_TIME
@@ -414,9 +530,9 @@ FDC_MOTOR_NEEDED    .proc
                     STA @l FDC_MOTOR_TIMER
 
                     setas
-                    LDA @lINT_MASK_REG0
+                    LDA @l INT_MASK_REG0
                     AND #~FNX0_INT00_SOF        ; Enable the SOF interrupt
-                    STA @lINT_MASK_REG0
+                    STA @l INT_MASK_REG0
                     
                     PLP
                     RTL
@@ -446,6 +562,10 @@ FDC_Motor_On        .proc
                     LDY #`FDC_MOTOR_TIME
                     JSL IDELAY
 
+                    LDA @l FDC_STATUS
+                    ORA #$80                    ; Flag that the motor should be on
+                    STA @l FDC_STATUS
+
 done                PLP
                     RTL
                     .pend
@@ -457,16 +577,14 @@ FDC_Motor_Off       .proc
                     PHP
                     setas
 
-                    TRACE "FDC_Motor_Off"
-
-                    JSR FDC_Check_DRV0_BSY      ; Make sure the drive is not seeking
-                    JSR FDC_Check_RQM           ; Check if I can transfer data
+                    ; JSR FDC_Check_DRV0_BSY      ; Make sure the drive is not seeking
+                    ; JSR FDC_Check_RQM           ; Check if I can transfer data
 
                     ; Turn OFF the Motor
                     LDA #FDC_DOR_NRESET
-                    STA SIO_FDC_DOR
+                    STA @L SIO_FDC_DOR
 
-                    JSR FDC_Check_RQM           ; Make sure we can leave knowing that everything set properly
+                    ; JSR FDC_Check_RQM           ; Make sure we can leave knowing that everything set properly
 
                     setal
                     SEI                         ; Turn off interrupts
@@ -474,9 +592,15 @@ FDC_Motor_Off       .proc
                     STA @l FDC_MOTOR_TIMER
 
                     setas
-                    LDA @lINT_MASK_REG0
+                    LDA @l INT_MASK_REG0
                     ORA #FNX0_INT00_SOF         ; Disable the SOF interrupt
-                    STA @lINT_MASK_REG0
+                    STA @l INT_MASK_REG0
+
+                    LDA @l FDC_STATUS
+                    AND #$7F                    ; Flag that the motor should be off
+                    STA @l FDC_STATUS
+
+                    TRACE "FDC_Motor_Off"
 
                     PLP
                     RTL
@@ -553,16 +677,16 @@ FDC_Sense_Int_Status .proc
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
                     LDA #FDC_CMD_SENSE_INTERRUPT
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Can_Read_Data
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
-                    LDA SIO_FDC_DTA
+                    LDA @l SIO_FDC_DTA
                     STA FDC_ST0                         ; --- ST0 ---
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
-                    LDA SIO_FDC_DTA
+                    LDA @l SIO_FDC_DTA
                     STA FDC_PCN                         ; --- Cylinder ---
 
                     PLP
@@ -593,15 +717,15 @@ FDC_Specify_Command .proc
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #FDC_CMD_SPECIFY    ; Specify Command
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #$CF
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #$01                ; 1 = Non-DMA
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     PLP
                     PLD
@@ -628,19 +752,19 @@ FDC_Configure_Command .proc
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #FDC_CMD_CONFIGURE  ; Specify Command
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #$00
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #$44                ; Implied Seek, FIFOTHR = 4 byte
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
                     LDA #$00
-                    STA SIO_FDC_DTA
+                    STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
 
@@ -705,7 +829,7 @@ FDC_Read_ID_Command .proc
                     STA FDC_HEAD                        ; Get the head
 
                     LDA FDC_RESULTS+5
-                    STA FDC_SECTOR                      ; Get the sector
+                    STA FDC_PCN                         ; Get the sector
 
                     LDA FDC_RESULTS+6
                     STA FDC_SECTOR_SIZE                 ; Get the sector size code
@@ -790,7 +914,7 @@ FDC_Seek_Track      .proc
 
                     TRACE "FDC_Seek_Track"
 
-                    JSL FDC_MOTOR_NEEDED        ; Reset the spindle motor timeout clock
+                    JSL FDC_MOTOR_NEEDED                ; Reset the spindle motor timeout clock
 
                     setas                  
                     LDA #FDC_CMD_SEEK                   ; Seek Command
@@ -919,7 +1043,7 @@ get_results         LDA FDC_RESULTS
                     STA FDC_HEAD                        ; --- H ---
 
                     LDA FDC_RESULTS+5
-                    STA FDC_SECTOR                      ; --- R ---
+                    STA FDC_PCN                      ; --- R ---
 
                     LDA FDC_RESULTS+6
                     STA FDC_SECTOR_SIZE                 ; --- N ---
@@ -968,9 +1092,9 @@ FDC_Write_Sector    .proc
 
                     TRACE "FDC_Write_Sector"
 
+                    setas
                     JSL FDC_MOTOR_NEEDED                ; Reset the spindle motor timeout clock
-
-                    setas                  
+                  
                     LDA #FDC_CMD_WRITE_DATA             ; The WRITE_DATA command
                     ORA #FDC_CMD_MFM                    ; Turn on MFM mode
                     STA FDC_PARAMETERS
@@ -1006,8 +1130,8 @@ FDC_Write_Sector    .proc
                     LDA #9
                     STA FDC_PARAM_NUM                   ; 9 parameter (the command)
 
-                    LDA #1
-                    STA FDC_EXPECT_DAT                  ; Expect data
+                    LDA #$FF
+                    STA FDC_EXPECT_DAT                  ; Expect to write data
 
                     LDA #7
                     STA FDC_RESULT_NUM                  ; 7 results
@@ -1016,27 +1140,27 @@ command             JSL FDC_COMMAND                     ; Issue the command
                     PHP
 
 get_results         LDA FDC_RESULTS
-                    STA FDC_ST0                         ; --- ST0 ----
+                    STA FDC_ST0                         ; --- ST0 ---
 
                     LDA FDC_RESULTS+1
-                    STA FDC_ST1                         ; --- ST1 ----
+                    STA FDC_ST1                         ; --- ST1 ---
 
                     LDA FDC_RESULTS+2
-                    STA FDC_ST2                         ; --- ST2 ----
+                    STA FDC_ST2                         ; --- ST2 ---
 
                     LDA FDC_RESULTS+3
-                    STA FDC_CYLINDER                    ; -- C ---
+                    STA FDC_CYLINDER                    ; --- C ---
 
                     LDA FDC_RESULTS+4
                     STA FDC_HEAD                        ; --- H ---
 
                     LDA FDC_RESULTS+5
-                    STA FDC_SECTOR                      ; --- R ---
+                    STA FDC_PCN                      ; --- R ---
 
                     LDA FDC_RESULTS+6
                     STA FDC_SECTOR_SIZE                 ; --- N ---
 
-                    PLP
+check_status        PLP
                     BCC pass_failure
 
 done                PLP
@@ -1128,13 +1252,13 @@ LBA2CHS             .proc
 
                     ; CYL = LBA / (HPC * SPT)
                     LDA BIOS_LBA
-                    STA @w DIVIDEND
+                    STA DIVIDEND
                     LDA BIOS_LBA+2
-                    STA @w DIVIDEND+2
+                    STA DIVIDEND+2
 
                     LDA #36
-                    STA @w DIVISOR
-                    STZ @w DIVISOR+2
+                    STA DIVISOR
+                    STZ DIVISOR+2
 
                     JSR DIVIDE32
 
@@ -1144,24 +1268,24 @@ LBA2CHS             .proc
                     setal
 
                     ; HEAD = (LBA % (HPC * SPT)) / SPT
-                    LDA @w REMAINDER
-                    STA @w DIVIDEND
-                    LDA @w REMAINDER+2
-                    STA @w DIVIDEND+2
+                    LDA REMAINDER
+                    STA DIVIDEND
+                    LDA REMAINDER+2
+                    STA DIVIDEND+2
 
                     LDA #18
-                    STA @w DIVISOR
-                    STZ @w DIVISOR+2
+                    STA DIVISOR
+                    STZ DIVISOR+2
 
                     JSR DIVIDE32
 
                     setas
-                    LDA @w DIVIDEND
+                    LDA DIVIDEND
                     AND #$01
                     STA FDC_HEAD
                     
                     ; SECT = (LBA % (HPC * SPT)) % SPT + 1 
-                    LDA @w REMAINDER
+                    LDA REMAINDER
                     INC A
                     STA FDC_SECTOR
 
@@ -1195,12 +1319,21 @@ FDC_GETBLOCK        .proc
                     setaxl                   
                     JSL LBA2CHS                 ; Convert the LBA to CHS
 
+                    setas
+                    LDA FDC_SECTOR              ; Just make sure the sector is ok
+                    BEQ read_failure
+                    setal
+
                     JSL FDC_Read_Sector         ; Read the sector
                     BCC pass_failure
 
                     setas
                     LDA FDC_ST0
                     AND #%11010000              ; Check the error bits
+                    BNE read_failure
+
+                    LDA FDC_ST1
+                    AND #%00110101
                     BNE read_failure
 
 ret_success         setas
@@ -1221,6 +1354,86 @@ seek_failure        setas
                     LDA #BIOS_ERR_TRACK
 
 ret_failure         STA @w BIOS_STATUS
+pass_failure        PLP
+                    PLD
+                    PLB
+                    CLC
+                    RTL
+                    .pend
+
+;
+; Write a 512 byte block to the floppy disk from memory
+;
+; Inputs:
+;   BIOS_LBA = the 32-bit block address to write
+;   BIOS_BUFF_PTR = pointer to the location containing the data to write
+;
+; Returns:
+;   BIOS_STATUS = status code for any errors (0 = fine)
+;   C = set if success, clear on error
+;
+FDC_PUTBLOCK        .proc
+                    PHB
+                    PHD
+                    PHP
+
+                    setdbr 0
+                    setdp FDC_DRIVE
+                    
+                    TRACE "FDC_PUTBLOCK"
+
+                    setas
+                    LDA #3                      ; Set the number of retries we're willing to do
+                    STA @w FDC_CMD_RETRY
+
+                    setaxl                   
+                    JSL LBA2CHS                 ; Convert the LBA to CHS
+
+retry               JSL FDC_Write_Sector        ; Write the sector
+                    BCC attempt_retry
+
+                    setas
+                    LDA FDC_ST0
+                    AND #%11010000              ; Check the error bits
+                    BNE write_failure
+
+ret_success         TRACE "FDC_PUTBLOCK SUCCESS"
+                    setas
+                    LDA #0
+                    STA @w BIOS_STATUS
+                    
+                    PLP
+                    PLD
+                    PLB
+                    SEC
+                    RTL
+
+write_failure       setas
+                    LDA FDC_ST1                         ; Check ST1 for write protect
+                    BIT #FDC_ST1_NW
+                    BEQ generic_err     
+                    LDA #BIOS_ERR_WRITEPROT             ; Yes: return a write-protect error
+                    BRA ret_failure
+
+generic_err         BIT #FDC_ST1_OR                     ; TODO: properly handle over/under run errors
+                    BNE ret_success
+
+                    BIT #FDC_ST1_EN                     ; TODO: properly handle end-of-track
+                    BNE ret_success
+
+attempt_retry       setas
+                    DEC @w FDC_CMD_RETRY                ; Count down the retries
+                    BNE retry                           ; And retry unless we have none left
+
+                    LDA #BIOS_ERR_WRITE                 ; Otherwise: return a generic write error
+                    BRA ret_failure
+
+seek_failure        setas
+                    LDA #BIOS_ERR_TRACK
+
+ret_failure         TRACE "FDC_PUTBLOCK SUCCESS"
+
+                    STA @w BIOS_STATUS
 pass_failure        PLP
                     PLD
                     PLB
@@ -1347,7 +1560,7 @@ parse_boot          setas
                     setas
                     LDA DOS_SECTOR+BPB_SIGNATUREB           ; Is signature B $29?
                     CMP #BPB_EXTENDED_RECORD
-                    BNE no_volume_id                        ; No: there is no volume ID
+                    BRA no_volume_id                        ; No: there is no volume ID
 
 is_extended         setal
                     LDA DOS_SECTOR+BPB_VOLUMEID             ; Yes: set the volume ID
@@ -1378,183 +1591,6 @@ pass_failure        PLP
                     .pend
 
 ;
-; Load the FAT entry that contains a specific cluster (FAT12)
-;
-; Inputs:
-;   DOS_CLUS_ID = the number of the target cluster
-;
-; Outputs:
-;   DOS_FAT_SECTORS = a copy of the FAT sector(s) containing the cluster
-;   X = offset to the cluster's entry in the sector
-;   DOS_STATUS = the status code for the operation
-;   C set on success, clear on failure
-;
-FATFORCLUSTER12 .proc
-                PHB
-                PHD
-                PHP
-
-                TRACE "FATFORCLUSTER12"
-
-                setdbr 0
-                setdp FDC_DRIVE
-
-                setaxl
-                LDA DOS_CLUS_ID                 ; DOS_TEMP := DOS_CLUS_ID * 3
-                ASL A
-                STA DOS_TEMP
-                LDA DOS_CLUS_ID+2
-                ROL A
-                STA DOS_TEMP+2
-
-                CLC
-                LDA DOS_CLUS_ID
-                ADC DOS_TEMP
-                STA DOS_TEMP
-                LDA DOS_CLUS_ID+2
-                ADC DOS_TEMP+2
-                STA DOS_TEMP+2
-
-                LSR DOS_TEMP+2                  ; DOS_TEMP := (DOS_CLUS_ID * 3) / 2
-                ROR DOS_TEMP                    ; DOS_TEMP is now the offset to the cluster's entry in the FAT
-
-                LDA DOS_TEMP
-                STA BIOS_LBA
-                LDA DOS_TEMP+2
-                STA BIOS_LBA+2
-
-                .rept 9
-                LSR BIOS_LBA+2                  ; BIOS_LBA := DOS_TEMP / 512
-                ROR BIOS_LBA
-                .next
-
-                CLC                             ; BIOS_LBA should be the LBA of the first FAT sector we need
-                LDA FAT_BEGIN_LBA
-                ADC BIOS_LBA
-                STA BIOS_LBA
-                STA DOS_FAT_LBA                 ; With a copy of the LBA in DOS_FAT_LBA
-                LDA FAT_BEGIN_LBA+2
-                ADC BIOS_LBA+2
-                STA BIOS_LBA+2
-                STA DOS_FAT_LBA+2
-
-                LDA #<>DOS_FAT_SECTORS          ; Point to the first 512 bytes of the FAT buffer
-                STA BIOS_BUFF_PTR
-                LDA #`DOS_FAT_SECTORS
-                STA BIOS_BUFF_PTR+2
-
-                JSL FDC_GETBLOCK                ; Attempt to load the first FAT sector
-                BCC error
-
-                INC BIOS_LBA                    ; Move to the next sector
-
-                LDA #<>DOS_FAT_SECTORS+512      ; And point to the second 512 bytes of teh FAT buffer
-                STA BIOS_BUFF_PTR
-                LDA #`DOS_FAT_SECTORS
-                STA BIOS_BUFF_PTR+2
-
-                JSL FDC_GETBLOCK                ; Attempt to load the first FAT sector
-                BCC error
-
-                LDA DOS_TEMP                    ; Get the offset to the cluster's entry in the FAT
-                AND #$03FFF                     ; And mask it so it's an offset to the FAT buffer
-                TAX                             ; And move that to X
-
-                PLP
-                PLD
-                PLB
-                SEC
-                RTL
-
-error           setas
-                LDA #DOS_ERR_FAT
-                STA DOS_STATUS
-
-                PLP
-                PLD
-                PLB
-                CLC
-                RTL
-                .pend
-
-;
-; Find the next cluster in a file (FAT12)
-;
-; NOTE: assumes FAT12 with 512KB sectors
-;
-; Inputs:
-;   DOS_CLUS_ID = the current cluster of the file
-;
-; Outputs:
-;   DOS_CLUS_ID = the next cluster for the file
-;   C = set if there is a next cluster, clear if there isn't
-;
-NEXTCLUSTER12       .proc
-                    PHB
-                    PHD
-                    PHP
-
-                    TRACE "NEXTCLUSTER12"
-
-                    setdbr 0
-                    setdp FDC_DRIVE
-
-                    setaxl
-
-                    JSL FATFORCLUSTER12             ; Attempt to load the FAT entries
-                    BCS chk_clus_id
-                    BRL pass_failure
-
-chk_clus_id         LDA DOS_CLUS_ID                 ; Check the cluster ID...
-                    BIT #1                          ; Is it odd?
-                    BNE is_odd                      ; Yes: calculate the next cluster for odd
-
-                    ; Handle even number clusters...
-
-is_even             TRACE "is_even"
-                    setal
-                    LDA DOS_FAT_SECTORS,X           ; DOS_CLUS_ID := DOS_FAT_SECTORS[X] & $0FFF
-                    AND #$0FFF
-                    STA DOS_CLUS_ID
-                    STZ DOS_CLUS_ID+2
-                    BRA check_id
-
-is_odd              TRACE "is_odd"
-                    setal
-                    LDA DOS_FAT_SECTORS,X           ; DOS_CLUS_ID := DOS_FAT_SECTORS[X] >> 4
-                    .rept 4
-                    LSR A
-                    .next
-                    STA DOS_CLUS_ID
-                    STZ DOS_CLUS_ID+2
-
-check_id            setal
-                    LDA DOS_CLUS_ID                 ; Check the new cluster ID we got
-                    AND #$0FF0                      ; Is it in the range $0FF0 -- $0FFF?
-                    CMP #$0FF0
-                    BEQ no_more                     ; Yes: return that we've reached the end of the chain
-
-ret_success         setas
-                    STZ DOS_STATUS
-                    PLP
-                    PLD
-                    PLB
-                    SEC
-                    RTL
-
-no_more             setas                           ; Return that there are no more clusters
-                    LDA #DOS_ERR_NOCLUSTER
-                    STA DOS_STATUS
-pass_failure        PLP
-                    PLD
-                    PLB
-                    CLC
-                    RTL
-                    .pend
-
-
-
-;
 ; Send a special command code to the floppy drive controller
 ;
 ; Inputs:
@@ -1569,8 +1605,12 @@ pass_failure        PLP
 ;   C = set if success, clear on error
 ;
 FDC_CMDBLOCK        .proc
+                    PHB
+                    PHD
                     PHP
 
+                    setdbr 0
+                    setdp FDC_DRIVE
                     setaxs
 
                     CPX #FDC_DEVCMD_MOTOR_ON
@@ -1584,6 +1624,8 @@ FDC_CMDBLOCK        .proc
 
 ret_success         STZ BIOS_STATUS
                     PLP
+                    PLD
+                    PLB
                     SEC
                     RTL
 
@@ -1597,109 +1639,77 @@ recalibrate         JSL FDC_Recalibrate_Command
                     BCS ret_success
 
 pass_failure        PLP
+                    PLD
+                    PLB
                     CLC
                     RTL
                     .pend
 
 ;
-; Find the next free cluster in the FAT, and flag it as used in the FAT (FAT12)
+; Validate that a disk is in the drive.
 ;
 ; Outputs:
-;   DOS_CLUS_ID = the cluster found
-;   DOS_STATUS = the status code for the operation
-;   C set on success, clear on failure
+;   C is set, if there is a disk, clear otherwise
 ;
-DOS_FREECLUS12  .proc
-                PHP
+FDC_CHK_MEDIA       .proc
+                    PHD
+                    PHP
 
-                setaxl
+                    TRACE "FDC_CHK_MEDIA"
 
-                ; Get the first sector of the FAT
+                    setdp FDC_DRIVE
 
-                LDA #<>DOS_SECTOR               ; Set the location to store the sector
-                STA BIOS_BUFF_PTR
-                LDA #`DOS_SECTOR
-                STA BIOS_BUFF_PTR+2
+                    JSL FDC_Motor_On                ; Turn on the motor
 
-                LDA FAT_BEGIN_LBA               ; Set the LBA to that of the first FAT sector
-                STA BIOS_LBA
-                LDA FAT_BEGIN_LBA+2
-                STA BIOS_LBA+2
+                    setas
+                    LDA @l SIO_FDC_DIR              ; Check if the DSKCHG bit is set
+                    BIT #FDC_DIR_DSKCHG
+                    BEQ ret_true                    ; If not: assume the disk is present
 
-                JSL GETBLOCK                    ; Load the sector into memory
-                BCS initial_entry               ; If OK: set the initial entry to check
+                    LDA #0
+                    STA FDC_DRIVE
 
-                setas
-                LDA #DOS_ERR_FAT                ; Return a NOFAT error
-                BRL ret_failure
+                    LDA #0
+                    STA FDC_HEAD
 
-                ; Start at cluster #2
+                    LDA #80
+                    STA FDC_CYLINDER
 
-initial_entry   setal
-                LDA #2                          ; Set DOS_CLUS_ID to 2
-                STA DOS_CLUS_ID
-                LDA #0
-                STA DOS_CLUS_ID+2
+                    JSL FDC_Seek_Track              ; Attempt to seek to track 80
+                    BCC ret_false                   ; If fail: return false
 
-                LDX #8                          ; Set the offset to DOS_CLUS_ID * 4
+                    setxl
 
-chk_entry       LDA DOS_SECTOR,X                ; Is the cluster entry == $00000000?
-                BNE next_entry                  ; No: move to the next entry
-                LDA DOS_SECTOR+2,X
-                BEQ found_free                  ; Yes: go to allocate and return it
+                    LDX #<>FDC_MOTOR_TIME       ; Wait a suitable time for the motor to spin up
+                    LDY #`FDC_MOTOR_TIME
+                    JSL IDELAY
 
-                ; No: move to next entry and update the cluster number
+                    JSL FDC_Sense_Int_Status
+                    LDA FDC_ST0
+                    AND #%11010000
+                    BNE ret_false
 
-next_entry      INC DOS_CLUS_ID                 ; Move to the next cluster
-                BNE inc_ptr
-                INC DOS_CLUS_ID+2
+                    JSL FDC_Recalibrate_Command     ; Attempt to recalibrate
+                    BCC ret_false                   ; If fail: return false
 
-inc_ptr         INX                             ; Update the index to the entry
-                INX
-                INX
-                INX                
-                CPX #DOS_SECTOR_SIZE            ; Are we outside the sector?
-                BLT chk_entry                   ; No: check this entry
-                
-                ; Yes: load the next sector
+                    LDX #<>FDC_MOTOR_TIME       ; Wait a suitable time for the motor to spin up
+                    LDY #`FDC_MOTOR_TIME
+                    JSL IDELAY
 
-                CLC                             ; Point to the next sector in the FAT
-                LDA BIOS_LBA
-                ADC #DOS_SECTOR_SIZE
-                STA BIOS_LBA
-                LDA BIOS_LBA+2
-                ADC #0
-                STA BIOS_LBA+2
+                    JSL FDC_Sense_Int_Status
+                    LDA FDC_ST0
+                    AND #%11010000
+                    BNE ret_false
 
-                ; TODO: check for end of FAT
+ret_true            TRACE "DISK PRESENT"
+                    PLP
+                    PLD
+                    SEC
+                    RTL
 
-                JSL GETBLOCK                    ; Attempt to read the block
-                BCS set_ptr                     ; If OK: set the pointer and check it
-
-set_ptr         LDX #0                          ; Set index pointer to the first entry
-                BRA chk_entry                   ; Check this entry
-
-found_free      setal
-                LDA #<>FAT_LAST_CLUSTER         ; Set the entry to $0FFFFFFF to make it the last entry in its chain
-                STA DOS_SECTOR,X
-                LDA #(FAT_LAST_CLUSTER >> 16)
-                STA DOS_SECTOR+2,X
-
-                JSL PUTBLOCK                    ; Write the sector back to the block device
-                BCS ret_success                 ; If OK: return success
-
-                setas
-                LDA #DOS_ERR_FAT                ; Otherwise: return NOFAT error
-
-ret_failure     setas
-                STA DOS_STATUS
-                PLP
-                CLC
-                RTL
-
-ret_success     setas
-                STZ DOS_STATUS
-                PLP
-                SEC
-                RTL
-                .pend
+ret_false           TRACE "NO MEDIA"
+                    PLP
+                    PLD
+                    CLC
+                    RTL
+                    .pend

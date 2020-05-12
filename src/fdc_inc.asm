@@ -62,8 +62,8 @@ FDC_ST0_INTCODE = $C0   ; Mask for interrupt code:
 FDC_ST1_MA = $01        ; Missing address mark
 FDC_ST1_NW = $02        ; Not writable (disk is write protected)
 FDC_ST1_ND = $04        ; No data
-FDC_ST1_OR = $08        ; Overrun/underrun of the data
-FDC_ST1_DE = $10        ; Data error... a CRC check failed
+FDC_ST1_OR = $10        ; Overrun/underrun of the data
+FDC_ST1_DE = $20        ; Data error... a CRC check failed
 FDC_ST1_EN = $80        ; End of cylinder: tried to acess a sector not on the track
 
 ; ST2

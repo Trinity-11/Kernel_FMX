@@ -250,8 +250,7 @@ IF_READ         .proc
 ;                 LDA #DOS_ERR_NOTREAD            ; If not: throw a NOTREAD error
 ;                 BRL IF_FAILURE
 
-get_dev         TRACE "get_dev"
-                setas
+get_dev         setas
                 LDY #FILEDESC.DEV               ; Get the device number from the file descriptor
                 LDA [DOS_FD_PTR],Y
                 STA BIOS_DEV
@@ -310,21 +309,23 @@ IF_WRITE        .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "IF_WRITE"
+
                 setxl
                 setas
 
-                LDY #FILEDESC.STATUS            ; Get the status to make sure a read is ok
-                LDA [DOS_FD_PTR],Y
+;                 LDY #FILEDESC.STATUS            ; Get the status to make sure a read is ok
+;                 LDA [DOS_FD_PTR],Y
 
-                BIT #FD_STAT_OPEN               ; Make sure the file is open
-                BEQ chk_readable
-                LDA #DOS_ERR_NOTOPEN            ; If not: throw a NOTOPEN error
-                BRL IF_FAILURE
+;                 BIT #FD_STAT_OPEN               ; Make sure the file is open
+;                 BNE chk_writeable
+;                 LDA #DOS_ERR_NOTOPEN            ; If not: throw a NOTOPEN error
+;                 BRL IF_FAILURE
             
-chk_readable    BIT #FD_STAT_WRITE              ; Make sure the file is WRITE
-                BEQ get_dev
-                LDA #DOS_ERR_NOTWRITE           ; If not: throw a NOTWRITE error
-                BRL IF_FAILURE
+; chk_writeable   BIT #FD_STAT_WRITE              ; Make sure the file is WRITE
+;                 BNE get_dev
+;                 LDA #DOS_ERR_NOTWRITE           ; If not: throw a NOTWRITE error
+;                 BRL IF_FAILURE
 
 get_dev         LDY #FILEDESC.DEV               ; Get the device number from the file descriptor
                 LDA [DOS_FD_PTR],Y
@@ -389,81 +390,7 @@ ret_success     BRL IF_SUCCESS
 ;   C = set if success, clear on error
 ;
 IF_DIROPEN      .proc
-                PHX
-                PHY
-                PHD
-                PHB
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                TRACE "IF_DIROPEN"
-
-                setaxl
-                LDA #$55AA                  ; Clear the buffer
-                LDX #0                      ; TODO: remove this for production code
-clr_loop        STA DOS_DIR_CLUSTER,X
-                INX
-                INX
-                CPX #512
-                BNE clr_loop
-
-                LDA #BIOS_DEV_FDC           ; TODO: let the caller set the device
-                STA BIOS_DEV
-
-                JSL DOS_MOUNT               ; Make sure we've mounted the SDC.
-                BCS get_root_dir            ; If successful: get the root directory
-                BRL IF_PASSFAILURE          ; Otherwise: pass the error up the chain
-
-get_root_dir    setaxl
-
-                LDA #100
-                JSL ILOOP_MS
-
-                LDA ROOT_DIR_FIRST_CLUSTER  ; Set the cluster (or sector for FAT12)
-                STA DOS_DIR_CLUS_ID         ; to that of the root directory's start
-                STA DOS_CLUS_ID
-                LDA ROOT_DIR_FIRST_CLUSTER+2
-                STA DOS_CLUS_ID+2
-                STA DOS_DIR_CLUS_ID+2
-
-                LDA #<>DOS_DIR_CLUSTER      ; Point to the directory cluster buffer for loading
-                STA DOS_BUFF_PTR
-                STA DOS_DIR_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-                STA DOS_DIR_PTR+2
-
-                setas
-                LDA FILE_SYSTEM             ; Check the file system
-                CMP #PART_TYPE_FAT12        ; Is it FAT12?
-                BNE fetch_fat32             ; No: handle processing the diretory as FAT32
-
-                ; Otherwise: treat as FAT12 and load from disk
-
-                setal
-                LDA DOS_DIR_PTR             ; Set the BIOS buffer pointer
-                STA BIOS_BUFF_PTR
-                LDA DOS_DIR_PTR+2
-                STA BIOS_BUFF_PTR+2
-
-                LDA DOS_DIR_CLUS_ID         ; Set the LBA of the sector
-                STA BIOS_LBA
-                LDA DOS_DIR_CLUS_ID+2
-                STA BIOS_LBA+2
-
-                JSL FDC_GETBLOCK            ; Get the sector from the floppy disk
-
-                BCS do_success              ; If sucessful, set the directory cursor
-                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
-
-fetch_fat32     JSL DOS_GETCLUSTER          ; Try to read the first cluster
-                BCS do_success              ; If successful: set the directory cursor
-
-                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
-
-do_success      BRL IF_SUCCESS
+                JML DOS_DIROPEN
                 .pend
 
 ;
@@ -483,82 +410,7 @@ do_success      BRL IF_SUCCESS
 ;   C = set if success, clear on error
 ;
 IF_DIRNEXT      .proc
-                PHX
-                PHY
-                PHD
-                PHB
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                TRACE "IF_DIRNEXT"
-
-                JSL DOS_DIRNEXT             ; Attempt to move to the next entry
-                BCS do_success              ; If successful, return success
-
-                ; TODO: next decision only applies to the root directory!
-
-                setas
-                LDA FILE_SYSTEM             ; Check the file system
-                CMP #PART_TYPE_FAT12        ; Is it FAT12?
-                BNE next_fat32              ; No: handle processing the diretory as FAT32
-
-next_fat12      setal                       ; Yes: treat as the root directory of the floppy disk
-                LDA DOS_DIR_CLUS_ID
-                INC A
-                STA DOS_DIR_CLUS_ID         ; Increment the sector number (FAT12 root directory is sector based)
-                CMP #10                     ; See if we're at the end (TODO: calculate this)
-                BNE read_sector
-                
-                setas                       ; End of the line... return a failure
-                LDA #0
-                BRL IF_FAILURE
-
-read_sector     setal                       ; Load the sector from the floppy disk
-                LDA DOS_DIR_CLUS_ID         ; Set the LBA to the sector #
-                STA BIOS_LBA
-                LDA DOS_DIR_CLUS_ID+2
-                STA BIOS_LBA+2
-
-                LDA #<>DOS_DIR_CLUSTER      ; Set the pointers to the buffer
-                STA BIOS_BUFF_PTR
-                STA DOS_DIR_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA BIOS_BUFF_PTR+2
-                STA DOS_DIR_PTR+2
-
-                JSL FDC_GETBLOCK            ; Attempt to read the sector from the FDC
-                BCS do_success              ; If successful: set the directory cursor
-                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
-
-next_fat32      setal
-                LDA DOS_DIR_CLUS_ID
-                STA DOS_CLUS_ID
-                LDA DOS_DIR_CLUS_ID+2
-                STA DOS_CLUS_ID+2
-
-                LDA #<>DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR
-                STA DOS_DIR_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-                STA DOS_DIR_PTR+2
-
-                JSL NEXTCLUSTER             ; Try to find the next cluster
-                BCS set_next
-                BRL IF_PASSFAILURE          ; If error: pass it up the chain
-
-set_next        LDA DOS_CLUS_ID             ; Save the cluster as the current directory cluster
-                STA DOS_DIR_CLUS_ID
-                LDA DOS_CLUS_ID+2
-                STA DOS_DIR_CLUS_ID+2
-
-                JSL DOS_GETCLUSTER          ; Try to read the first cluster
-                BCS do_success              ; If successful: set the directory cursor
-                BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
-
-do_success      BRL IF_SUCCESS
+                JML DOS_DIRNEXT
                 .pend
 
 ;
@@ -643,7 +495,7 @@ del_one         ; Restore the current cluster ID
                 STA DOS_CLUS_ID+2
 
                 ; Delete the current cluster
-                JSL DELCLUSTER32
+                JSL DELCLUSTER
                 BCS free_dir_entry
                 BRL IF_PASSFAILURE
 
@@ -653,18 +505,7 @@ free_dir_entry  setas
                 LDA #DOS_DIR_ENT_UNUSED
                 STA [DOS_DIR_PTR],Y
 
-                setal
-                LDA DOS_DIR_CLUS_ID             ; Set up to write the directory cluster
-                STA DOS_CLUS_ID
-                LDA DOS_DIR_CLUS_ID+2
-                STA DOS_CLUS_ID+2
-
-                LDA #<>DOS_DIR_CLUSTER          ; And its buffer
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-
-                JSL DOS_PUTCLUSTER              ; Write the cluster back
+                JSL DOS_DIRWRITE                ; Write the directory entry back
                 BCS ret_success
                 BRL IF_PASSFAILURE
 
@@ -721,31 +562,7 @@ success         BRL IF_SUCCESS
 ;   C = set if success, clear on error
 ;
 IF_DIRWRITE     .proc
-                PHX
-                PHY
-                PHD
-                PHB
-                PHP
-
-                setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                setaxl
-                LDA DOS_DIR_CLUS_ID
-                STA DOS_CLUS_ID
-                LDA DOS_DIR_CLUS_ID+2
-                STA DOS_CLUS_ID+2
-
-                LDA #<>DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-
-                JSL DOS_PUTCLUSTER
-                BCS success
-                BRL IF_FAILURE
-
-success         BRL IF_SUCCESS
+                JML DOS_DIRWRITE
                 .pend
 
 ; IF_LOAD
@@ -991,8 +808,7 @@ IF_LOADRAW      .proc
 
                 setaxl
 
-copy_cluster    TRACE "copy_cluster"
-                LDY #0
+copy_cluster    LDY #0
 copy_loop       setas
                 LDA [DOS_SRC_PTR],Y         ; Copy byte from cluster to destination
                 STA [DOS_DST_PTR],Y
@@ -1026,8 +842,7 @@ continue        INY
                 JSL IF_READ                 ; Yes: load the next cluster
                 BCS copy_cluster            ; And start copying it
 
-close_file      TRACE "IF_LOADRAW.close_file"
-                ; JSL IF_CLOSE                ; Close the file
+close_file      ; JSL IF_CLOSE                ; Close the file
                 ; BCS ret_success             ; If success: we're done
                 ; BRL IF_PASSFAILURE          ; Otherwise: pass the failure up the chain
 

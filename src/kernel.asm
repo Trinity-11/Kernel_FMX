@@ -232,8 +232,8 @@ jmpcopy         LDA $381000,X
                 CPX #1024
                 BNE jmpcopy
 
-                ; JSL FDC_TEST
-                JSL FDC_Init
+                ; JSL FDC_Init
+                JSL FDC_TEST
 
                 JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 

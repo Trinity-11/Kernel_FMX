@@ -172,10 +172,12 @@ FDC_ST1          = $000307 ;1 byte - Status Register 1
 FDC_ST2          = $000308 ;1 byte - Status Register 2
 FDC_ST3          = $000309 ;1 byte - Status Register 3
 FDC_PCN          = $00030A ;1 byte - Present Cylinder Number
+FDC_STATUS       = $00030B ;1 byte - Status of what we think is going on with the FDC:
+                           ;    $80 = motor is on
 
-DIVIDEND         = $00030C ;4 bytes - Dividend for 32-bit division (overlaps FDC_RESULTS)
-DIVISOR          = $000310 ;4 bytes - Divisor for 32-bit division (overlaps FDC_RESULTS)
-REMAINDER        = $000314 ;4 bytes - Remainder for 32-bit division (overlaps FDC_RESULTS)
+DIVIDEND         = $00030C ;4 bytes - Dividend for 32-bit division
+DIVISOR          = $000310 ;4 bytes - Divisor for 32-bit division
+REMAINDER        = $000314 ;4 bytes - Remainder for 32-bit division
 
 ; $00:0320 to $00:06FF - Reserved for block device access and FAT file system support
 

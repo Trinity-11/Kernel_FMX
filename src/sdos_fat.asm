@@ -3,6 +3,7 @@
 ;;;
 
 .include "sdos_bios.asm"
+.include "sdos_dir.asm"
 
 .dpage SDOS_VARIABLES
 .databank `DOS_HIGH_VARIABLES
@@ -92,6 +93,9 @@ DOS_ERR_NOTWRITE = 14                   ; File is not open for writing
 DOS_ERR_OPEN = 15                       ; File is already open
 DOS_ERR_PGXSIG = 16                     ; File does not have the PGX signature
 DOS_ERR_NOEXEC = 17                     ; File does is not an executable format
+DOS_ERR_MEDIAFULL = 18                  ; There are no more free clusters on the drive
+DOS_ERR_WRITEPROT = 19                  ; The medium is write-protected
+DOS_ERR_FATUPDATE = 20                  ; Can't update the FAT
 
 ; MBR Field Offsets
 
@@ -142,10 +146,14 @@ VOLUME_ID               = $37E026       ; 4 bytes - The ID of the volume
 
 DOS_CURR_CLUS           = $37E02A       ; 4 bytes - The current cluster (for delete)
 DOS_NEXT_CLUS           = $37E02E       ; 4 bytes - The next cluster in a file (for delete)
-DOS_DIR_CLUS_ID         = $37E032       ; 4 bytes - The cluster ID of the current directory record
+DOS_DIR_BLOCK_ID        = $37E032       ; 4 bytes - The ID of the current directory block
+                                        ;   If DOS_DIR_TYPE = 0, this is a cluster ID
+                                        ;   If DOS_DIR_TYPE = $80, this is a sector LBA
 DOS_NEW_CLUSTER         = $37E036       ; 4 bytes - Space to store a newly written cluster ID
 DOS_SHORT_NAME          = $37E03A       ; 11 bytes - The short name for a desired file
-FDC_MOTOR_TIMER         = $37E045       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+DOS_DIR_TYPE            = $37E045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
+FDC_MOTOR_TIMER         = $37E046       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+
 
 ; Larger buffers
 
@@ -154,7 +162,7 @@ DOS_DIR_CLUSTER_END     = $37E300       ; The byte just past the end of the dire
 DOS_SECTOR              = $37E300       ; 512 bytes - A buffer for block device read/write
 DOS_SECTOR_END          = $37E500       ; The byte just past the end of the cluster buffer
 DOS_FAT_SECTORS         = $37E500       ; 1024 bytes - two sectors worth of the FAT
-DOS_FAT_SECTORS_END     = $37E700       ; The byte just past the end of the FAT buffers
+DOS_FAT_SECTORS_END     = $37E900       ; The byte just past the end of the FAT buffers
 
 ;;
 ;; Code for the file system
@@ -171,9 +179,11 @@ DOS_FAT_SECTORS_END     = $37E700       ; The byte just past the end of the FAT 
 ;   C set on success, clear on failure
 ;
 DOS_MOUNT       .proc
+                PHB
                 PHD
                 PHP
 
+                setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
                 setas
@@ -234,7 +244,9 @@ chk_part_type   LDA DOS_SECTOR+PART0_OFF+PART_TYPE_OFF
                 LDA #DOS_ERR_NOFAT32    ; No: return No FAT32 found error
                 BRL ret_failure
 
-get_LBA         setal
+get_LBA         STA FILE_SYSTEM         ; Save the file system of the partition
+
+                setal
                 ; Get the LBA of the first sector and put it in the volume descriptor
                 LDA DOS_SECTOR+PART0_OFF+PART_LBA_OFF
                 STA FIRSTSECTOR
@@ -250,8 +262,9 @@ get_LBA         setal
                 setas
                 LDA BIOS_DEV            ; Save the device number
                 STA DEVICE
+
                 LDA #0
-                STA PARTITION    ; For the moment, we only support the first partition
+                STA PARTITION           ; For the moment, we only support the first partition
 
                 setal
                 ; Get the volume identifier record
@@ -355,6 +368,7 @@ ret_success     setas
                 STZ DOS_STATUS          ; Set status code to 0
                 PLP
                 PLD
+                PLB
                 SEC
                 RTL
 
@@ -362,6 +376,7 @@ ret_failure     setas
                 STA DOS_STATUS          ; Save the status code
                 PLP
                 PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -378,7 +393,12 @@ ret_failure     setas
 ;   BIOS_LBA = the LBA for the sector
 ;
 DOS_CALC_LBA    .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
 
                 setal
 
@@ -412,6 +432,8 @@ add_offset      CLC
                 STA BIOS_LBA+2 
 
                 PLP
+                PLD
+                PLB
                 RTL
                 .pend
 
@@ -429,9 +451,14 @@ add_offset      CLC
 ;   C = set if success, clear on error
 ;
 DOS_GETCLUSTER  .proc
+                PHB
+                PHD
                 PHP
 
                 TRACE "DOS_GETCLUSTER"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setal
                 LDA DOS_BUFF_PTR                    ; Set the BIOS BUFFER
@@ -449,12 +476,16 @@ DOS_GETCLUSTER  .proc
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
 ret_failure     setas
                 STA DOS_STATUS
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -473,7 +504,12 @@ ret_failure     setas
 ;   C = set if success, clear on error
 ;
 DOS_PUTCLUSTER  .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setal
                 LDA DOS_BUFF_PTR                    ; Set the BIOS BUFFER
@@ -491,70 +527,16 @@ DOS_PUTCLUSTER  .proc
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
 ret_failure     setas
                 STA DOS_STATUS
                 PLP
-                CLC
-                RTL
-                .pend
-
-;
-; Set the directory entry pointer to the beginning of the currently loaded sector
-;
-; Outputs:
-;   DOS_DIR_PTR = points to the first directory entry
-;
-DOS_DIRFIRST    .proc
-                PHP
-
-                setal
-                LDA #<>DOS_DIR_CLUSTER
-                STA DOS_DIR_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_DIR_PTR+2
-
-                PLP
-                RTL
-                .pend
-
-;
-; Move the directory pointer to the next entry in the currently loaded sector.
-; Return success if there is one, failure if the pointer moves outside the sector buffer.
-;
-; Inputs:
-;   DOS_DIR_PTR = pointer to the current directory entry
-;
-; Outpus:
-;   DOS_DIR_PTR = pointer to the next directory entry
-;   C set on success, clear if we have past the end of the sector buffer
-;
-DOS_DIRNEXT     .proc
-                PHP
-
-                setal
-                CLC                         ; Advance the directory entry pointer to the next entry
-                LDA DOS_DIR_PTR
-                ADC #DOS_DIR_ENTRY_SIZE
-                STA DOS_DIR_PTR
-                LDA DOS_DIR_PTR+2
-                ADC #0
-                STA DOS_DIR_PTR+2
-
-                SEC                         ; Check to see if we've reached the end of the sector buffer
-                LDA #<>DOS_DIR_CLUSTER_END
-                SBC DOS_DIR_PTR
-                LDA #`DOS_DIR_CLUSTER_END
-                SBC DOS_DIR_PTR+2
-                BMI ret_failure             ; Yes: return failure
-
-ret_success     PLP
-                SEC
-                RTL
-
-ret_failure     PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -573,7 +555,12 @@ ret_failure     PLP
 ;   C set on success, clear on failure
 ;
 DOS_PARSE_PATH  .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
 
                 setxl
                 setas
@@ -640,6 +627,8 @@ ret_success     setas
                 STZ DOS_STATUS
 
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
@@ -647,6 +636,8 @@ ret_failure     setas
                 STA DOS_STATUS
 
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -665,13 +656,20 @@ ret_failure     setas
 ;   C set on success, clear on failure
 ;
 DOS_FINDFILE    .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setaxl
                 JSL DOS_PARSE_PATH              ; Break out the path into its components
                 BCS mount                       ; If success: try to open the directory
             
 pass_failure    PLP                             ; If failure, just pass the failure back up
+                PLD
+                PLB
                 CLC
                 RTL
 
@@ -724,34 +722,31 @@ scan_cmp_loop   LDA [DOS_DIR_PTR],Y             ; Get the X'th character of the 
 next_entry      JSL DOS_DIRNEXT                 ; Try to get the next directory entry
                 BRL scan_loop                   ; If found: keep scanning
 
-                ; Load the next directory clustor
-                setal
-                JSL NEXTCLUSTER                 ; Move to the next cluster of the directory
+;                 ; Load the next directory clustor
+;                 setal
+;                 JSL NEXTCLUSTER                 ; Move to the next cluster of the directory
 
-set_buff_ptr    LDA #<>DOS_DIR_CLUSTER          ; Load the directory cluster into the directory buffer
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-                setas
+; set_buff_ptr    LDA #<>DOS_DIR_CLUSTER          ; Load the directory cluster into the directory buffer
+;                 STA DOS_BUFF_PTR
+;                 LDA #`DOS_DIR_CLUSTER
+;                 STA DOS_BUFF_PTR+2
+;                 setas
 
-                JSL DOS_GETCLUSTER              ; Attempt to load the directory cluster
-                BCC bad_dir                     ; If failed: return an error
-                BRL scan_entries                ; If loaded: scan it
+;                 JSL DOS_GETCLUSTER              ; Attempt to load the directory cluster
+;                 BCC bad_dir                     ; If failed: return an error
+;                 BRL scan_entries                ; If loaded: scan it
 
 bad_dir         LDA #DOS_ERR_NODIR              ; Otherwise: fail with a NODIR error (maybe something else is better)
 
 ret_failure     setas
                 STA DOS_STATUS
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
 
 match           setal
-                LDA DOS_CLUS_ID                 ; Save the ID of the directory cluster for later use
-                STA DOS_DIR_CLUS_ID
-                LDA DOS_CLUS_ID+2
-                STA DOS_DIR_CLUS_ID+2
-
                 LDY #DIRENTRY.CLUSTER_L         ; Copy the cluster number from the directory entry
                 LDA [DOS_DIR_PTR],Y
                 STA DOS_CLUS_ID                 ; To DOS_CLUS_ID
@@ -762,6 +757,8 @@ match           setal
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
                 .pend
@@ -780,7 +777,12 @@ ret_success     setas
 ;   C set on success, clear on failure
 ;
 DOS_READFILE    .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setaxl
 
@@ -801,10 +803,153 @@ load_cluster    JSL DOS_GETCLUSTER                  ; Get the first block of the
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
 pass_failure    PLP                                 ; Otherwise: pass any error up the chain
+                PLD
+                PLB
+                CLC
+                RTL
+                .pend
+
+;
+; Calculate the LBA of the given cluster's FAT entry
+; and the offset to its entry in the table
+;
+; Inputs:
+;   DOS_CLUS_ID = the number of the target cluster
+;
+; Outputs:
+;   DOS_FAT_LBA = the LBA of the FAT sector currently loaded
+;   X = offset to the cluster's entry in the sector
+;   DOS_STATUS = the status code for the operation
+;   C set on success, clear on failure
+;
+ENTRYFORCLUS12  .proc
+                PHB
+                PHD
+                PHP
+
+                TRACE "ENTRYFORCLUS12"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setaxl
+                LDA DOS_CLUS_ID                 ; DOS_TEMP := DOS_CLUS_ID * 3
+                ASL A
+                STA DOS_TEMP
+                LDA DOS_CLUS_ID+2
+                ROL A
+                STA DOS_TEMP+2
+
+                CLC
+                LDA DOS_CLUS_ID
+                ADC DOS_TEMP
+                STA DOS_TEMP
+                LDA DOS_CLUS_ID+2
+                ADC DOS_TEMP+2
+                STA DOS_TEMP+2
+
+                LSR DOS_TEMP+2                  ; DOS_TEMP := (DOS_CLUS_ID * 3) / 2
+                ROR DOS_TEMP                    ; DOS_TEMP is now the offset to the cluster's entry in the FAT
+
+                LDA DOS_TEMP                    ; X should be the offset within the FAT buffer
+                AND #$003FF
+                TAX
+
+                .rept 9
+                LSR DOS_TEMP+2                  ; DOS_TEMP := DOS_TEMP / 512
+                ROR DOS_TEMP
+                .next
+
+                CLC                             ; DOS_FAT_LBA should be the LBA of the first FAT sector we need
+                LDA FAT_BEGIN_LBA
+                ADC DOS_TEMP
+                STA DOS_FAT_LBA
+                LDA FAT_BEGIN_LBA+2
+                ADC DOS_TEMP+2
+                STA DOS_FAT_LBA+2
+
+                PLP
+                PLD
+                PLB
+                RTL
+                .pend
+
+;
+; Load the FAT entry that contains a specific cluster (FAT12)
+;
+; Inputs:
+;   DOS_CLUS_ID = the number of the target cluster
+;
+; Outputs:
+;   DOS_FAT_SECTORS = a copy of the FAT sector(s) containing the cluster
+;   DOS_FAT_LBA = the LBA of the FAT sector currently loaded
+;   X = offset to the cluster's entry in the sector
+;   DOS_STATUS = the status code for the operation
+;   C set on success, clear on failure
+;
+FATFORCLUSTER12 .proc
+                PHB
+                PHD
+                PHP
+
+                TRACE "FATFORCLUSTER12"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setaxl
+                LDX #0
+                LDA #$5A5A
+clr_loop        STA DOS_FAT_SECTORS
+                INX
+                INX
+                CPX #1024
+                BNE clr_loop
+
+                JSL ENTRYFORCLUS12              ; Calculate the LBA
+
+                LDA DOS_FAT_LBA                 ; Point to the desired sector in the FAT
+                STA BIOS_LBA
+                LDA DOS_FAT_LBA+2
+                STA BIOS_LBA+2
+
+                LDA #<>DOS_FAT_SECTORS          ; Point to the first 512 bytes of the FAT buffer
+                STA BIOS_BUFF_PTR
+                LDA #`DOS_FAT_SECTORS
+                STA BIOS_BUFF_PTR+2
+
+                JSL GETBLOCK                    ; Attempt to load the first FAT sector
+                BCC error
+
+                INC BIOS_LBA                    ; Move to the next sector
+
+                LDA #<>DOS_FAT_SECTORS+512      ; And point to the second 512 bytes of teh FAT buffer
+                STA BIOS_BUFF_PTR
+                LDA #`DOS_FAT_SECTORS
+                STA BIOS_BUFF_PTR+2
+
+                JSL GETBLOCK                    ; Attempt to load the first FAT sector
+                BCC error
+
+                PLP
+                PLD
+                PLB
+                SEC
+                RTL
+
+error           setas
+                LDA #DOS_ERR_FAT
+                STA DOS_STATUS
+
+                PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -816,12 +961,19 @@ pass_failure    PLP                                 ; Otherwise: pass any error 
 ;   DOS_CLUS_ID = the number of the target cluster
 ;
 ; Outputs:
-;   DOS_SECTOR = a copy of the FAT sector containing the cluster
+;   DOS_FAT_SECTORS = a copy of the FAT sector containing the cluster
+;   DOS_FAT_LBA = the LBA of the FAT sector currently loaded
 ;   X = offset to the cluster's entry in the sector
 ;   DOS_STATUS = the status code for the operation
 ;   C set on success, clear on failure
 ;
 FATFORCLUSTER32 .proc
+                PHB
+                PHD
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
                 setaxl
                 ; DOS_FAT_LBA = FAT_BEGIN_LBA + ((clusterNumber * 4) / bytesPerSector) ;
 
@@ -851,9 +1003,9 @@ div_loop        LSR DOS_FAT_LBA+2
                 LDA DOS_FAT_LBA+2
                 STA BIOS_LBA+2
 
-                LDA #<>DOS_SECTOR               ; We want to load the FAT sector in DOS_SECTOR
+                LDA #<>DOS_FAT_SECTORS          ; We want to load the FAT sector in DOS_FAT_SECTORS
                 STA BIOS_BUFF_PTR
-                LDA #`DOS_SECTOR
+                LDA #`DOS_FAT_SECTORS
                 STA BIOS_BUFF_PTR+2
 
                 JSL GETBLOCK                    ; Load the FAT entry
@@ -871,10 +1023,14 @@ find_entry      setal
                 AND #$7F                        ; DOS_CLUS_ID MOD 128
                 TAX                             ; X should be the offset within the sector
 
-ret_success     SEC                             ; return success
+ret_success     PLD
+                PLB
+                SEC                             ; return success
                 RTL
 
-ret_failure     CLC                             ; Return failure
+ret_failure     PLD
+                PLB
+                CLC                             ; Return failure
                 RTL
                 .pend
 
@@ -900,8 +1056,7 @@ NEXTCLUSTER     .proc
                 CMP #PART_TYPE_FAT12            ; Is it FAT12?
                 BNE fat32                       ; No: assume it's FAT32
 
-fat12           TRACE "fat12"
-                JSL NEXTCLUSTER12               ; Lookup the next cluster from FAT12
+fat12           JSL NEXTCLUSTER12               ; Lookup the next cluster from FAT12
                 BCC pass_failure                ; If there was an error, pass it up the chain
                 BRA ret_success
 
@@ -916,7 +1071,81 @@ ret_success     STZ DOS_STATUS
 pass_failure    PLP
                 CLC
                 RTL
-                .pend             
+                .pend    
+
+;
+; Find the next cluster in a file (FAT12)
+;
+; NOTE: assumes FAT12 with 512KB sectors
+;
+; Inputs:
+;   DOS_CLUS_ID = the current cluster of the file
+;
+; Outputs:
+;   DOS_CLUS_ID = the next cluster for the file
+;   C = set if there is a next cluster, clear if there isn't
+;
+NEXTCLUSTER12       .proc
+                    PHB
+                    PHD
+                    PHP
+
+                    TRACE "NEXTCLUSTER12"
+
+                    setdbr 0
+                    setdp SDOS_VARIABLES
+
+                    setaxl
+                    JSL FATFORCLUSTER12             ; Attempt to load the FAT entries
+                    BCS chk_clus_id
+                    BRL pass_failure
+
+chk_clus_id         LDA DOS_CLUS_ID                 ; Check the cluster ID...
+                    BIT #1                          ; Is it odd?
+                    BNE is_odd                      ; Yes: calculate the next cluster for odd
+
+                    ; Handle even number clusters...
+
+is_even             setal
+                    LDA DOS_FAT_SECTORS,X           ; DOS_CLUS_ID := DOS_FAT_SECTORS[X] & $0FFF
+                    AND #$0FFF
+                    STA DOS_TEMP
+                    BRA check_id
+
+is_odd              setal
+                    LDA DOS_FAT_SECTORS,X           ; DOS_CLUS_ID := DOS_FAT_SECTORS[X] >> 4
+                    .rept 4
+                    LSR A
+                    .next
+                    STA DOS_TEMP
+
+check_id            setal
+                    LDA DOS_TEMP                    ; Check the new cluster ID we got
+                    AND #$0FF0                      ; Is it in the range $0FF0 -- $0FFF?
+                    CMP #$0FF0
+                    BEQ no_more                     ; Yes: return that we've reached the end of the chain
+
+                    LDA DOS_TEMP                    ; Restore the "current" cluster ID
+                    STA DOS_CLUS_ID
+                    STZ DOS_CLUS_ID+2
+
+ret_success         setas
+                    STZ DOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    SEC
+                    RTL
+
+no_more             setas                           ; Return that there are no more clusters
+                    LDA #DOS_ERR_NOCLUSTER
+                    STA DOS_STATUS
+pass_failure        PLP
+                    PLD
+                    PLB
+                    CLC
+                    RTL
+                    .pend         
 
 ;
 ; Find the next cluster in a file
@@ -931,16 +1160,21 @@ pass_failure    PLP
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 NEXTCLUSTER32   .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setaxl
 
                 JSL FATFORCLUSTER32             ; Get the FAT entry for this cluster
                 BCC ret_failure                 ; If it did not work, return the error
 
-                LDA DOS_SECTOR,X                ; Get the entry and copy it to DOS_TEMP
+                LDA DOS_FAT_SECTORS,X           ; Get the entry and copy it to DOS_TEMP
                 STA DOS_TEMP
-                LDA DOS_SECTOR+2,X
+                LDA DOS_FAT_SECTORS+2,X
                 STA DOS_TEMP+2
 
                 LDA DOS_TEMP                    ; Is DOS_TEMP = $FFFFFFFF?
@@ -961,11 +1195,15 @@ ret_success     setas
                 STZ DOS_STATUS                  ; Record success
                 
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
 
 ret_failure     STA DOS_STATUS                  ; Record the error condition
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
                 .pend
@@ -1008,8 +1246,271 @@ pass_failure    PLP
 ;   DOS_STATUS = the status code for the operation
 ;   C set on success, clear on failure
 ;
-DOS_FREECLUS32  .proc
+DOS_FREECLUS    .proc
                 PHP
+
+                TRACE "DOS_FREECLUS"
+
+                setdp SDOS_VARIABLES
+
+                setas
+                LDA @l FILE_SYSTEM              ; Get the file system code
+                CMP #PART_TYPE_FAT12            ; Is it FAT12?
+                BNE fat32                       ; No: assume it's FAT32
+
+fat12           JSL DOS_FREECLUS12              ; Find the next free cluster from FAT12
+                BCC pass_failure                ; If there was an error, pass it up the chain
+                BRA ret_success
+
+fat32           JSL DOS_FREECLUS32              ; Find the next free cluster from FAT32
+                BCC pass_failure                ; If there was an error, pass it up the chain
+
+ret_success     STZ DOS_STATUS
+                PLP
+                SEC
+                RTL
+
+pass_failure    PLP
+                CLC
+                RTL
+                .pend
+
+;
+; Read two sectors of the FAT into the DOS FAT buffer
+;
+; Inputs:
+;   DOS_FAT_LBA = the LBA of the first sector to read
+;
+; Returns:
+;   BIOS_LBA = the LBA of the sector just read
+;   BIOS_STATUS = status code for any errors (0 = fine)
+;   C = set if success, clear on error
+;
+FDC_READ2FAT12      .proc
+                    PHB
+                    PHD
+                    PHP
+
+                    setdbr 0
+                    setdp SDOS_VARIABLES
+                    setaxl
+
+                    LDA #<>DOS_FAT_SECTORS          ; Set the location to store the sector
+                    STA BIOS_BUFF_PTR
+                    LDA #`DOS_FAT_SECTORS
+                    STA BIOS_BUFF_PTR+2
+
+                    LDA DOS_FAT_LBA
+                    STA BIOS_LBA
+                    LDA DOS_FAT_LBA+2
+                    STA BIOS_LBA+2
+
+                    JSL GETBLOCK                    ; Read the first sector
+                    BCS inc_sect2                   ; If success: start getting the second sector
+                    setas                           ; If failed: return error
+                    LDA #DOS_ERR_FAT
+                    BRL ret_failure
+
+inc_sect2           TRACE "READ2FAT PAUSE!"
+                    JML BASIC
+
+                    setal
+                    INC BIOS_LBA                    ; Move to the next sector
+                    BNE inc_buff_ptr
+                    INC BIOS_LBA+2
+
+                    ; Set the location to store the second sector
+inc_buff_ptr        LDA #<>(DOS_FAT_SECTORS+DOS_SECTOR_SIZE)          
+                    STA BIOS_BUFF_PTR
+                    LDA #`(DOS_FAT_SECTORS+DOS_SECTOR_SIZE)
+                    STA BIOS_BUFF_PTR+2
+
+                    JSL GETBLOCK                    ; Read the second sector
+                    BCS ret_success                 ; If success, return success
+                    setas                           ; If failed: return error
+                    LDA #DOS_ERR_FAT
+
+ret_failure         setas
+                    STA BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    CLC
+                    RTL
+
+ret_success         setas
+                    STZ BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    SEC
+                    RTL
+                    .pend
+
+;
+; Find the next free cluster in the FAT, and flag it as used in the FAT (FAT12)
+;
+; Outputs:
+;   DOS_CLUS_ID = the cluster found
+;   DOS_STATUS = the status code for the operation
+;   C set on success, clear on failure
+;
+DOS_FREECLUS12  .proc
+                PHX
+                PHB
+                PHD
+                PHP
+
+                TRACE "DOS_FREECLUS12"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setaxl
+
+                LDA #2                          ; Cluster ID is 2 to start with
+                STA DOS_CLUS_ID
+                LDA #0
+                STA DOS_CLUS_ID+2
+
+                JSL ENTRYFORCLUS12              ; Calculate the LBA and buffer offset for the cluster
+
+                JSL FDC_READ2FAT12              ; Read the first two sectors of the FAT
+                BCS start_of_fat                ; If success, move X to the start of the FAT
+                setas                           ; If failed: return error
+                LDA #DOS_ERR_FAT
+                BRL ret_failure
+
+start_of_fat    setaxl
+                TRACE "start_of_fat"
+                JML BASIC
+
+                ; Get the cluster entry in the FAT
+chk_cluster     LDA DOS_CLUS_ID                 ; Check to see if cluster number is even or odd
+                BIT #1
+                BNE is_odd
+
+is_even         LDA DOS_FAT_SECTORS,X           ; Get the cluster status for an even numbered cluster
+                AND #$0FFF
+                BRA chk_available
+
+is_odd          LDA DOS_FAT_SECTORS,X           ; Get the cluster status for an odd numbered cluster
+                .rept 4
+                LSR A
+                .next
+
+chk_available   TRACE "chk_available"
+                STA DOS_TEMP
+
+                CMP #0                          ; Is it available?
+                BEQ chk_found
+                BRL next_cluster                ; No: advance to the next cluster
+
+                ; Yes... flag it as taken
+
+chk_found       TXA
+                STA DOS_TEMP+2
+
+                TRACE "found?"
+                JML BASIC
+
+                LDA DOS_CLUS_ID                 ; Check to see if cluster number is even or odd
+                BIT #1
+                BNE is_odd2
+
+is_even2        TRACE "is_even2"
+                LDA DOS_FAT_SECTORS,X           ; Reserve the cluster in the FAT, even offset case
+                ORA #$0FFF
+                STA DOS_FAT_SECTORS,X
+                BRA write_fat
+
+is_odd2         TRACE "is_odd2"
+                LDA DOS_FAT_SECTORS,X           ; Reserve the cluster in the FAT, odd offset case
+                ORA #$FFF0
+                STA DOS_FAT_SECTORS,X               
+
+write_fat       JSL WRITEFAT12                  ; Write the two FAT sectors back to disk
+                BCS ret_success                 ; If success: return success
+
+                setas
+                LDA #DOS_ERR_FATUPDATE          ; Flag an error trying to write the FAT back
+                BRL ret_failure
+
+ret_success     setas                           ; And return success
+                STZ DOS_STATUS
+                PLP
+                PLD
+                PLB
+                PLX
+                SEC
+                RTL
+
+                ; Move to the next cluster in the FAT (may involve loading sectors)
+
+next_cluster    TRACE "next_cluster"
+                INC DOS_CLUS_ID                 ; And advance the cluster ID
+                BNE calc_entry
+                INC DOS_CLUS_ID+2
+
+calc_entry      TRACE "ENTRYFORCLUS12"
+                JML BASIC
+
+                JSL ENTRYFORCLUS12              ; Calculate the LBA and offset into the buffer for the cluster
+
+                CPX #0                          ; Did we wrap around?
+                BEQ chk_end_of_fat
+                BRL chk_cluster                 ; No: go back and check it too
+
+chk_end_of_fat  TRACE "chk_end_of_fat"
+                LDA DOS_FAT_LBA                 ; Are we at the end of the FAT?
+                CMP FAT2_BEGIN_LBA              ; NOTE: we use the start sector of the second FAT as our sentinel
+                BNE next_2
+                LDA DOS_FAT_LBA+2
+                CMP FAT2_BEGIN_LBA+2
+                BNE next_2                      ; No: get the next to sectors
+
+                setas
+                LDA #DOS_ERR_MEDIAFULL          ; Yes: return media full
+                BRL ret_failure
+
+next_2          TRACE "read2fat12"
+                JSL FDC_READ2FAT12              ; Read the next two sectors of the FAT
+                BCC fat_fail                    ; If failed: return error
+
+                LDX #0                          ; If success: Start scanning at the beginning of the sectors
+                BRL chk_cluster                 ; And start checking from there
+
+                ; Indicate that we failed to read or parst the FAT
+
+fat_fail        setas
+                LDA #DOS_ERR_FAT
+                BRL ret_failure
+
+ret_failure     setas
+                STA DOS_STATUS
+                PLP
+                PLD
+                PLB
+                PLX
+                CLC
+                RTL
+                .pend
+
+;
+; Find the next free cluster in the FAT, and flag it as used in the FAT (FAT32)
+;
+; Outputs:
+;   DOS_CLUS_ID = the cluster found
+;   DOS_STATUS = the status code for the operation
+;   C set on success, clear on failure
+;
+DOS_FREECLUS32  .proc
+                PHB
+                PHD
+                PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 setaxl
 
@@ -1093,12 +1594,145 @@ found_free      setal
 ret_failure     setas
                 STA DOS_STATUS
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
 
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
+                SEC
+                RTL
+                .pend
+
+;
+; Delete a cluster by marking it as available for reallocation in the FAT
+;
+; Inputs:
+;   DOS_CLUS_ID = the cluster to free
+;
+; Outputs:
+;   DOS_STATUS = the status code for the operation
+;   C = set if there is a next cluster, clear if there isn't
+;
+DELCLUSTER      .proc
+                PHP
+
+                TRACE "DELCLUSTER"
+
+                setas
+                LDA @l FILE_SYSTEM              ; Get the file system code
+                CMP #PART_TYPE_FAT12            ; Is it FAT12?
+                BNE fat32                       ; No: assume it's FAT32
+
+                ; Call the FAT12 version
+fat12           JMP DELCLUSTER12
+
+                ; Call the FAT32 version
+fat32           JMP DELCLUSTER32
+                .pend
+
+;
+; Write FAT sectors back to the drive
+;
+; Inputs:
+;   DOS_FAT_SECTORS = the two sectors worth of data to write
+;   DOS_FAT_LBA = the LBA of the first sector to write on the disk
+;
+WRITEFAT12      .proc
+                PHB
+                PHD
+
+                TRACE "WRITEFAT12"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setaxl
+                LDA #<>DOS_FAT_SECTORS          ; Point to the first FAT sector in memory
+                STA BIOS_BUFF_PTR
+                LDA #`DOS_FAT_SECTORS
+                STA BIOS_BUFF_PTR+2
+
+                LDA DOS_FAT_LBA                 ; Set the LBA to that of the first sector's
+                STA BIOS_LBA
+                LDA DOS_FAT_LBA+2
+                STA BIOS_LBA+2
+
+                JSL PUTBLOCK                    ; Write the first sector back to the block device
+                BCC done
+
+                ; Point to the second FAT sector in memory
+                LDA #<>(DOS_FAT_SECTORS+DOS_SECTOR_SIZE)
+                STA BIOS_BUFF_PTR
+                LDA #`(DOS_FAT_SECTORS+DOS_SECTOR_SIZE)
+                STA BIOS_BUFF_PTR+2
+
+                INC BIOS_LBA                    ; Point to the next sector in the FAT
+                BNE put_second
+                INC BIOS_LBA+2
+
+put_second      JSL PUTBLOCK                    ; Write the second sector back to the block device
+
+done            PLD
+                PLB
+                RTL
+                .pend
+
+;
+; Delete a cluster by marking it as available for reallocation in the FAT (FAT12)
+;
+; Inputs:
+;   DOS_CLUS_ID = the cluster to free
+;
+; Outputs:
+;   DOS_STATUS = the status code for the operation
+;   C = set if there is a next cluster, clear if there isn't
+;
+DELCLUSTER12    .proc
+                PHB
+                PHD
+                TRACE "DELCLUSTER12"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+                JSL FATFORCLUSTER12
+
+                TXA                             ; Check to see if the index is odd or even
+                BIT #1
+                BNE is_odd
+
+is_even         LDA DOS_FAT_SECTORS,X           ; Get the two bytes from the FAT
+                AND #$F000                      ; Mask out the lower 12 bits
+                BRA save_update
+
+is_odd          LDA DOS_FAT_SECTORS,X           ; Get the two bytes from the FAT
+                AND #$000F                      ; Mask out the upper 12 bits
+                
+save_update     STA DOS_FAT_SECTORS,X           ; And write it back
+
+                JSL WRITEFAT12                  ; Write the two FAT12 sectors back to the drive
+                BCS ret_success
+
+ret_failure     setas
+                LDA #DOS_ERR_FAT
+                STA DOS_STATUS
+                PLP
+                PLD
+                PLB
+                CLC
+                RTL
+
+ret_success     setas
+                STZ DOS_STATUS
+                PLP
+                PLD
+                PLB
                 SEC
                 RTL
                 .pend
@@ -1114,14 +1748,21 @@ ret_success     setas
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 DELCLUSTER32    .proc
+                PHB
+                PHD
                 PHP
-
                 setaxl
+
+                TRACE "DELCLUSTER32"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
                 JSL FATFORCLUSTER32
 
                 LDA #0
-                STA DOS_SECTOR,X                ; Set the cluster entry to 0
-                STA DOS_SECTOR+2,X
+                STA DOS_FAT_SECTORS,X           ; Set the cluster entry to 0
+                STA DOS_FAT_SECTORS+2,X
 
                 JSL PUTBLOCK                    ; Write the sector back to the block device
                 BCS ret_success
@@ -1130,12 +1771,16 @@ ret_failure     setas
                 LDA #DOS_ERR_FAT
                 STA DOS_STATUS
                 PLP
+                PLD
+                PLB
                 CLC
                 RTL
 
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
                 .pend
@@ -1152,7 +1797,14 @@ ret_success     setas
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 DOS_APPENDCLUS  .proc
+                PHB
+                PHD
                 PHP
+
+                TRACE "DOS_APPENDCLUS"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
 
                 setaxl
                 LDA DOS_CLUS_ID+2               ; Save the cluster number for later
@@ -1160,14 +1812,14 @@ DOS_APPENDCLUS  .proc
                 LDA DOS_CLUS_ID
                 PHA
 
-                JSL DOS_FREECLUS32              ; Find a free cluster on the block device
+                JSL DOS_FREECLUS                ; Find a free cluster on the block device
                 BCS save_cluster                ; If we got a cluster, write the data to it
 
 fail_cleanup    PLA                             ; Restore the cluster of the file
                 STA DOS_CLUS_ID
                 PLA
                 STA DOS_CLUS_ID+2
-                BRA pass_failure                ; Pass the failure back up the chain
+                BRL pass_failure                ; Pass the failure back up the chain
 
                 ; Save the ID of the new cluster
 save_cluster    LDA DOS_CLUS_ID
@@ -1184,13 +1836,50 @@ save_cluster    LDA DOS_CLUS_ID
                 STA DOS_CLUS_ID+2
 
                 ; Walk to the end of the cluster chain for the file
-walk_loop       JSL NEXTCLUSTER32               ; Try to get the next cluster in the chain
+walk_loop       JSL NEXTCLUSTER                 ; Try to get the next cluster in the chain
                 BCS walk_loop                   ; If found a cluster, keep walking the chain
 
-                LDA DOS_NEW_CLUSTER             ; Write the ID of the new cluster to the end of the chain
-                STA DOS_SECTOR,X
+                setas
+                LDA @l FILE_SYSTEM              ; Get the file system code
+                CMP #PART_TYPE_FAT12            ; Is it FAT12?
+                BNE fat32                       ; No: assume it's FAT32
+
+                ; Update the cluster for FAT12
+
+fat12           setal
+                JSL ENTRYFORCLUS12              ; Make sure we have the right offset for the cluster
+                LDA DOS_CLUS_ID                 ; Check to see if the last cluster ID is even or odd
+                BIT #1
+                BNE is_odd
+
+is_even         LDA DOS_NEW_CLUSTER             ; Handle the even case (change the lower 12 bits)
+                AND #$0FFF
+                STA DOS_NEW_CLUSTER
+                LDA DOS_FAT_SECTORS,X
+                AND #$F000
+                BRA update_fat12
+
+is_odd          LDA DOS_NEW_CLUSTER             ; Handle the odd case (change the upper 12 bits)
+                .rept 4
+                ASL A
+                .next
+                STA DOS_NEW_CLUSTER
+                LDA DOS_FAT_SECTORS,X
+                AND #$000F
+
+update_fat12    ORA DOS_NEW_CLUSTER
+                STA DOS_FAT_SECTORS,X
+
+                JSL WRITEFAT12                  ; Write the two FAT12 sectors back to the drive
+                BCS ret_success
+                BRL pass_failure
+
+                ; Update the cluster for FAT32
+
+fat32           LDA DOS_NEW_CLUSTER             ; Write the ID of the new cluster to the end of the chain
+                STA DOS_FAT_SECTORS,X
                 LDA DOS_NEW_CLUSTER+2
-                STA DOS_SECTOR+2,X
+                STA DOS_FAT_SECTORS+2,X
 
                 JSL PUTBLOCK                    ; Write the FAT sector back (assumes BIOS_LBA and BIOS_BUFF_PTR haven't changed)
                 BCS ret_success
@@ -1199,94 +1888,23 @@ walk_loop       JSL NEXTCLUSTER32               ; Try to get the next cluster in
                 LDA #DOS_ERR_FAT                ; Problem working with the FAT
                 STA DOS_STATUS
 
-pass_failure    PLP
+pass_failure    TRACE "FAILED!"
+                JML BASIC
+
+                PLP
+                PLD
+                PLB
                 CLC
                 RTL
 
-ret_success     setas
+ret_success     TRACE "SUCCESS!"
+                JML BASIC
+                
+                setas
                 STZ DOS_STATUS
                 PLP
-                SEC
-                RTL
-                .pend
-
-;
-; Find a free entry in the directory
-;
-; Inputs:
-;   DOS_DIR_CLUS_ID = the ID of the first cluster of the directory
-;
-; Outputs:
-;   DOS_DIR_CLUS_ID = cluster containing the directory entry
-;   DOS_DIR_CLUSTER = the data in the directory cluster
-;   DOS_DIR_PTR = points to the first directory entry in DOS_DIR_CLUSTER
-;   DOS_STATUS = the status code for the operation
-;   C = set if there is a next cluster, clear if there isn't
-;
-DOS_DIRFINDFREE .proc
-                PHP
-
-                setaxl
-
-                ; Load the first cluster of the directory
-                LDA DOS_DIR_CLUS_ID
-                STA DOS_CLUS_ID
-                LDA DOS_DIR_CLUS_ID+2
-                STA DOS_CLUS_ID+2
-
-load_dir_clus   LDA #<>DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-
-                JSL DOS_GETCLUSTER
-                BCS start_walk
-
-                LDA #DOS_ERR_NODIR          ; Return that we could not read the directory
-                BRL ret_failure
-
-                ; Walk through each entry in the cluster
-
-start_walk      JSL DOS_DIRFIRST            ; Point to the first directory entry
-                LDY #0                      ; We check the first character of the entry
-
-chk_entry       setas
-                LDA [DOS_DIR_PTR],Y         ; Get the first byte of the directory entry
-                BEQ ret_success             ; If 0: we have a blank... return it
-
-                CMP #DOS_DIR_ENT_UNUSED     ; Is it an unused (deleted) entry?
-                BEQ ret_success             ; Yes: return it
-
-                JSL DOS_DIRNEXT             ; Move to the next directory entry
-                BCS chk_entry               ; If there is one, check this next entry
-
-                ; Otherwise: find the next cluster of the directory
-
-                JSL NEXTCLUSTER32           ; Move to the next cluster of the directory
-                BCS start_walk              ; If we got one, start walking it
-
-                BRK                         ; For the moment, just fail
-                NOP                         ; TODO: add a new cluster to the end of the directory
-
-                ; If there isn't one, create a blank cluster
-                ; ... Append the cluster to the directory
-                ; ... Return the first entry
-
-ret_failure     setas
-                STA DOS_STATUS              ; Return failure
-                PLP
-                CLC
-                RTL
-
-ret_success     setal'
-                LDA DOS_CLUS_ID             ; Return the directory cluster we found
-                STA DOS_DIR_CLUS_ID
-                LDA DOS_CLUS_ID+2
-                STA DOS_DIR_CLUS_ID+2
-
-                setas
-                STZ DOS_STATUS              ; And return success
-                PLP
+                PLD
+                PLB
                 SEC
                 RTL
                 .pend
@@ -1295,7 +1913,12 @@ ret_success     setal'
 ; Convert the four digit BCD number in A to binary in A (16-bit)
 ;
 BCD2BIN         .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
 
                 ; Put the 1s digit into DOS_TEMP+2
 
@@ -1357,6 +1980,8 @@ BCD2BIN         .proc
                 ADC DOS_TEMP+2
 
                 PLP
+                PLD
+                PLB
                 RTL
                 .pend
 
@@ -1367,7 +1992,12 @@ BCD2BIN         .proc
 ;   DOS_FD_PTR = pointer to the file descriptor to update
 ;
 DOS_RTCCREATE   .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
 
                 setxl
                 setas
@@ -1388,6 +2018,7 @@ DOS_RTCCREATE   .proc
                 setal
                 LDA DOS_TEMP
                 JSL BCD2BIN                 ; Convert it to binary
+                STA DOS_TEMP
 
                 SEC                         ; Year is relative to 1980
                 SBC #1980
@@ -1486,6 +2117,8 @@ DOS_RTCCREATE   .proc
                 STA @l RTC_CTRL
 
                 PLP
+                PLD
+                PLB
                 RTL
                 .pend
 
@@ -1501,7 +2134,12 @@ DOS_RTCCREATE   .proc
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 DOS_CREATE      .proc
+                PHB
+                PHD
                 PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
 
                 setaxl
                 LDY #FILEDESC.PATH              ; DOS_TEMP := DOS_FD_PTR->PATH
@@ -1532,8 +2170,9 @@ find_file       JSL DOS_PARSE_PATH
                 BRL ret_failure
 
                 ; Validate there is a file name
+
 validate_name   ; Get the next free cluster
-                JSL DOS_FREECLUS32
+                JSL DOS_FREECLUS
                 BCS save_data
                 BRL pass_failure
 
@@ -1557,15 +2196,10 @@ save_data       setal
 
                 JSL DOS_PUTCLUSTER
                 BCS find_dir
-                BRL pass_failure
 
                 ; Get the next free entry in the directory
 find_dir        setal
-                LDA ROOT_DIR_FIRST_CLUSTER      ; Scan the root directory
-                STA DOS_DIR_CLUS_ID
-                LDA ROOT_DIR_FIRST_CLUSTER+2
-                STA DOS_DIR_CLUS_ID+2
-
+                ; TODO: pass in the appropriate directory
                 JSL DOS_DIRFINDFREE
                 BCS set_entry
 
@@ -1621,61 +2255,41 @@ name_loop       LDA DOS_SHORT_NAME,Y            ; Copy the name over
 
                 JSL DOS_RTCCREATE               ; Pull the creation date-time from the RTC
 
-                ; Set a reasonable default date-time
-                ; TODO: set a real date-time here
-                ; LDA #((40 << 9) + (1 << 5) + 1)
-                ; LDY #FILEDESC.CREATE_DATE
-                ; STA [DOS_FD_PTR],Y
-
-                ; LDA #((1 << 11) + (1 << 5) + 1)
-                ; LDY #FILEDESC.CREATE_TIME
-                ; STA [DOS_FD_PTR],Y
-
                 LDY #FILEDESC.CREATE_DATE       ; DOS_DIR_PTR->CREATE_DATE := DOS_FD_PTR->CREATE_DATE
                 LDA [DOS_FD_PTR],Y
                 LDY #DIRENTRY.CREATE_DATE
+                STA [DOS_DIR_PTR],Y
+                LDY #DIRENTRY.MODIFIED_DATE     ; And DOS_DIR_PTR->MODIFIED_DATE
                 STA [DOS_DIR_PTR],Y
 
                 LDY #FILEDESC.CREATE_TIME       ; DOS_DIR_PTR->CREATE_TIME := DOS_FD_PTR->CREATE_TIME
                 LDA [DOS_FD_PTR],Y
                 LDY #DIRENTRY.CREATE_TIME
                 STA [DOS_DIR_PTR],Y
-
-                LDY #FILEDESC.MODIFIED_DATE     ; DOS_DIR_PTR->MODIFIED_DATE := DOS_FD_PTR->MODIFIED_DATE
-                LDA [DOS_FD_PTR],Y
-                LDY #DIRENTRY.MODIFIED_DATE
+                LDY #DIRENTRY.MODIFIED_TIME     ; And DOS_DIR_PTR->MODIFIED_TIME
                 STA [DOS_DIR_PTR],Y
 
-                LDY #FILEDESC.MODIFIED_TIME     ; DOS_DIR_PTR->MODIFIED_TIME := DOS_FD_PTR->MODIFIED_TIME
-                LDA [DOS_FD_PTR],Y
-                LDY #DIRENTRY.MODIFIED_TIME
-                STA [DOS_DIR_PTR],Y
 
                 ; Save the directory cluster back to the block device
                 setal
-                LDA DOS_DIR_CLUS_ID
-                STA DOS_CLUS_ID
-                LDA DOS_DIR_CLUS_ID+2
-                STA DOS_CLUS_ID+2
 
-                LDA #<>DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR
-                LDA #`DOS_DIR_CLUSTER
-                STA DOS_BUFF_PTR+2
-
-                JSL DOS_PUTCLUSTER
+                JSL DOS_DIRWRITE
                 BCS ret_success
                 BRA pass_failure
 
 ret_failure     setas
                 STA DOS_STATUS
 pass_failure    PLP
+                PLD
+                PLB
                 CLC
                 RTL
 
 ret_success     setas
                 STZ DOS_STATUS
                 PLP
+                PLD
+                PLB
                 SEC
                 RTL
                 .pend
