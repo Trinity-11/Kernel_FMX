@@ -210,6 +210,19 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 setxl
                 setdbr `greet_msg     ;set data bank to 39 (Kernel Variables)
 
+                ; Copy the jump table from the "pristine" copy that came from flahs
+                ; down to the working copy in bank 0.
+
+                LDX #0
+jmpcopy         LDA @l BOOT,X
+                STA @l $001000,X
+                INX
+                CPX #1024
+                BNE jmpcopy
+
+                ; Initialize the "disc operating system"
+                JSL DOS_INIT
+
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified
                 ;
@@ -225,16 +238,7 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
 
-BOOTBASIC       LDX #0
-jmpcopy         LDA $381000,X
-                STA $001000,X
-                INX
-                CPX #1024
-                BNE jmpcopy
-
-                ; JSL FDC_Init
-                JSL FDC_TEST
-
+BOOTBASIC       JSL FDC_INIT
                 JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 
 CREDIT_LOCK     NOP
@@ -644,9 +648,15 @@ IPUTB
 IPRINTCR	      .proc
                 PHX
                 PHY
+                PHB
+                PHD
                 PHP
 
+                setdbr 0
+                setdp 0
+
                 setas
+                setxl
                 LDA @lCHAN_OUT
                 BEQ scr_printcr
 
@@ -672,6 +682,8 @@ scr_printcr     LDX #0
                 JSL ILOCATE
 
 done            PLP
+                PLD
+                PLB
                 PLY
                 PLX
                 RTL
@@ -2435,7 +2447,9 @@ ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a spac
 ;.include "YM26XX.asm"
 .include "uart.asm"                       ; The code to handle the UART
 .include "joystick.asm"                   ; Code for the joysticks and gamepads
+.include "sdc_library.asm"                ; Library code for the SD card interface
 .include "fdc_library.asm"                ; Library code for the floppy drive controller
+.include "ide_library.asm"                ; Library code for the IDE interface
 
 ;
 ; Greeting message and other kernel boot data

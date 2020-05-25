@@ -7,60 +7,9 @@ FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
 
 FDC_MOTOR_ON_TIME = 60 * 30     ; Time (in SOF interrupt counts) for the motor to stay on: ~30s?
 
-;
-; Read a sector from the FDC quickly (for debugging purposes)
-;
-; Inputs:
-;   BIOS_LBA = the desired LBA
-;
-; Outputs:
-;   Data is written to DOS_SECTOR
-;
-FDC_QUICKREAD       .proc
-                    PHP
-
-                    setas
-                    LDA #BIOS_DEV_FDC
-                    STA @l BIOS_DEV
-
-                    setaxl
-                    LDA @l BIOS_LBA+2
-                    PHA
-                    LDA @l BIOS_LBA
-                    PHA
-
-                    JSL FDC_Mount
-
-                    LDA #100
-                    JSL ILOOP_MS
-
-                    PLA
-                    STA @l BIOS_LBA
-                    PLA
-                    STA @l BIOS_LBA+2
-
-                    BCC fail
-
-                    LDA #<>DOS_SECTOR           ; Point to DOS_SECTOR as the destination buffer
-                    STA @l BIOS_BUFF_PTR
-                    LDA #`DOS_SECTOR
-                    STA @l BIOS_BUFF_PTR+2
-
-                    JSL GETBLOCK                ; Try to read
-                    BCC fail
-
-                    JSL FDC_Motor_Off
-
-                    PLP
-                    RTL
-
-fail                setas
-                    LDA #'!'
-                    JSL PUTC
-                    JSL PRINTCR
-                    PLP
-                    RTL
-                    .pend
+BPB_SECPERCLUS12_OFF = 13       ; Offset to sectors per cluster in a FAT12 boot sector
+BPB_ROOT_MAX_ENTRY12_OFF = 17   ; Offset to the maximum number of entries in the root directory in FAT12 boot sector
+BPB_SECPERFAT12_OFF = 22        ; Offset to sectors per FAT on a FAT12 boot sector
 
 FDC_TEST            .proc
                     PHB
@@ -101,52 +50,30 @@ is_ok1              JSL FDC_MOUNT
 mount_err           TRACE "Could not mount drive."
                     BRL motor_off
 
-is_ok2              setas
-                    LDX #0
+is_ok2              setaxl
                     LDA #0
-fill_loop           STA TEST_BUFFER,X
-                    INC A
+                    LDX #0
+clr_loop            STA DOS_FAT_SECTORS,X
+                    INX
                     INX
                     CPX #512
-                    BNE fill_loop
+                    BNE clr_loop
 
-                    LDA #BIOS_DEV_FDC               ; Set the device #
-                    STA TEST_FD.DEV
-
+                    setas
+                    LDA #BIOS_DEV_FDC
+                    STA @w BIOS_DEV
+                    
                     setal
-                    LDA #<>NEW_NAME                 ; Set the path
-                    STA TEST_FD.PATH
-                    LDA #`NEW_NAME
-                    STA TEST_FD.PATH+2
-
-                    LDA #<>TEST_BUFFER              ; Set the buffer
-                    STA TEST_FD.BUFFER
-                    LDA #`TEST_BUFFER
-                    STA TEST_FD.BUFFER+2
-
-                    LDA #1024                       ; Set the size to 512 bytes
-                    STA TEST_FD.SIZE
+                    LDA #1                          ; We want to read the first FAT sector
+                    STA DOS_FAT_LBA
                     LDA #0
-                    STA TEST_FD.SIZE+2
+                    STA DOS_FAT_LBA+2
 
-                    LDA #<>TEST_FD                  ; Set the file descriptor
-                    STA DOS_FD_PTR
-                    LDA #`TEST_FD
-                    STA DOS_FD_PTR+2
-
-                    JSL IF_CREATE
-                    BCS is_ok3
-
-                    TRACE "Can't create file"
-                    BRL motor_off
-
-is_ok3              JSL IF_WRITE
+                    JSL FDC_READ2FAT12              ; Try to read the FAT sectors
                     BCS all_ok
 
-fail2               TRACE "Could not append to the file"
+                    TRACE "Could not read the FAT sectors."
                     BRL motor_off
-
-NEW_NAME            .null "GENFILE1.TXT"
 
 all_ok              TRACE "Everything worked OK!"
 
@@ -263,6 +190,25 @@ loop                LDA @l SIO_FDC_MSR
                     .pend
 
 ;
+; A delay loop that should be around 10ms
+;
+FDC_DELAY_10MS      .proc
+                    PHX
+                    PHP
+
+                    setxl
+                    LDX #16000          ; Wait for around 10ms
+loop                NOP                 ; Each iteration should take 9 cycles
+                    DEX
+                    CPX #0
+                    BNE loop
+
+                    PLP
+                    PLX
+                    RTL
+                    .pend
+
+;
 ; Execute a command on the floppy disk controller.
 ;
 ; Inputs:
@@ -290,6 +236,8 @@ FDC_COMMAND         .proc
 
                     TRACE "FDC_COMMAND"
 
+                    JSL FDC_DELAY_10MS                      ; Wait around 10ms
+
                     setaxs
                     LDX #0
                     LDA #0
@@ -310,8 +258,12 @@ fdc_reset           JSL FDC_INIT                            ; Reset the FDC
 start_send          setxs
                     LDX #0
 send_loop           JSR FDC_Check_RQM                       ; Wait until we can write
+
                     LDA FDC_PARAMETERS,X                    ; Get the parameter/command byte to write
                     STA @l SIO_FDC_DTA                      ; Send it
+
+                    JSL FDC_DELAY_10MS                      ; Wait around 10ms for things to settle
+                    
                     INX                                     ; Advance to the next byte
                     CPX FDC_PARAM_NUM
                     BNE send_loop                           ; Keep sending until we've sent them all
@@ -668,6 +620,10 @@ FDC_Sense_Int_Status .proc
 
                     TRACE "FDC_Sense_Int_Status"
 
+                    setaxl
+                    LDX #10                            ; Wait for 10ms
+                    JSL ILOOP_MS
+
                     setas
                     STZ FDC_ST0                         ; Clear ST0
                     LDA #$FF
@@ -712,6 +668,10 @@ FDC_Specify_Command .proc
 
                     TRACE "FDC_Specify_Command"
 
+                    setaxl
+                    LDX #10                 ; Wait for 10ms
+                    JSL ILOOP_MS
+
                     setas
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
 
@@ -746,6 +706,10 @@ FDC_Configure_Command .proc
                     setdp FDC_DRIVE
 
                     TRACE "FDC_Configure_Command"
+
+                    setaxl
+                    LDX #10                 ; Wait for 10ms
+                    JSL ILOOP_MS
 
                     setas
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
@@ -1316,25 +1280,29 @@ FDC_GETBLOCK        .proc
                     
                     TRACE "FDC_GETBLOCK"
 
+                    setas
+                    LDA #3                      ; We can retry 3 times
+                    STA FDC_CMD_RETRY
+
                     setaxl                   
                     JSL LBA2CHS                 ; Convert the LBA to CHS
 
                     setas
                     LDA FDC_SECTOR              ; Just make sure the sector is ok
                     BEQ read_failure
-                    setal
-
+                    
+try_read            setal
                     JSL FDC_Read_Sector         ; Read the sector
-                    BCC pass_failure
+                    BCC retry
 
                     setas
                     LDA FDC_ST0
                     AND #%11010000              ; Check the error bits
                     BNE read_failure
 
-                    LDA FDC_ST1
-                    AND #%00110101
-                    BNE read_failure
+                    ; LDA FDC_ST1               ; TODO: figure out why the status registers sometimes come back as jibberish
+                    ; AND #%00110101
+                    ; BNE read_failure
 
 ret_success         setas
                     LDA #0
@@ -1345,6 +1313,13 @@ ret_success         setas
                     PLB
                     SEC
                     RTL
+
+retry               setas                       ; Check to see if we can try again
+                    DEC FDC_CMD_RETRY           ; Decrement the retry counter
+                    BMI pass_failure            ; If it's gone negative, we should quit with an error
+
+                    JSL FDC_INIT                ; Otherwise, reinitialize the FDC
+                    BRA try_read                ; And try the read again
 
 read_failure        setas
                     LDA #BIOS_ERR_READ
@@ -1501,7 +1476,7 @@ parse_boot          setas
                     STA @l PARTITION
 
                     setas
-                    LDA DOS_SECTOR+BPB_SECPERCLUS_OFF       ; Get the # of sectors per cluster (usually 1)
+                    LDA DOS_SECTOR+BPB_SECPERCLUS12_OFF     ; Get the # of sectors per cluster (usually 1)
                     STA @l SECTORS_PER_CLUSTER
 
                     setal
@@ -1509,7 +1484,7 @@ parse_boot          setas
                     STA @l FIRSTSECTOR
                     STA @l FIRSTSECTOR+2
 
-                    LDA DOS_SECTOR+BPB_SECPERFAT_OFF        ; Get the number of sectors per FAT
+                    LDA DOS_SECTOR+BPB_SECPERFAT12_OFF      ; Get the number of sectors per FAT
                     STA @l SEC_PER_FAT
                     LDA #0
                     STA @l SEC_PER_FAT+2
@@ -1530,7 +1505,7 @@ parse_boot          setas
                     LDA #0
                     STA @l ROOT_DIR_FIRST_CLUSTER+2
 
-                    LDA DOS_SECTOR+BPB_ROOT_MAX_ENTRY_OFF   ; Get the maximum number of directory entries for the root dir
+                    LDA DOS_SECTOR+BPB_ROOT_MAX_ENTRY12_OFF ; Get the maximum number of directory entries for the root dir
                     STA @l ROOT_DIR_MAX_ENTRY
 
                     LSR A                                   ; 16 entries per sector

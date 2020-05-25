@@ -202,6 +202,8 @@ DOS_SRC_PTR      = $000350      ; 4 bytes - Pointer for transferring data
 DOS_DST_PTR      = $000354      ; 4 bytes - Pointer for transferring data
 DOS_END_PTR      = $000358      ; 4 bytes - Pointer to the last byte to save
 DOS_RUN_PTR      = $00035C      ; 4 bytes - Pointer for starting a loaded program
+DOS_SCRATCH      = $000360      ; 4 bytes - general purpose short term storage 
+
 DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
 
 FDC_PARAMETERS   = $000500      ; 16 bytes - a buffer of parameter data for the FDC
@@ -209,7 +211,7 @@ FDC_RESULTS      = $000510      ; 16 bytes - Buffer for results of FDC commands
 FDC_PARAM_NUM    = $000530      ; 1 byte - The number of parameters to send to the FDC (including command)
 FDC_RESULT_NUM   = $000532      ; 1 byte - The number of results expected
 FDC_EXPECT_DAT   = $000533      ; 1 byte - 0 = the command expects no data, otherwise expects data
-FDC_CMD_RETRY    = $000534      ; 1 byte = a retry counter for commands
+FDC_CMD_RETRY    = $000534      ; 1 byte - a retry counter for commands
 
 ;
 ; Channel, UART variables, and Timer

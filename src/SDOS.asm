@@ -28,6 +28,50 @@
 
 .include "sdos_fat.asm"
 
+DOS_TEST        .proc
+                PHB
+                PHD
+                PHP
+
+                TRACE "DOS_TEST"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                JSL FDC_INIT
+
+                setas
+                setxl
+                LDA #0                      ; Zero the file descriptor
+                LDX #0
+clr_loop        STA test_fd,X
+                INX
+                CPX #SIZE(FILEDESC)
+                BNE clr_loop
+
+                setaxl
+                LDA #<>test_dir             ; Set the path
+                STA TEST_FD.PATH
+                LDA #`test_dir
+                STA TEST_FD.PATH+2
+
+                LDA #<>TEST_FD              ; Point to the file descriptor
+                STA DOS_FD_PTR
+                LDA #`TEST_FD
+                STA DOS_FD_PTR+2
+
+                JSL IF_DIROPEN              ; Attempt to open the directory
+
+                TRACE "/DOS_TEST"
+
+                PLP
+                PLD
+                PLB
+                RTL
+
+test_dir        .null ":HD0:"
+                .pend
+
 ;
 ; IF_OPEN
 ;
@@ -538,7 +582,7 @@ IF_DIRREAD      .proc
 
                 setaxl
 
-                JSL DOS_FINDFILE              ; This is really just DOS_FINDFILE
+                JSL DOS_FINDFILE
                 BCS success
                 BRL IF_FAILURE
 

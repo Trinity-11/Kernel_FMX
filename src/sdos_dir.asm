@@ -32,14 +32,10 @@ DOS_DIROPEN     .proc
 
                 TRACE "DOS_DIROPEN"
 
-                setas
-                LDY #FILEDESC.DEV           ; Set the device from the file descriptor
-                LDA [DOS_FD_PTR],Y
-                STA BIOS_DEV
-
-                ; TODO: parse the path
-
                 setaxl
+                JSL DOS_COPYPATH            ; Copy the path from the file descriptor to the path buffer
+                JSL DOS_PARSE_PATH          ; Parse the path
+
                 JSL DOS_MOUNT               ; Make sure we've mounted the SDC.
                 BCS get_root_dir            ; If successful: get the root directory
                 BRL IF_PASSFAILURE          ; Otherwise: pass the error up the chain
@@ -67,7 +63,11 @@ get_root_dir    setaxl
 
                 ; Otherwise: treat as FAT12 and load from disk
 
-fetch_fat12     setal
+fetch_fat12     setas
+                LDA #DOS_DIR_TYPE_FAT12ROOT ; Set the directory type to FAT12 root directory
+                STA DOS_DIR_TYPE
+                
+                setal
                 LDA DOS_DIR_PTR             ; Set the BIOS buffer pointer
                 STA BIOS_BUFF_PTR
                 LDA DOS_DIR_PTR+2
@@ -82,7 +82,11 @@ fetch_fat12     setal
                 BCS do_success              ; If sucessful, set the directory cursor
                 BRL IF_PASSFAILURE          ; Otherwise: pass up the failure
 
-fetch_fat32     setal
+fetch_fat32     setas
+                LDA #DOS_DIR_TYPE_FILE      ; Set the directory type to file type (all FAT32, any FAT12 subdirectory)
+                STA DOS_DIR_TYPE
+
+                setal
                 LDA DOS_DIR_BLOCK_ID
                 STA DOS_CLUS_ID
                 LDA DOS_DIR_BLOCK_ID+2
@@ -160,16 +164,24 @@ DOS_DIRNEXT     .proc
                 SEC                         ; Check to see if we've reached the end of the sector buffer
                 LDA #<>DOS_DIR_CLUSTER_END
                 SBC DOS_DIR_PTR
+                STA DOS_TEMP
                 LDA #`DOS_DIR_CLUSTER_END
                 SBC DOS_DIR_PTR+2
-                BMI get_next_block
+                STA DOS_TEMP+2
+
+                BMI get_next_block          ; Yes: try to fetch the next directory entry
+                BEQ check_lower
+                BRL IF_SUCCESS
+check_lower     LDA DOS_TEMP
+                BEQ get_next_block
                 BRL IF_SUCCESS
 
                 ; TODO: next decision only applies to the root directory!
 
 get_next_block  setas
                 LDA DOS_DIR_TYPE            ; Check the type of the directory
-                BEQ next_cluster            ; If 0, it's cluster based (FAT32, or FAT12 non-root)
+                CMP #DOS_DIR_TYPE_FILE
+                BEQ next_cluster            ; FILE TYPE: it's cluster based (FAT32, or FAT12 non-root)
 
                 ; FAT12, root directory case
 
@@ -278,16 +290,98 @@ chk_entry       setas
                 JSL IF_DIRNEXT              ; Go to the next directory entry
                 BCS start_walk              ; If we got one, start walking it
 
-                BRK                         ; For the moment, just fail
-                NOP                         ; TODO: add a new cluster to the end of the directory
+                JSL DOS_DIRAPPEND           ; If there isn't one, create a blank cluster
+                BCC ret_failure             ; If that didn't work, return the failure
 
-                ; If there isn't one, create a blank cluster
-                ; ... Append the cluster to the directory
-                ; ... Return the first entry
-
-ret_failure     BRL IF_FAILURE
+                setal
+                LDA #<>DOS_DIR_CLUSTER      ; Return the first entry
+                STA DOS_DIR_PTR
+                LDA #`DOS_DIR_CLUSTER
+                STA DOS_DIR_PTR+2
 
 ret_success     BRL IF_SUCCESS
+
+ret_failure     BRL IF_FAILURE
+                .pend
+
+;
+; Append a new, empty block to the end of the current directory
+; Throws an error if we're looking at a FAT12 root directory
+;
+; Inputs:
+;   DOS_DIR_BLOCK_ID = a block/cluster ID for the current directory
+;
+; Outputs:
+;   DOS_DIR_BLOCK_ID = cluster containing the new blank directory block
+;   DOS_DIR_CLUSTER = the data in the directory block
+;   DOS_DIR_PTR = points to the first directory entry in DOS_DIR_CLUSTER
+;   DOS_STATUS = the status code for the operation
+;   C = set if there is a next cluster, clear if there isn't
+;
+DOS_DIRAPPEND   .proc
+                PHX
+                PHB
+                PHD
+                PHP
+
+                TRACE "DOS_DIRAPPEND"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setas
+                LDA DOS_DIR_TYPE
+                CMP #DOS_DIR_TYPE_FILE          ; Are we looking at a file type directory
+                BEQ clr_sector                  ; Yes: clear out the directory data                            
+
+ret_failure     setas
+                LDA #DOS_ERR_DIRFULL            ; No: return a directory-full error  
+                STA DOS_STATUS
+                BRL pass_failure
+
+clr_sector      setal
+                LDA #0
+                LDX #0
+clr_loop        STA DOS_DIR_CLUSTER,X           ; Clear the directory cluster
+                INX
+                INX
+                CPX #512
+                BNE clr_loop
+
+                ; Append the directory cluster to the current directory
+
+                LDA #<>DOS_DIR_CLUSTER          ; Point to the new, blank directory data
+                STA DOS_BUFF_PTR
+                LDA #`DOS_DIR_CLUSTER
+                STA DOS_BUFF_PTR+2
+
+                LDA DOS_DIR_BLOCK_ID            ; We want to append it to the current directory
+                STA DOS_CLUS_ID
+                LDA DOS_DIR_BLOCK_ID+2
+                STA DOS_CLUS_ID+2
+
+                JSL DOS_APPENDCLUS              ; Attempt to append the blank data as a new cluster
+                BCC pass_failure                ; If there was an error, pass it up the chain
+
+                LDA DOS_NEW_CLUSTER             ; Set the block ID of the new directory cluster
+                STA DOS_DIR_BLOCK_ID
+                LDA DOS_NEW_CLUSTER+2
+                STA DOS_DIR_BLOCK_ID+2
+
+ret_success     PLP
+                PLD
+                PLB
+                PLX
+                SEC
+                RTL
+
+
+pass_failure    PLP
+                PLD
+                PLB
+                PLX
+                CLC
+                RTL
                 .pend
 
 ;
@@ -317,7 +411,8 @@ DOS_DIRWRITE    .proc
 
                 setas
                 LDA DOS_DIR_TYPE            ; Check the type of the directory
-                BEQ write_cluster           ; If 0, it's cluster based (FAT32, or FAT12 non-root)
+                CMP #DOS_DIR_TYPE_FILE      ; Is it a file type directory (FAT32 or FAT12 non-root?)
+                BEQ write_cluster           ; Yes: write it back using a cluster ID
 
                 ; FAT12 root directory, write as a sector
 

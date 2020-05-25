@@ -12,6 +12,13 @@
 ;; Record structures
 ;;
 
+; A record to name devices
+DEVICE_DESC     .struct name, number, next
+DEVNAME         .dword \name            ; A pointer to the ASCIIZ name of the device
+DEVNUMBER       .byte \number           ; The BIOS_DEV number for the device
+NEXT            .dword \next            ; A pointer to the next device descriptor
+                .ends
+
 ; Directory entry
 DIRENTRY                .struct
 SHORTNAME               .fill 11        ; $00 - The short name of the file (8 name, 3 extension)
@@ -74,6 +81,9 @@ PART_TYPE_FAT12 = $00                   ; "Partition" type: FAT12, used for flop
 PART_TYPE_FAT32_LBA = $0C               ; Patition type: FAT32 with LBA addressing 
 BPB_EXTENDED_RECORD = $29               ; If SIGNATUREB of the BPB has this byte, the volume label is valid
 
+DOS_DIR_TYPE_FAT12ROOT = 0              ; Directory is a FAT12 root directory
+DOS_DIR_TYPE_FILE = 1                   ; Directory is a file type directory
+
 ; Error Codes
 
 DOS_ERR_READ = 1                        ; We could not read a sector, check BIOS_STATUS for details
@@ -96,6 +106,7 @@ DOS_ERR_NOEXEC = 17                     ; File does is not an executable format
 DOS_ERR_MEDIAFULL = 18                  ; There are no more free clusters on the drive
 DOS_ERR_WRITEPROT = 19                  ; The medium is write-protected
 DOS_ERR_FATUPDATE = 20                  ; Can't update the FAT
+DOS_ERR_DIRFULL = 21                    ; The directory is full
 
 ; MBR Field Offsets
 
@@ -113,7 +124,7 @@ BPB_RSRVCLUS_OFF = 14                   ; Offset in the BPB sector to the Number
 BPB_NUMFAT_OFF = 16                     ; Offset in the BPB sector to the Number of FATs
 BPB_ROOT_MAX_ENTRY_OFF = 17             ; Offset in the BPB sector to the Maximum # of entries in the root directory (FAT12)
 BPB_TOTAL_SECTORS = 19                  ; Offset in the BPB sector to the number of sectors on the partition or disk (FAT12)
-BPB_SECPERFAT_OFF = 22                  ; Offset in the BPB sector to the Sectors Per FAT
+BPB_SECPERFAT_OFF = $24                 ; Offset in the BPB sector to the Sectors Per FAT
 BPB_SIGNATUREB = 38                     ; Offset in the BPB sector to the second signature byte
 BPB_VOLUMEID = 39                       ; Offset in the BPB sector to the volume ID
 BPB_ROOTCLUS_OFF = $2C                  ; Offset in the BPB sector to the Root Cluster Number
@@ -152,8 +163,9 @@ DOS_DIR_BLOCK_ID        = $37E032       ; 4 bytes - The ID of the current direct
 DOS_NEW_CLUSTER         = $37E036       ; 4 bytes - Space to store a newly written cluster ID
 DOS_SHORT_NAME          = $37E03A       ; 11 bytes - The short name for a desired file
 DOS_DIR_TYPE            = $37E045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
-FDC_MOTOR_TIMER         = $37E046       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
-
+DOS_CURR_DIR_ID         = $37E046       ; 4 byte - the ID of the first sector or cluster of the current directory
+DOS_DEV_NAMES           = $37E04A       ; 4 byte - pointer to the linked list of device names
+FDC_MOTOR_TIMER         = $37E04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
 
 ; Larger buffers
 
@@ -167,6 +179,35 @@ DOS_FAT_SECTORS_END     = $37E900       ; The byte just past the end of the FAT 
 ;;
 ;; Code for the file system
 ;;
+
+;
+; Initialize the internal variables for the file system
+;
+; Only to be called on boot
+;
+DOS_INIT        .proc
+                PHB
+                PHD
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setal
+                LDA #<>DOS_HD_DESC      ; Initialize the device names list
+                STA @l DOS_DEV_NAMES
+                LDA #`DOS_HD_DESC
+                STA @l DOS_DEV_NAMES+2
+
+                setas
+                LDA #BIOS_DEV_SD        ; Default to the SD card
+                STA BIOS_DEV
+
+                PLP
+                PLD
+                PLB
+                RTL
+                .pend
 
 ;
 ; Mount a volume and load its information into a volume description
@@ -191,6 +232,9 @@ DOS_MOUNT       .proc
                 CMP #BIOS_DEV_SD        ; Is it the SDC?
                 BEQ do_sdc_mount        ; Yes: attempt to mount it
 
+                CMP #BIOS_DEV_HD0       ; Is it HD0?
+                BEQ do_ide_mount        ; Yes: attempt to mount the IDE drive
+
                 CMP #BIOS_DEV_FDC       ; Is it the FDC?
                 BEQ do_fdc_mount        ; Yes: attempt to mount it
 
@@ -205,7 +249,12 @@ do_fdc_mount    JSL FDC_MOUNT           ; Attempt to mount the floppy disk
                 BRL ret_failure
 fdc_success     BRL ret_success
 
-do_sdc_mount    JSL SDCINIT             ; Yes: Initialize access to the SDC
+do_sdc_mount    JSL SDC_INIT            ; Yes: Initialize access to the SDC
+                BCS get_mbr             ; Continue if success
+                LDA #DOS_ERR_NOINIT     ; Otherwise: return an error
+                BRL ret_failure
+
+do_ide_mount    JSL IDE_INIT            ; Yes: Initialize access to the IDE drive
                 BCS get_mbr             ; Continue if success
                 LDA #DOS_ERR_NOINIT     ; Otherwise: return an error
                 BRL ret_failure
@@ -542,6 +591,156 @@ ret_failure     setas
                 .pend
 
 ;
+; A linked list of device names
+;
+; The idea is that this might be expanded to support other names or even
+; volume names.
+;
+
+; The floppy drive
+DOS_FDC_NAME    .null "@F"
+DOS_FDC_DESC    .dstruct DEVICE_DESC, DOS_FDC_NAME, BIOS_DEV_FDC, 0
+
+; The SD card interface (partition 0)
+DOS_SDC_NAME    .null "@S"
+DOS_SDC_DESC    .dstruct DEVICE_DESC, DOS_SDC_NAME, BIOS_DEV_SD, DOS_FDC_DESC
+
+; The IDE master drive (partition 0)
+DOS_HDC_NAME    .null "@H"
+DOS_HD_DESC     .dstruct DEVICE_DESC, DOS_HDC_NAME, BIOS_DEV_HD0, DOS_SDC_DESC
+
+;
+; Parse the device name
+;
+; Inputs:
+;   DOS_PATH_BUFF = a buffer containing the full path to the file (NULL terminated)
+;
+;   Device names are of the form ":xxx"
+;   where "xxx" is one of (others may be supported in time):
+;       "SD0" for the first partition of the SD card
+;       "FD0" for floppy drive #0
+;       "HD0" for partition 0 of the master IDE drive
+;
+; Outputs:
+;   DOS_PATH_BUFF = a buffer containing the path without device name
+;   BIOS_DEV = the number of the device to use (unchanged if no device name found)
+;
+DOS_PARSE_DEV   .proc
+                PHB
+                PHD
+                PHP
+
+                TRACE "DOS_PARSE_DEV"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+                
+                LDA @l DOS_DEV_NAMES        ; Point to the first device name to check
+                STA DOS_TEMP
+                LDA @l DOS_DEV_NAMES+2
+                STA DOS_TEMP+2
+
+                LDA #<>DOS_PATH_BUFF        ; Make DOS_END_PTR point to the path to check
+                STA DOS_END_PTR
+                LDA #`DOS_PATH_BUFF
+                STA DOS_END_PTR+2               
+
+dev_loop        LDY #DEVICE_DESC.DEVNAME    ; Get the name of the current device into DOS_SRC_PTR
+                LDA [DOS_TEMP],Y
+                STA DOS_SRC_PTR
+                INY
+                INY
+                LDA [DOS_TEMP],Y
+                STA DOS_SRC_PTR+2
+
+                setas
+                LDY #0
+cmp_loop        LDA [DOS_SRC_PTR],Y         ; Get the Yth character of the device name
+                BEQ found                   ; If it's NULL, we found a match
+                CMP [DOS_END_PTR],Y         ; Compare it to the Yth character of the path
+                BNE next_device             ; If no match, try to load the next device
+                INY                         ; Go to the next character
+                BRA cmp_loop
+
+next_device     TRACE "next_device"
+                setal
+                LDY #DEVICE_DESC.NEXT       ; DOS_TEMP := DOS_TEMP->NEXT
+                LDA [DOS_TEMP],Y
+                PHA
+                INY
+                INY
+                LDA [DOS_TEMP],Y
+                STA DOS_TEMP+2
+                PLA
+                STA DOS_TEMP
+
+                LDA DOS_TEMP                ; Is DOS_TEMP = NULL?
+                BNE dev_loop                ; No: check this device
+                LDA DOS_TEMP+2
+                BNE dev_loop
+
+done            PLP                         ; Otherwise, return having not found a match
+                PLD
+                PLB
+                RTL
+
+found           JSL DOS_ADJUSTPATH          ; Remove the device name from the buffer
+                
+                setas
+                LDY #DEVICE_DESC.DEVNUMBER  ; Set the BIOS device number from the found device
+                LDA [DOS_TEMP],Y
+                STA @l BIOS_DEV
+
+                BRA done
+                .pend
+
+;
+; Remove leading characters from the DOS_PATH_BUFF
+;
+; Inputs:
+;   DOS_PATH_BUFF = the path to modify
+;   Y = the index of the first character in the buffer to remain
+;
+; Outputs:
+;   DOS_PATH_BUFF 
+DOS_ADJUSTPATH  .proc
+                PHX
+                PHY
+                PHB
+                PHD
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+                STY DOS_SCRATCH                 ; Save the index to later compute the size
+
+                TYA                             ; Compute the address of the first source byte
+                CLC
+                ADC #<>DOS_PATH_BUFF
+                TAX
+                
+                LDA #<>DOS_PATH_BUFF            ; Compute the destination address for the source byte
+                TAY
+
+                SEC                             ; Compute the number of bytes to copy
+                LDA #256
+                SBC DOS_SCRATCH
+
+                MVN #`DOS_PATH_BUFF, #`DOS_PATH_BUFF
+
+                PLP
+                PLD
+                PLB
+                PLY
+                PLX
+                RTL
+                .pend
+
+;
 ; Parse a path
 ;
 ; Inputs:
@@ -559,6 +758,8 @@ DOS_PARSE_PATH  .proc
                 PHD
                 PHP
 
+                TRACE "DOS_PARSE_PATH"
+
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
@@ -569,7 +770,7 @@ DOS_PARSE_PATH  .proc
 
                 LDX #0
 upcase_loop     LDA DOS_PATH_BUFF,X     ; Get the character
-                BEQ clr_name            ; If it's NULL, the path is upper case, clear the name
+                BEQ parse_dev           ; If it's NULL, the path is upper case, attempt to parse the device
 
                 CMP #' '                ; Is a control character?
                 BGE check_case          ; No: check the case
@@ -588,17 +789,23 @@ check_case      CMP #'a'                ; Is the character lower case?
 next_char       INX                     ; Move to the next character
                 CPX #$100
                 BNE upcase_loop
-
-                ; TODO: parse and extract a device specifier
+         
+parse_dev       JSL DOS_PARSE_DEV       ; Parse and extract a device specifier ":xxx:"
 
                 ; TODO: skip over the directory paths to get to the short name
+
+                LDA DOS_PATH_BUFF       ; Check the first character of the path
+                CMP #':'
+                BNE clr_name            ; If not colon, treat it as a file name
+                LDY #1                  ; Otherwise...
+                JSL DOS_ADJUSTPATH      ; For now, just remove the leading ":"
 
 clr_name        LDY #0                  ; Set the short name to blanks
                 LDA #' '
 clr_loop        STA DOS_SHORT_NAME,Y
                 INY
                 CPY #11
-                BNE clr_loop
+                BNE clr_loop            
 
                 LDX #0
                 LDY #0
@@ -660,6 +867,8 @@ DOS_FINDFILE    .proc
                 PHD
                 PHP
 
+                TRACE "DOS_FINDFILE"
+
                 setdbr 0
                 setdp SDOS_VARIABLES
 
@@ -673,10 +882,7 @@ pass_failure    PLP                             ; If failure, just pass the fail
                 CLC
                 RTL
 
-mount           setas
-                LDA #BIOS_DEV_FDC               ; Mount the drive... defaults to SDC
-                STA BIOS_DEV                    ; TODO: set from DOS_PARSE_PATH
-                JSL DOS_MOUNT
+mount           JSL DOS_MOUNT
 
 get_directory   setal
                 JSL IF_DIROPEN                  ; Get the directory
@@ -720,21 +926,8 @@ scan_cmp_loop   LDA [DOS_DIR_PTR],Y             ; Get the X'th character of the 
                 BRA scan_cmp_loop               ; No: keep checking
 
 next_entry      JSL DOS_DIRNEXT                 ; Try to get the next directory entry
+                BCC ret_failure                 ; If we're at the end of the directory, return a failure.
                 BRL scan_loop                   ; If found: keep scanning
-
-;                 ; Load the next directory clustor
-;                 setal
-;                 JSL NEXTCLUSTER                 ; Move to the next cluster of the directory
-
-; set_buff_ptr    LDA #<>DOS_DIR_CLUSTER          ; Load the directory cluster into the directory buffer
-;                 STA DOS_BUFF_PTR
-;                 LDA #`DOS_DIR_CLUSTER
-;                 STA DOS_BUFF_PTR+2
-;                 setas
-
-;                 JSL DOS_GETCLUSTER              ; Attempt to load the directory cluster
-;                 BCC bad_dir                     ; If failed: return an error
-;                 BRL scan_entries                ; If loaded: scan it
 
 bad_dir         LDA #DOS_ERR_NODIR              ; Otherwise: fail with a NODIR error (maybe something else is better)
 
@@ -1311,10 +1504,7 @@ FDC_READ2FAT12      .proc
                     LDA #DOS_ERR_FAT
                     BRL ret_failure
 
-inc_sect2           TRACE "READ2FAT PAUSE!"
-                    JML BASIC
-
-                    setal
+inc_sect2           setal
                     INC BIOS_LBA                    ; Move to the next sector
                     BNE inc_buff_ptr
                     INC BIOS_LBA+2
@@ -1876,7 +2066,8 @@ update_fat12    ORA DOS_NEW_CLUSTER
 
                 ; Update the cluster for FAT32
 
-fat32           LDA DOS_NEW_CLUSTER             ; Write the ID of the new cluster to the end of the chain
+fat32           setal
+                LDA DOS_NEW_CLUSTER             ; Write the ID of the new cluster to the end of the chain
                 STA DOS_FAT_SECTORS,X
                 LDA DOS_NEW_CLUSTER+2
                 STA DOS_FAT_SECTORS+2,X
@@ -1888,19 +2079,13 @@ fat32           LDA DOS_NEW_CLUSTER             ; Write the ID of the new cluste
                 LDA #DOS_ERR_FAT                ; Problem working with the FAT
                 STA DOS_STATUS
 
-pass_failure    TRACE "FAILED!"
-                JML BASIC
-
-                PLP
+pass_failure    PLP
                 PLD
                 PLB
                 CLC
                 RTL
 
-ret_success     TRACE "SUCCESS!"
-                JML BASIC
-                
-                setas
+ret_success     setas
                 STZ DOS_STATUS
                 PLP
                 PLD
@@ -2141,6 +2326,8 @@ DOS_CREATE      .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "DOS_CREATE"
+
                 setaxl
                 LDY #FILEDESC.PATH              ; DOS_TEMP := DOS_FD_PTR->PATH
                 LDA [DOS_FD_PTR],Y
@@ -2301,10 +2488,30 @@ ret_success     setas
 ;   DOS_FD_PTR = pointer to the file descriptor
 ;
 DOS_COPYPATH    .proc
+                PHX
+                PHY
+                PHB
+                PHD
                 PHP
 
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
                 setaxl
-                LDY #FILEDESC.PATH
+                LDA #0                  ; Set the DOS_PATH_BUFF to all zeros
+                LDX #0
+clr_loop        STA DOS_PATH_BUFF,X
+                INX
+                INX
+                CPX #256
+                BNE clr_loop
+
+                LDA DOS_FD_PTR          ; Is the DOS_FD_PTR null?
+                BNE get_path            ; No: attempt to fetch the path
+                LDA DOS_FD_PTR+2
+                BEQ done                ; Yes: return an empty buffer
+
+get_path        LDY #FILEDESC.PATH      ; Get the path buffer
                 LDA [DOS_FD_PTR],Y
                 STA DOS_TEMP
                 INY
@@ -2312,7 +2519,12 @@ DOS_COPYPATH    .proc
                 LDA [DOS_FD_PTR],Y
                 STA DOS_TEMP+2
 
-                setas
+                LDA DOS_TEMP            ; Is the path pointer NULL?
+                BNE start_copy          ; No: start copying it
+                LDA DOS_TEMP+2
+                BEQ done                ; Yes: return an empty buffer
+
+start_copy      setas                   ; Copy the path into the path buffer
                 LDX #0
                 LDY #0
 loop            LDA [DOS_TEMP],Y
@@ -2323,6 +2535,10 @@ loop            LDA [DOS_TEMP],Y
                 BNE loop
 
 done            PLP
+                PLD
+                PLB
+                PLY
+                PLX
                 RTL
                 .pend
 
