@@ -136,36 +136,36 @@ BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 
 ; Device information from master boot record and boot sector
 
-DOS_HIGH_VARIABLES      = $37E000
-DEVICE                  = $37E000       ; 1 byte - The number of the block device
-FILE_SYSTEM             = $37E001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
-PARTITION               = $37E002       ; 1 byte - The number of the partitions on the device
-SECTORS_PER_CLUSTER     = $37E003       ; 1 byte - The number of sectors in a cluster
-FIRSTSECTOR             = $37E004       ; 4 bytes - The LBA of the first sector on the volume
-SECTORCOUNT             = $37E008       ; 4 bytes - The number of sectors in the volume
-NUM_RSRV_SEC            = $37E00C       ; 2 bytes - The number of hidden or reserved sectors
-CLUSTER_SIZE            = $37E00E       ; 2 bytes - The size of a cluster in bytes 
-SEC_PER_FAT             = $37E010       ; 4 bytes - The number of sectors per FAT
-FAT_BEGIN_LBA           = $37E014       ; 4 bytes - The LBA of the first sector of FAT #1
-FAT2_BEGIN_LBA          = $37E018       ; 4 bytes - The LBA of the first sector of FAT #2
-CLUSTER_BEGIN_LBA       = $37E01C       ; 4 bytes - The LBA of the first cluster in the storage area
-ROOT_DIR_FIRST_CLUSTER  = $37E020       ; 4 bytes - The number of the first cluster in the root directory
-ROOT_DIR_MAX_ENTRY      = $37E024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
-VOLUME_ID               = $37E026       ; 4 bytes - The ID of the volume
+DOS_HIGH_VARIABLES      = $38E000
+DEVICE                  = $38E000       ; 1 byte - The number of the block device
+FILE_SYSTEM             = $38E001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
+PARTITION               = $38E002       ; 1 byte - The number of the partitions on the device
+SECTORS_PER_CLUSTER     = $38E003       ; 1 byte - The number of sectors in a cluster
+FIRSTSECTOR             = $38E004       ; 4 bytes - The LBA of the first sector on the volume
+SECTORCOUNT             = $38E008       ; 4 bytes - The number of sectors in the volume
+NUM_RSRV_SEC            = $38E00C       ; 2 bytes - The number of hidden or reserved sectors
+CLUSTER_SIZE            = $38E00E       ; 2 bytes - The size of a cluster in bytes 
+SEC_PER_FAT             = $38E010       ; 4 bytes - The number of sectors per FAT
+FAT_BEGIN_LBA           = $38E014       ; 4 bytes - The LBA of the first sector of FAT #1
+FAT2_BEGIN_LBA          = $38E018       ; 4 bytes - The LBA of the first sector of FAT #2
+CLUSTER_BEGIN_LBA       = $38E01C       ; 4 bytes - The LBA of the first cluster in the storage area
+ROOT_DIR_FIRST_CLUSTER  = $38E020       ; 4 bytes - The number of the first cluster in the root directory
+ROOT_DIR_MAX_ENTRY      = $38E024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
+VOLUME_ID               = $38E026       ; 4 bytes - The ID of the volume
 
 ; Other variables we don't need in bank 0
 
-DOS_CURR_CLUS           = $37E02A       ; 4 bytes - The current cluster (for delete)
-DOS_NEXT_CLUS           = $37E02E       ; 4 bytes - The next cluster in a file (for delete)
-DOS_DIR_BLOCK_ID        = $37E032       ; 4 bytes - The ID of the current directory block
+DOS_CURR_CLUS           = $38E02A       ; 4 bytes - The current cluster (for delete)
+DOS_NEXT_CLUS           = $38E02E       ; 4 bytes - The next cluster in a file (for delete)
+DOS_DIR_BLOCK_ID        = $38E032       ; 4 bytes - The ID of the current directory block
                                         ;   If DOS_DIR_TYPE = 0, this is a cluster ID
                                         ;   If DOS_DIR_TYPE = $80, this is a sector LBA
-DOS_NEW_CLUSTER         = $37E036       ; 4 bytes - Space to store a newly written cluster ID
-DOS_SHORT_NAME          = $37E03A       ; 11 bytes - The short name for a desired file
-DOS_DIR_TYPE            = $37E045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
-DOS_CURR_DIR_ID         = $37E046       ; 4 byte - the ID of the first sector or cluster of the current directory
-DOS_DEV_NAMES           = $37E04A       ; 4 byte - pointer to the linked list of device names
-FDC_MOTOR_TIMER         = $37E04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+DOS_NEW_CLUSTER         = $38E036       ; 4 bytes - Space to store a newly written cluster ID
+DOS_SHORT_NAME          = $38E03A       ; 11 bytes - The short name for a desired file
+DOS_DIR_TYPE            = $38E045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
+DOS_CURR_DIR_ID         = $38E046       ; 4 byte - the ID of the first sector or cluster of the current directory
+DOS_DEV_NAMES           = $38E04A       ; 4 byte - pointer to the linked list of device names
+FDC_MOTOR_TIMER         = $38E04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
 
 ; Larger buffers
 
@@ -175,6 +175,9 @@ DOS_SECTOR              = $37E300       ; 512 bytes - A buffer for block device 
 DOS_SECTOR_END          = $37E500       ; The byte just past the end of the cluster buffer
 DOS_FAT_SECTORS         = $37E500       ; 1024 bytes - two sectors worth of the FAT
 DOS_FAT_SECTORS_END     = $37E900       ; The byte just past the end of the FAT buffers
+DOS_SPARE_SECTOR        = $37E900       ; A spare 512 byte buffer for loading sectors
+DOS_SPARE_SECTOR_END    = $37EB00
+DOS_SPARE_FD            = $37EB00       ; A spare file descriptor buffer
 
 ;;
 ;; Code for the file system
@@ -431,6 +434,58 @@ ret_failure     setas
                 .pend
 
 ;
+; Check the the MBR or VBR loaded in DOS_SECTOR to see if it is bootable.
+; If it is, execute the code found in the sector. Otherwise, this code just
+; returns.
+;
+; To be bootable, the DOS_SECTOR[0] must be $80 (BRA), and
+; DOS_SECTOR[3..11] must contain the text "C256BOOT".
+;
+; Inputs:
+;   DOS_SECTOR is expected to contain either an MBR or a VBR/
+;
+DOS_TESTBOOT    .proc
+                PHX
+                PHP
+
+                TRACE "DOS_TESTBOOT"
+
+                setxl
+                setas
+                LDA @l DOS_SECTOR+FDC_BOOT_START
+                CMP #$80                    ; Is the first byte a BRL instruction?
+                BNE done                    ; No: just return
+
+                LDX #0
+magic_loop      LDA @l DOS_SECTOR+3,X       ; Check the "vendor" byte
+                CMP DOS_BOOT_MAGIC,X        ; Compare it against our boot magic code
+                BNE done                    ; If it's not equal, just return
+                INX                         ; Otherwise, check the next one
+                CPX #8
+                BNE magic_loop              ; Until we've checked all 8 bytes
+
+                setal
+                LDX #0
+copy_loop       LDA @l DOS_SECTOR,X         ; Copy the DOS_SECTOR to DOS_SPARE_SECTOR
+                STA @l DOS_SPARE_SECTOR,X
+                INX
+                INX
+                CPX #512
+                BNE copy_loop
+
+                TRACE "Attempt bootstrap..."
+
+                ; Launch the boot code
+                JML DOS_SPARE_SECTOR+FDC_BOOT_START
+
+done            PLP
+                PLX
+                RTL
+                .pend
+
+DOS_BOOT_MAGIC  .text "C256DOS "
+
+;
 ; Give a cluster number, calculate the LBA
 ;
 ; lba_addr = cluster_begin_lba + (cluster_number - 2) * sectors_per_cluster;
@@ -642,24 +697,24 @@ DOS_PARSE_DEV   .proc
                 LDA @l DOS_DEV_NAMES+2
                 STA DOS_TEMP+2
 
-                LDA #<>DOS_PATH_BUFF        ; Make DOS_END_PTR point to the path to check
-                STA DOS_END_PTR
+                LDA #<>DOS_PATH_BUFF        ; Make DOS_STR2_PTR point to the path to check
+                STA DOS_STR2_PTR
                 LDA #`DOS_PATH_BUFF
-                STA DOS_END_PTR+2               
+                STA DOS_STR2_PTR+2               
 
-dev_loop        LDY #DEVICE_DESC.DEVNAME    ; Get the name of the current device into DOS_SRC_PTR
+dev_loop        LDY #DEVICE_DESC.DEVNAME    ; Get the name of the current device into DOS_STR1_PTR
                 LDA [DOS_TEMP],Y
-                STA DOS_SRC_PTR
+                STA DOS_STR1_PTR
                 INY
                 INY
                 LDA [DOS_TEMP],Y
-                STA DOS_SRC_PTR+2
+                STA DOS_STR1_PTR+2
 
                 setas
                 LDY #0
-cmp_loop        LDA [DOS_SRC_PTR],Y         ; Get the Yth character of the device name
+cmp_loop        LDA [DOS_STR1_PTR],Y        ; Get the Yth character of the device name
                 BEQ found                   ; If it's NULL, we found a match
-                CMP [DOS_END_PTR],Y         ; Compare it to the Yth character of the path
+                CMP [DOS_STR2_PTR],Y        ; Compare it to the Yth character of the path
                 BNE next_device             ; If no match, try to load the next device
                 INY                         ; Go to the next character
                 BRA cmp_loop
@@ -885,7 +940,7 @@ pass_failure    PLP                             ; If failure, just pass the fail
 mount           JSL DOS_MOUNT
 
 get_directory   setal
-                JSL IF_DIROPEN                  ; Get the directory
+                JSL DOS_DIROPEN                 ; Get the directory
                 BCS scan_entries                ; If success: start scanning the directory entries
 
                 setas
@@ -1164,6 +1219,8 @@ FATFORCLUSTER32 .proc
                 PHB
                 PHD
 
+                TRACE "FATFORCLUSTER32"
+
                 setdbr 0
                 setdp SDOS_VARIABLES
 
@@ -1356,6 +1413,8 @@ NEXTCLUSTER32   .proc
                 PHB
                 PHD
                 PHP
+
+                TRACE "NEXTCLUSTER32"
 
                 setdbr 0
                 setdp SDOS_VARIABLES
@@ -1572,8 +1631,6 @@ DOS_FREECLUS12  .proc
                 BRL ret_failure
 
 start_of_fat    setaxl
-                TRACE "start_of_fat"
-                JML BASIC
 
                 ; Get the cluster entry in the FAT
 chk_cluster     LDA DOS_CLUS_ID                 ; Check to see if cluster number is even or odd
@@ -1600,9 +1657,6 @@ chk_available   TRACE "chk_available"
 
 chk_found       TXA
                 STA DOS_TEMP+2
-
-                TRACE "found?"
-                JML BASIC
 
                 LDA DOS_CLUS_ID                 ; Check to see if cluster number is even or odd
                 BIT #1
@@ -1642,10 +1696,7 @@ next_cluster    TRACE "next_cluster"
                 BNE calc_entry
                 INC DOS_CLUS_ID+2
 
-calc_entry      TRACE "ENTRYFORCLUS12"
-                JML BASIC
-
-                JSL ENTRYFORCLUS12              ; Calculate the LBA and offset into the buffer for the cluster
+calc_entry      JSL ENTRYFORCLUS12              ; Calculate the LBA and offset into the buffer for the cluster
 
                 CPX #0                          ; Did we wrap around?
                 BEQ chk_end_of_fat
@@ -1698,6 +1749,8 @@ DOS_FREECLUS32  .proc
                 PHB
                 PHD
                 PHP
+
+                TRACE "DOS_FREECLUS32"
 
                 setdbr 0
                 setdp SDOS_VARIABLES
@@ -1809,8 +1862,6 @@ ret_success     setas
 ;   C = set if there is a next cluster, clear if there isn't
 ;
 DELCLUSTER      .proc
-                PHP
-
                 TRACE "DELCLUSTER"
 
                 setas
@@ -1819,7 +1870,7 @@ DELCLUSTER      .proc
                 BNE fat32                       ; No: assume it's FAT32
 
                 ; Call the FAT12 version
-fat12           JMP DELCLUSTER12
+fat12           JML DELCLUSTER12
 
                 ; Call the FAT32 version
 fat32           JMP DELCLUSTER32
@@ -1885,6 +1936,7 @@ done            PLD
 DELCLUSTER12    .proc
                 PHB
                 PHD
+                PHP
                 TRACE "DELCLUSTER12"
 
                 setdbr `DOS_HIGH_VARIABLES
@@ -1909,7 +1961,8 @@ save_update     STA DOS_FAT_SECTORS,X           ; And write it back
                 JSL WRITEFAT12                  ; Write the two FAT12 sectors back to the drive
                 BCS ret_success
 
-ret_failure     setas
+ret_failure     TRACE "DELCLUSTER12 FAIL"
+                setas
                 LDA #DOS_ERR_FAT
                 STA DOS_STATUS
                 PLP
@@ -1918,7 +1971,8 @@ ret_failure     setas
                 CLC
                 RTL
 
-ret_success     setas
+ret_success     TRACE "DELCLUSTER12 SUCCESS"
+                setas
                 STZ DOS_STATUS
                 PLP
                 PLD
@@ -2350,11 +2404,16 @@ path_loop       LDA [DOS_TEMP],Y                ; Get a byte of the path
                 ; Attempt to find the file
 find_file       JSL DOS_PARSE_PATH
                 JSL DOS_FINDFILE
-                BCC validate_name
+                BCC set_device
 
                 setas
                 LDA #DOS_ERR_FILEEXISTS
                 BRL ret_failure
+
+set_device      setas
+                LDY #FILEDESC.DEV               ; Set the device in the file descriptor
+                LDA BIOS_DEV
+                STA [DOS_FD_PTR],Y
 
                 ; Validate there is a file name
 

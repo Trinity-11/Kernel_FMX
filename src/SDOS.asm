@@ -36,40 +36,24 @@ DOS_TEST        .proc
                 TRACE "DOS_TEST"
 
                 setdbr `DOS_HIGH_VARIABLES
-                setdp SDOS_VARIABLES
-
-                JSL FDC_INIT
-
-                setas
-                setxl
-                LDA #0                      ; Zero the file descriptor
-                LDX #0
-clr_loop        STA test_fd,X
-                INX
-                CPX #SIZE(FILEDESC)
-                BNE clr_loop
+                setdp SDOS_VARIABLES     
 
                 setaxl
-                LDA #<>test_dir             ; Set the path
-                STA TEST_FD.PATH
-                LDA #`test_dir
-                STA TEST_FD.PATH+2
+                LDA #<>sample
+                STA @l DOS_RUN_PARAM
+                LDA #`sample
+                STA @l DOS_RUN_PARAM+2
 
-                LDA #<>TEST_FD              ; Point to the file descriptor
-                STA DOS_FD_PTR
-                LDA #`TEST_FD
-                STA DOS_FD_PTR+2
+                JSL IF_RUN
+                BCS done
 
-                JSL IF_DIROPEN              ; Attempt to open the directory
+                TRACE "Could not run file."
 
-                TRACE "/DOS_TEST"
-
-                PLP
+done            PLP
                 PLD
                 PLB
                 RTL
-
-test_dir        .null ":HD0:"
+sample          .null "@F:SAMPLE.PGX Hello, world!"
                 .pend
 
 ;
@@ -115,7 +99,12 @@ ok_to_open      JSL DOS_COPYPATH                ; Copy the path to the path buff
                 BCS is_found                    ; If OK: we found the file
                 BRL IF_PASSFAILURE              ; Otherwise: pass the failure up the chain
 
-is_found        setal
+is_found        setas
+                LDY #FILEDESC.DEV               ; Set the device in the file descriptor
+                LDA BIOS_DEV
+                STA [DOS_FD_PTR],Y
+                
+                setal
                 LDY #FILEDESC.BUFFER            ; Set the buffer point to the one provided in the file
                 LDA [DOS_FD_PTR],Y
                 STA DOS_BUFF_PTR
@@ -201,7 +190,7 @@ IF_CREATE       .proc
                 setas
                 LDY #FILEDESC.STATUS
                 LDA #FD_STAT_OPEN | FD_STAT_WRITE   ; Set the file to open and APPEND only
-                
+
                 BRL IF_SUCCESS
 
 pass_failure    BRL IF_FAILURE
@@ -434,7 +423,30 @@ ret_success     BRL IF_SUCCESS
 ;   C = set if success, clear on error
 ;
 IF_DIROPEN      .proc
-                JML DOS_DIROPEN
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                TRACE "IF_DIROPEN"
+
+                setaxl
+                JSL DOS_COPYPATH            ; Copy the path from the file descriptor to the path buffer
+                JSL DOS_PARSE_PATH          ; Parse the path
+
+                JSL DOS_MOUNT               ; Make sure we've mounted the SDC.
+                BCS get_root_dir            ; If successful: get the root directory
+                BRL IF_PASSFAILURE          ; Otherwise: pass the error up the chain
+
+get_root_dir    setaxl
+                JSL DOS_DIROPEN
+                BCS success
+                BRL IF_PASSFAILURE
+success         BRL IF_SUCCESS
                 .pend
 
 ;
@@ -477,6 +489,8 @@ IF_DELETE       .proc
                 PHB
                 PHP
 
+                TRACE "IF_DELETE"
+
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
@@ -484,6 +498,7 @@ IF_DELETE       .proc
 
                 ; Find the file on the block device
                 JSL DOS_FINDFILE
+
                 BCS get_first_clus
                 BRL IF_PASSFAILURE
 
@@ -544,7 +559,8 @@ del_one         ; Restore the current cluster ID
                 BRL IF_PASSFAILURE
 
                 ; Flag the directory entry as deleted
-free_dir_entry  setas
+free_dir_entry  TRACE "free_dir_entry"
+                setas
                 LDY #DIRENTRY.SHORTNAME         ; Flag the directory entry as deleted
                 LDA #DOS_DIR_ENT_UNUSED
                 STA [DOS_DIR_PTR],Y
@@ -1092,6 +1108,84 @@ IF_SUCCESS      setas
                 PLD
                 PLY
                 PLX
-                RTL             
+                RTL  
+
+;
+; Load and run an executable binary file
+;
+; Inputs:
+;   DOS_RUN_PARAMS = pointer to the path an parameters to execute
+;
+; Outputs:
+;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
+;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
+;   C = set if success, clear on error
+;
+IF_RUN          .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                TRACE "IF_RUN"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setas
+                setxl
+                LDA #0                                  ; Zero out the file descriptor
+                LDX #0
+clr_fd_loop     STA @l DOS_SPARE_FD,X
+                INX
+                CPX #SIZE(FILEDESC)
+                BNE clr_fd_loop
+
+                setal
+                LDA #<>DOS_SPARE_SECTOR                 ; Set the buffer for the file descriptor
+                STA @l DOS_SPARE_FD+FILEDESC.BUFFER
+                LDA #`DOS_SPARE_SECTOR
+                STA @l DOS_SPARE_FD+FILEDESC.BUFFER+2
+
+                LDA DOS_RUN_PARAM                        ; Set the path for the file descriptor
+                STA @l DOS_SPARE_FD+FILEDESC.PATH
+                LDA DOS_RUN_PARAM+2
+                STA @l DOS_SPARE_FD+FILEDESC.PATH+2
+
+                LDA #0                                  ; Clear the run pointer
+                STA DOS_RUN_PTR                         ; This is used to check that we loaded an executable binary
+                STA DOS_RUN_PTR+2
+
+                LDA #<>DOS_SPARE_FD
+                STA DOS_FD_PTR
+                LDA #`DOS_SPARE_FD
+                STA DOS_FD_PTR+2
+
+                LDA #$FFFF                              ; We want to load to the address provided by the file
+                STA @l DOS_DST_PTR
+                STA @l DOS_DST_PTR+2
+
+                JSL F_LOAD                              ; Try to load the file
+                BCS try_execute
+                BRL IF_PASSFAILURE                      ; On error: pass failure up the chain
+
+chk_execute     setal
+                LDA DOS_RUN_PTR                         ; Check to see if we got a startup address back
+                BNE try_execute                         ; If so: call it
+                LDA DOS_RUN_PTR+2
+                BNE try_execute
+
+                setas
+                LDA #DOS_ERR_NOEXEC                     ; If not: return an error that it's not executable
+                BRL IF_FAILURE
+
+try_execute     setas
+                LDA #$5C                                ; Write a JML opcode
+                STA DOS_RUN_PTR-1
+
+                JSL DOS_RUN_PTR-1                       ; And call to it
+                BRL IF_SUCCESS                          ; Return success
+                .pend
 
 .databank 0

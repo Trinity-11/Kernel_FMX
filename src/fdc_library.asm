@@ -50,30 +50,16 @@ is_ok1              JSL FDC_MOUNT
 mount_err           TRACE "Could not mount drive."
                     BRL motor_off
 
-is_ok2              setaxl
-                    LDA #0
-                    LDX #0
-clr_loop            STA DOS_FAT_SECTORS,X
-                    INX
-                    INX
-                    CPX #512
-                    BNE clr_loop
-
-                    setas
+is_ok2              setas
                     LDA #BIOS_DEV_FDC
-                    STA @w BIOS_DEV
+                    STA @l BIOS_DEV
                     
-                    setal
-                    LDA #1                          ; We want to read the first FAT sector
-                    STA DOS_FAT_LBA
-                    LDA #0
-                    STA DOS_FAT_LBA+2
-
-                    JSL FDC_READ2FAT12              ; Try to read the FAT sectors
+                    setaxl
+                    JSL DOS_FREECLUS12
                     BCS all_ok
 
-                    TRACE "Could not read the FAT sectors."
-                    BRL motor_off
+                    TRACE "Could not find a free cluster."
+                    BRA motor_off
 
 all_ok              TRACE "Everything worked OK!"
 
@@ -101,8 +87,7 @@ done                PLP
                     RTL
                     .pend
 
-TEST_FD             .dstruct FILEDESC
-TEST_FILE           .null "cyberiad.txt"    ; Path to file to try to load
+BOOT_FILE           .null "@F:SAMPLE.PGX Hello, world!"
 TEST_LOCATION = $020000                     ; Location to try to load it
 TEST_BUFFER = $030000                       ; Temporary location for a cluster buffer
 
@@ -551,8 +536,6 @@ FDC_Motor_Off       .proc
                     LDA @l FDC_STATUS
                     AND #$7F                    ; Flag that the motor should be off
                     STA @l FDC_STATUS
-
-                    TRACE "FDC_Motor_Off"
 
                     PLP
                     RTL
@@ -1688,3 +1671,142 @@ ret_false           TRACE "NO MEDIA"
                     CLC
                     RTL
                     .pend
+
+;
+; Write a volume block record to the floppy drive
+;
+; Inputs:
+;   DOS_RUN_PTR = pointer to the path to the binary to execute (0 for non-booting)
+;
+FDC_WRITEVBR        .proc
+                    PHB
+                    PHD
+                    PHP
+
+                    TRACE "FDC_WRITEVBR"
+
+                    setdbr 0
+                    setdp SDOS_VARIABLES
+
+                    JSL FDC_MOUNT               ; Mount the floppy disk
+
+                    setaxl
+                    LDA #0                      ; Clear the sector buffer
+                    LDX #0
+clr_loop            STA DOS_SECTOR,X
+                    INX
+                    INX
+                    CPX #512
+                    BNE clr_loop
+
+                    setas
+                    LDX #0                      ; Copy the prototype VBR to the sector buffer
+copy_loop           LDA FDC_VBR_BEGIN,X
+                    STA DOS_SECTOR,X
+                    INX
+                    CPX #<>(FDC_VBR_END - FDC_VBR_BEGIN + 1)
+                    BNE copy_loop
+
+                    LDY #0                      ; Copy the boot binary path to the VBR
+                    LDX #FDC_VBR_PATH
+path_copy_loop      LDA [DOS_RUN_PTR],Y
+                    STA DOS_SECTOR,X
+                    BEQ path_copy_done
+                    INX
+                    INY
+                    CPY #128
+                    BNE path_copy_loop
+
+path_copy_done      setal
+                    LDA #$AA55                  ; Set the VBR signature bytes at the end
+                    STA DOS_SECTOR+BPB_SIGNATURE
+
+                    setal
+                    LDA #<>DOS_SECTOR           ; Point to the BIOS buffer
+                    STA BIOS_BUFF_PTR
+                    LDA #`DOS_SECTOR
+                    STA BIOS_BUFF_PTR+2
+
+                    LDA #1                      ; Set the sector to #1 (boot record)
+                    STA BIOS_LBA
+                    LDA #0
+                    STA BIOS_LBA
+
+                    setas
+                    LDA #BIOS_DEV_FDC
+                    STA BIOS_DEV
+
+                    JSL PUTBLOCK                ; Attempt to write the boot record
+                    BCS ret_success
+
+                    JSL FDC_Motor_Off
+
+                    PLP                         ; Return the failure
+                    PLD
+                    PLB
+                    CLC
+                    RTL
+
+ret_success         JSL FDC_Motor_Off
+
+                    setas                       ; Return success
+                    LDA #0
+                    STA BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    SEC
+                    RTL
+                    .pend
+
+FDC_BOOT_START = 62                         ; Entry point to the boot code
+FDC_VBR_PATH = 64                           ; Offset to the path in the VBR
+FDC_VBR_BEGIN       .block
+start               .byte $EB, $00, $90     ; Entry point
+magic               .text "C256DOS "        ; OEM name / magic text for booting
+bytes_per_sec       .word 512               ; How many bytes per sector
+sec_per_cluster     .byte 1                 ; How many sectors per cluster
+rsrv_sectors        .word 1                 ; Number of reserved sectors
+num_fat             .byte 2                 ; Number of FATs
+max_dir_entry       .word (32-18)*16        ; Total number of root dir entries
+total_sectors       .word 2880              ; Total sectors
+media_descriptor    .byte $F0               ; 3.5" 1.44 MB floppy 80 tracks, 18 tracks per sector
+sec_per_fat         .word 9                 ; Sectors per FAT
+sec_per_track       .word 18                ; Sectors per track
+num_head            .word 2                 ; Number of heads
+ignore2             .dword 0
+fat32_sector        .dword 0                ; # of sectors in FAT32
+ignore3             .word 0
+boot_signature      .byte $29
+volume_id           .dword $12345678        ; Replaced by code
+volume_name         .text "UNTITLED   "     ; Replace by code
+fs_type             .text "FAT12   "
+
+; Boot code (assumes we are in native mode)
+                    
+                    BRA vbr_start
+
+file_path           .fill 64                ; Reserve 64 bytes for a path and any options
+
+vbr_start           setal
+                    LDA #<>(DOS_SECTOR + (file_path - FDC_VBR_BEGIN))
+                    STA @l DOS_RUN_PARAM
+                    LDA #`(DOS_SECTOR + (file_path - FDC_VBR_BEGIN))
+                    STA @l DOS_RUN_PARAM+2
+                    
+                    JSL IF_RUN              ; And try to execute the binary file
+                    BCS lock                ; If it returned success... lock up... I guess?
+
+error               setas
+                    PHK                     ; Otherwise, print an error message
+                    PLB
+                    PER message
+                    PLX
+                    JSL PUTS
+
+lock                NOP                     ; And lock up
+                    BRA lock
+
+message             .null "Could not find a bootable binary.",13
+                    .bend
+FDC_VBR_END

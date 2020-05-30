@@ -217,11 +217,14 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
 jmpcopy         LDA @l BOOT,X
                 STA @l $001000,X
                 INX
-                CPX #1024
+                CPX #$1000
                 BNE jmpcopy
 
-                ; Initialize the "disc operating system"
-                JSL DOS_INIT
+                JSL DOS_INIT          ; Initialize the "disc operating system"
+                JSL FDC_INIT
+                ; JSL FDC_TEST
+                ; JSL DOS_TEST
+                ; JML BOOTFLOPPY
 
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified
@@ -238,25 +241,46 @@ jmpcopy         LDA @l BOOT,X
                 CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
 
-BOOTBASIC       JSL FDC_INIT
-                JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
+BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 
 CREDIT_LOCK     NOP
                 BRA CREDIT_LOCK
 
-BOOTSDC         ; TODO: implement boot from SD card
+BOOTSDC         setas
+                LDA #BIOS_DEV_SD
+                STA @l BIOS_DEV
+                JSL DOS_MOUNT         ; Mount the SDC
+                BCC sdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the SDC's MBR
+                BRA BOOTBASIC         ; If we couldn't fall, into BASIC
 
-                LDX #<>sdcard_notimpl ; Print a message saying SD card booting is not implemented
+sdc_error       LDX #<>sdc_err_boot   ; Print a message saying SD card booting is not implemented
                 BRA PR_BOOT_ERROR
 
-BOOTIDE         ; TODO: implement boot from IDE
+BOOTIDE         setas
+                LDA #BIOS_DEV_HD0
+                STA @l BIOS_DEV
+                JSL DOS_MOUNT         ; Mount the IDE drive
+                BCC hdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the IDE's MBR
+                BRL BOOTBASIC         ; If we couldn't fall, into BASIC
 
-                LDX #<>ide_notimpl    ; Print a message saying SD card booting is not implemented
+hdc_error       LDX #<>ide_err_boot   ; Print a message saying SD card booting is not implemented
                 BRA PR_BOOT_ERROR
 
-BOOTFLOPPY      ; TODO: implement boot from floppy
+BOOTFLOPPY      LDX #<>fdc_boot
+                JSL IPRINT
 
-                LDX #<>floppy_notimpl ; Print a message saying SD card booting is not implemented
+                setas
+                LDA #BIOS_DEV_FDC
+                STA @l BIOS_DEV
+                JSL FDC_MOUNT         ; Mount the floppy drive
+                BCC fdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the FDC's MBR
+                BRL BOOTBASIC         ; If we couldn't, fall into BASIC
+
+fdc_error       LDX #<>fdc_err_boot   ; Print a message saying SD card booting is not implemented
+
 PR_BOOT_ERROR   JSL IPRINT
 LOOP_FOREVER    NOP
                 BRA LOOP_FOREVER
@@ -2532,9 +2556,10 @@ bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
 IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
 
 boot_invalid    .text "Boot DIP switch settings are invalid", $00
-sdcard_notimpl  .text "Booting from SD card is not yet implemented.", $00
-ide_notimpl     .text "Booting from IDE drive is not yet implemented.", $00
-floppy_notimpl  .text "Booting from floppy drive is not yet implemented.", $00
+sdc_err_boot    .null "Unable to read the SD card."
+ide_err_boot    .null "Unable to read from the IDE drive."
+fdc_err_boot    .null "Unable to read from the floppy drive."
+fdc_boot        .null "Booting from floppy...", 13
 
 ready_msg       .null $0D,"READY."
 

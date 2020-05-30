@@ -32,16 +32,6 @@ DOS_DIROPEN     .proc
 
                 TRACE "DOS_DIROPEN"
 
-                setaxl
-                JSL DOS_COPYPATH            ; Copy the path from the file descriptor to the path buffer
-                JSL DOS_PARSE_PATH          ; Parse the path
-
-                JSL DOS_MOUNT               ; Make sure we've mounted the SDC.
-                BCS get_root_dir            ; If successful: get the root directory
-                BRL IF_PASSFAILURE          ; Otherwise: pass the error up the chain
-
-get_root_dir    setaxl
-
                 ; TODO: get the block from the path
 
                 LDA ROOT_DIR_FIRST_CLUSTER  ; Set the cluster (or sector for FAT12)

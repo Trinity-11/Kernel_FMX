@@ -69,3 +69,4 @@ F_DIRWRITE       = %ADDR% ; Write any changes in the current directory cluster b
 F_LOAD           = %ADDR% ; load a binary file into memory, supports multiple file formats
 F_SAVE           = %ADDR% ; Save memory to a binary file
 CMDBLOCK         = %ADDR% ; Send a command to a block device
+F_RUN            = %ADDR% ; Load and run an executable binary file

@@ -202,7 +202,10 @@ DOS_SRC_PTR      = $000350      ; 4 bytes - Pointer for transferring data
 DOS_DST_PTR      = $000354      ; 4 bytes - Pointer for transferring data
 DOS_END_PTR      = $000358      ; 4 bytes - Pointer to the last byte to save
 DOS_RUN_PTR      = $00035C      ; 4 bytes - Pointer for starting a loaded program
-DOS_SCRATCH      = $000360      ; 4 bytes - general purpose short term storage 
+DOS_RUN_PARAM    = $000360      ; 4 bytes - Pointer to the ASCIIZ string for arguments in loading a program
+DOS_STR1_PTR     = $000364      ; 4 bytes - pointer to a string
+DOS_STR2_PTR     = $000368      ; 4 bytes - pointer to a string
+DOS_SCRATCH      = $00036B      ; 4 bytes - general purpose short term storage
 
 DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
 

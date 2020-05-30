@@ -94,6 +94,7 @@ F_DIRWRITE      JML IF_DIRWRITE     ; Write any changes in the current directory
 F_LOAD          JML IF_LOAD         ; load a binary file into memory, supports multiple file formats
 F_SAVE          JML IF_SAVE         ; Save memory to a binary file
 CMDBLOCK        JML ICMDBLOCK       ; Send a command to a block device
+F_RUN           JML IF_RUN          ; Load an run a binary file
 
 
 

@@ -159,6 +159,8 @@ IGETBLOCK       .proc
                 PHB
                 PHP
 
+                TRACE "IGETBLOCK"
+
                 setdbr 0
                 setdp SDOS_VARIABLES
 
