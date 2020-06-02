@@ -2,7 +2,7 @@
 ; CFP9307 Memory Map
 
 ; IDE Interface
-IDE_DATA      = $AFE830 ; 8Bit Access here Only
+IDE_DATA      = $AFE830 ; 8-Bit Access here Only
 IDE_ERROR     = $AFE831 ; Error Information register (only read when there is an error ) - Probably clears Error Bits
 IDE_SECT_CNT  = $AFE832 ; Sector Count Register (also used to pass parameter for timeout for IDLE modus Command)
 IDE_SECT_SRT  = $AFE833 ; Start Sector Register (0 = 256), so start @ 1
@@ -10,10 +10,34 @@ IDE_CLDR_LO   = $AFE834 ; Low Byte of Cylinder Numnber {7:0}
 IDE_CLDR_HI   = $AFE835 ;  Hi Byte of Cylinder Number {9:8} (1023-0).
 IDE_HEAD      = $AFE836 ; Head, device select, {3:0} HEad Number, 4 -> 0:Master, 1:Slave, {7:5} = 101 (legacy);
 IDE_CMD_STAT  = $AFE837 ; Command/Status Register - Reading this will clear the Interrupt Registers
-IDE_DATA_LO   = $AFE838 ; The 16Bits Buffer is LITTLE ENDIAN, the 65C816 is BIG ENDIAN, but UNITY does the conversion
+IDE_DATA_LO   = $AFE838 ; 16-bit access here
 IDE_DATA_HI   = $AFE839 ;
+
+; Bit flags for IDE_ERROR
+
+IDE_ERR_AMNF = $01      ; Error: Address mark not found
+IDE_ERR_TKZNF = $02     ; Error: Track 0 not found
+IDE_ERR_ABRT = $04      ; Error: Aborted command
+IDE_ERR_MCR = $08       ; Error: Media change request
+IDE_ERR_IDNF = $10      ; Error: ID not found
+IDE_ERR_MC = $20        ; Error: Media change
+IDE_ERR_UNC = $40       ; Error: Uncorrectable data error
+IDE_ERR_BBK = $80       ; Error: Bad block detected
+
+; Bit Flags for IDE_CMD_STAT 
+
 ;7    6    5   4  3   2   1    0
 ;BSY DRDY DF DSC DRQ CORR IDX ERR
+
+IDE_STAT_BSY = $80      ; BSY (Busy) is set whenever the device has control of the command Block Registers.
+IDE_STAT_DRDY = $40     ; DRDY (Device Ready) is set to indicate that the device is capable of accepting all command codes.
+IDE_STAT_DF = $20       ; DF (Device Fault) indicates a device fault error has been detected.
+IDE_STAT_DSC = $10      ; DSC (Device Seek Complete) indicates that the device heads are settled over a track.
+IDE_STAT_DRQ = $08      ; DRQ (Data Request) indicates that the device is ready to transfer a word or byte of data between
+                        ;   the host and the device.
+IDE_STAT_CORR = $04     ; CORR (Corrected Data) is used to indicate a correctable data error.
+IDE_STAT_IDX = $02      ; Vendor specific bit
+IDE_STAT_ERR = $01      ; ERR (Error) indicates that an error occurred during execution of the previous command.
 
 ;BSY (Busy) is set whenever the device has control of the command Block Registers. When the
 ;BSY bit is equal to one, a write to a command block register by the host shall be ignored by the
@@ -80,3 +104,12 @@ IDE_DATA_HI   = $AFE839 ;
 ;Sector Count register
 ;Sector Number register
 ;Device/Head register.
+
+;;
+;; IDE Command Codes (well, the ones we will support)
+;;
+
+IDE_CMD_IDENTIFY = $EC      ; Get device identification data
+IDE_CMD_READ_SECTOR = $21   ; Read 1 or more sectors
+IDE_CMD_WRITE_SECTOR = $30  ; Write 1 or more sectors
+

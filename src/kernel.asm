@@ -4,7 +4,7 @@ TARGET_FLASH = 1              ; The code is being assembled for Flash
 TARGET_RAM = 2                ; The code is being assembled for RAM
 
 .include "macros_inc.asm"
-.include "characters.asm"     ; Definition of special ASCII control codes
+.include "characters.asm"                   ; Definition of special ASCII control codes
 .include "simulator_inc.asm"
 .include "page_00_inc.asm"
 .include "page_00_data.asm"
@@ -21,8 +21,10 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "Trinity_CFP9301_def.asm"          ; Definitions for Trinity chip: Joystick, DipSwitch
 .include "Unity_CFP9307_def.asm"            ; Definitions for Unity chip (IDE)
 .include "GABE_Control_Registers_def.asm"   ; Definitions for GABE registers
+.include "fdc_inc.asm"                      ; Definitions for the floppy drive controller
+.include "timer_def.asm"                    ; Definitions for the timers
 
-.include "basic_inc.asm"      ; Pointers into BASIC and the machine language monitor
+.include "basic_inc.asm"                    ; Pointers into BASIC and the machine language monitor
 ;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
@@ -33,14 +35,8 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 
 .include "kernel_jumptable.asm"
 
-.include "Interrupt_Handler.asm" ; Interrupt Handler Routines
-.include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
-.include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "ide_library.asm"
-
-.include "keyboard.asm"       ; Include the keyboard reading code
-.include "uart.asm"           ; The code to handle the UART
-.include "joystick.asm"       ; Code for the joysticks and gamepads
+.include "Interrupt_Handler.asm"          ; Interrupt Handler Routines
+.include "keyboard.asm"                   ; Include the keyboard reading code
 
 * = $390400
 
@@ -82,6 +78,8 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG1
                 STA @lINT_MASK_REG2
                 STA @lINT_MASK_REG3
+
+                JSL INITRTC               ; Initialize the RTC
 
                 setaxl
                 LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
@@ -220,6 +218,22 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 setxl
                 setdbr `greet_msg     ;set data bank to 39 (Kernel Variables)
 
+                ; Copy the jump table from the "pristine" copy that came from flahs
+                ; down to the working copy in bank 0.
+
+                LDX #0
+jmpcopy         LDA @l BOOT,X
+                STA @l $001000,X
+                INX
+                CPX #$1000
+                BNE jmpcopy
+
+                JSL DOS_INIT          ; Initialize the "disc operating system"
+                JSL FDC_INIT
+                ; JSL FDC_TEST
+                ; JSL DOS_TEST
+                ; JML BOOTFLOPPY
+
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified
                 ;
@@ -240,19 +254,41 @@ BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or 
 CREDIT_LOCK     NOP
                 BRA CREDIT_LOCK
 
-BOOTSDC         ; TODO: implement boot from SD card
+BOOTSDC         setas
+                LDA #BIOS_DEV_SD
+                STA @l BIOS_DEV
+                JSL DOS_MOUNT         ; Mount the SDC
+                BCC sdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the SDC's MBR
+                BRA BOOTBASIC         ; If we couldn't fall, into BASIC
 
-                LDX #<>sdcard_notimpl ; Print a message saying SD card booting is not implemented
+sdc_error       LDX #<>sdc_err_boot   ; Print a message saying SD card booting is not implemented
                 BRA PR_BOOT_ERROR
 
-BOOTIDE         ; TODO: implement boot from IDE
+BOOTIDE         setas
+                LDA #BIOS_DEV_HD0
+                STA @l BIOS_DEV
+                JSL DOS_MOUNT         ; Mount the IDE drive
+                BCC hdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the IDE's MBR
+                BRL BOOTBASIC         ; If we couldn't fall, into BASIC
 
-                LDX #<>ide_notimpl    ; Print a message saying SD card booting is not implemented
+hdc_error       LDX #<>ide_err_boot   ; Print a message saying SD card booting is not implemented
                 BRA PR_BOOT_ERROR
 
-BOOTFLOPPY      ; TODO: implement boot from floppy
+BOOTFLOPPY      LDX #<>fdc_boot
+                JSL IPRINT
 
-                LDX #<>floppy_notimpl ; Print a message saying SD card booting is not implemented
+                setas
+                LDA #BIOS_DEV_FDC
+                STA @l BIOS_DEV
+                JSL FDC_MOUNT         ; Mount the floppy drive
+                BCC fdc_error         ; Print an error message if couldn't get anything
+                JSL DOS_TESTBOOT      ; Try to boot from the FDC's MBR
+                BRL BOOTBASIC         ; If we couldn't, fall into BASIC
+
+fdc_error       LDX #<>fdc_err_boot   ; Print a message saying SD card booting is not implemented
+
 PR_BOOT_ERROR   JSL IPRINT
 LOOP_FOREVER    NOP
                 BRA LOOP_FOREVER
@@ -650,9 +686,15 @@ IPUTB
 IPRINTCR	      .proc
                 PHX
                 PHY
+                PHB
+                PHD
                 PHP
 
+                setdbr 0
+                setdp 0
+
                 setas
+                setxl
                 LDA @lCHAN_OUT
                 BEQ scr_printcr
 
@@ -678,6 +720,8 @@ scr_printcr     LDX #0
                 JSL ILOCATE
 
 done            PLP
+                PLD
+                PLB
                 PLY
                 PLX
                 RTL
@@ -1851,7 +1895,7 @@ IINITKEYBOARD	  PHD
                 setas				;just make sure we are in 8bit mode
                 setxl 					; Set 8bits
 
-				; Setup Foreground LUT First
+				        ; Setup Foreground LUT First
                 CLC
 
                 JSR Poll_Inbuf ;
@@ -2069,11 +2113,19 @@ MOUSE_READ      .as
                 ;   None
 
 INITRTC         PHA
-                setas				    ;just make sure we are in 8bit mode
-                LDA @lRTC_CTRL
-                BRK
+                PHP
+                setas				        ; Just make sure we are in 8bit mode
 
-                setal 					; Set 16bits
+                LDA #0
+                STA @l RTC_RATES    ; Set watch dog timer and periodic interrupt rates to 0
+
+                STA @l RTC_ENABLE   ; Disable all the alarms and interrupts
+                
+                LDA @lRTC_CTRL      ; Make sure the RTC will continue to tick in battery mode
+                ORA #%00000100
+                STA @lRTC_CTRL
+
+                PLP
                 PLA
                 RTL
 ;
@@ -2339,18 +2391,18 @@ IBMP_PARSER_CONT
                 BNE BMP_LUT2_PICK
                 JSR BMP_PARSER_UPDATE_LUT1   ; Go Upload the LUT1
   BMP_LUT2_PICK
-               ; Let's Compute the Pointer for the BITMAP (The Destination)
-               ; Let's use the Internal Mutliplier to Find the Destination Address
-               ; Let's Compute the Hight First
-               ; Y x Stride + X
+                ; Let's Compute the Pointer for the BITMAP (The Destination)
+                ; Let's use the Internal Mutliplier to Find the Destination Address
+                ; Let's Compute the Hight First
+                ; Y x Stride + X
   DONE_TRANSFER_LUT
                 LDA BMP_POSITION_Y
-                STA @lM0_OPERAND_A
+                STA @lUNSIGNED_MULT_A_LO
                 LDA SCRN_X_STRIDE
-                STA @lM0_OPERAND_B
-                LDA @lM0_RESULT
+                STA @lUNSIGNED_MULT_B_LO
+                LDA @lUNSIGNED_MULT_AL_LO
                 STA @lADDER32_A_LL          ; Store in 32Bit Adder (A)
-                LDA @lM0_RESULT+2
+                LDA @lUNSIGNED_MULT_AL_LO+2
                 STA @lADDER32_A_HL          ; Store in 32Bit Adder (A)
                 LDA BMP_POSITION_X
                 STA @lADDER32_B_LL          ; Put the X Position Adder (B)
@@ -2571,6 +2623,69 @@ ILOOP_MS        CPX #0
 LOOP_MS_END     RTL
 
 ;
+; IDELAY -- Wait at least Y:X ticks of the system clock.
+;
+; NOTE: This routine will use the built in timer that count system clock ticks.
+;       There will be overhead for the routine, so this routine should be used
+;       To wait for at least Y:X ticks, and the caller should be tolerant of additional
+;       delays in processing the timer and book keeping.
+;
+; Inputs:
+;   Y = Bits[23:16] of the number of ticks to wait
+;   X = Bits[15:0] of the number of ticks to wait
+;
+IDELAY          .proc
+                PHB
+                PHP
+
+                setdbr 0
+
+                setas
+                LDA #0                      ; Stop the timer if it's running
+                STA @l TIMER0_CTRL_REG
+
+                LDA @l INT_MASK_REG0        ; Enable Timer 0 Interrupts
+                AND #~FNX0_INT02_TMR0
+                STA @l INT_MASK_REG0
+
+                LDA #~TIMER0TRIGGER         ; Clear the timer 0 trigger flag
+                STA @w TIMERFLAGS
+
+                LDA #0
+                STA @l TIMER0_CHARGE_L      ; Clear the comparator for count-down
+                STA @l TIMER0_CHARGE_M
+                STA @l TIMER0_CHARGE_H
+
+                setaxl
+                TXA
+                STA @l TIMER0_CMP_L         ; Set the number of ticks
+                TYA
+                setas
+                STA @l TIMER0_CMP_H
+
+                LDA #TMR0_EN | TMR0_UPDWN   ; Enable the timer to count up
+                STA @l TIMER0_CTRL_REG
+
+                LDA #TIMER0TRIGGER          ; Timer zero's trigger flag
+loop            WAI                         ; Wait for an interrupt
+                TRB @w TIMERFLAGS           ; Check for the flag
+                BEQ loop                    ; Keep checking until it's set
+
+                LDA #0                      ; Stop the timer
+                STA @l TIMER0_CTRL_REG
+
+                LDA #~TIMER0TRIGGER         ; Clear the timer 0 trigger flag
+                STA @w TIMERFLAGS
+
+                LDA @l INT_MASK_REG0        ; Disable Timer 0 Interrupts
+                ORA #FNX0_INT02_TMR0
+                STA @l INT_MASK_REG0
+
+                PLP
+                PLB
+                RTL
+                .pend
+;
 ; Show the credits screen
 ;
 SHOW_CREDITS    .proc
@@ -2619,13 +2734,11 @@ credit_loop     LDA @lCREDITS_TEXT,X            ; Copy a byte of text
 IRESTORE        BRK ; Warm boot routine
 ISCINIT         BRK ;
 IIOINIT         BRK ;
-IPUTBLOCK       BRK ; Ouput a binary block to the currently selected channel
 ISETLFS         BRK ; Obsolete (done in OPEN)
 ISETNAM         BRK ; Obsolete (done in OPEN)
 IOPEN           BRK ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 ICLOSE          BRK ; Close a channel
 IGETB           BRK ; Get a byte from input channel. Return 0 if no input. Carry is set if no input.
-IGETBLOCK       BRK ; Get a X byes from input channel. If Carry is set, wait. If Carry is clear, do not wait.
 IGETCH          BRK ; Get a character from the input channel. A=0 and Carry=1 if no data is wating
 IGETS           BRK ; Get a string from the input channel. NULL terminates
 IGETLINE        BRK ; Get a line of text from input channel. CR or NULL terminates.
@@ -2641,6 +2754,16 @@ IPUSHKEYS       BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
 
+.include "OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
+.include "sdcard_controller_def.asm"
+.include "sdos.asm"
+;.include "YM26XX.asm"
+.include "uart.asm"                       ; The code to handle the UART
+.include "joystick.asm"                   ; Code for the joysticks and gamepads
+.include "sdc_library.asm"                ; Library code for the SD card interface
+.include "fdc_library.asm"                ; Library code for the floppy drive controller
+.include "ide_library.asm"                ; Library code for the IDE interface
+
 ;
 ; Greeting message and other kernel boot data
 ;
@@ -2651,7 +2774,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: "
+                .text "www.c256foenix.com - Kernel version: "
                 .include "version.asm"
                 .text $0D,$00
 
@@ -2722,9 +2845,10 @@ bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
 IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
 
 boot_invalid    .text "Boot DIP switch settings are invalid", $00
-sdcard_notimpl  .text "Booting from SD card is not yet implemented.", $00
-ide_notimpl     .text "Booting from IDE drive is not yet implemented.", $00
-floppy_notimpl  .text "Booting from floppy drive is not yet implemented.", $00
+sdc_err_boot    .null "Unable to read the SD card."
+ide_err_boot    .null "Unable to read from the IDE drive."
+fdc_err_boot    .null "Unable to read from the floppy drive."
+fdc_boot        .null "Booting from floppy...", 13
 
 ready_msg       .null $0D,"READY."
 
@@ -2746,7 +2870,7 @@ ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $3
 ScanCode_Shift_Set1   .text $00, $00, $21, $40, $23, $24, $25, $5E, $26, $2A, $28, $29, $5F, $2B, $08, $09    ; $00
                       .text $51, $57, $45, $52, $54, $59, $55, $49, $4F, $50, $7B, $7D, $0D, $00, $41, $53    ; $10
                       .text $44, $46, $47, $48, $4A, $4B, $4C, $3A, $22, $7E, $00, $5C, $5A, $58, $43, $56    ; $20
-                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $18, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
+                      .text $42, $4E, $4D, $3C, $3E, $3F, $00, $00, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
@@ -2756,7 +2880,7 @@ ScanCode_Ctrl_Set1    .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $3
                       .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
                       .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $03, $76    ; $20
                       .text $62, $6E, $6D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
-                      .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
+                      .text $00, $00, $00, $00, $00, $18, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70

@@ -105,37 +105,10 @@ MOUSE_POS_Y_HI   = $0000E4
 USER_TEMP        = $0000F0 ;32 Bytes Temp space for user programs
 
 ;;///////////////////////////////////////////////////////////////
-;;; NO CODE or Variable ought to be Instatied in this REGION
+;;; NO CODE or Variable ought to be Instantiated in this REGION
 ;; BEGIN
 ;;///////////////////////////////////////////////////////////////
 GAVIN_BLOCK      = $000100 ;256 Bytes Gavin reserved, overlaps debugging registers at $1F0
-
-MULTIPLIER_0     = $000100 ;0 Byte  Unsigned multiplier
-M0_OPERAND_A     = $000100 ;2 Bytes Operand A (ie: A x B)
-M0_OPERAND_B     = $000102 ;2 Bytes Operand B (ie: A x B)
-M0_RESULT        = $000104 ;4 Bytes Result of A x B
-
-MULTIPLIER_1     = $000108 ;0 Byte  Signed Multiplier
-M1_OPERAND_A     = $000108 ;2 Bytes Operand A (ie: A x B)
-M1_OPERAND_B     = $00010A ;2 Bytes Operand B (ie: A x B)
-M1_RESULT        = $00010C ;4 Bytes Result of A x B
-
-DIVIDER_0        = $000108 ;0 Byte  Unsigned divider
-D0_OPERAND_A     = $000108 ;2 Bytes Divider 0 Dividend ex: A in  A/B
-D0_OPERAND_B     = $00010A ;2 Bytes Divider 0 Divisor ex B in A/B
-D0_RESULT        = $00010C ;2 Bytes Quotient result of A/B ex: 7/2 = 3 r 1
-D0_REMAINDER     = $00010E ;2 Bytes Remainder of A/B ex: 1 in 7/2=3 r 1
-
-DIVIDER_1        = $000110 ;0 Byte  Signed divider
-D1_OPERAND_A     = $000110 ;2 Bytes Divider 1 Dividend ex: A in  A/B
-D1_OPERAND_B     = $000112 ;2 Bytes Divider 1 Divisor ex B in A/B
-D1_RESULT        = $000114 ;2 Bytes Signed quotient result of A/B ex: 7/2 = 3 r 1
-D1_REMAINDER     = $000116 ;2 Bytes Signed remainder of A/B ex: 1 in 7/2=3 r 1
-; Reserved
-ADDER_SIGNED_32  = $000120 ; The 32 Bit Adders takes 12Byte that are NOT RAM Location
-ADDER_A          = $000120 ; 4 bytes (32 bit) Accumulator A
-ADDER_B          = $000124 ; 4 bytes (32 bit) Accumulator B
-ADDER_R          = $000128 ; 4 bytes (32 bit) Result
 
 ; Reserved
 INT_CONTROLLER   = $000140 ; $000140...$00015F Interrupt Controller
@@ -188,41 +161,87 @@ BLOCK_ADDR       = $00030F ;2 Bytes (temp) Address of block being loaded
 BLOCK_BANK       = $000311 ;1 Byte  (temp) Bank of block being loaded
 BLOCK_COUNT      = $000312 ;2 Bytes (temp) Counter of bytes read as file is loaded
 
-; $00:0320 to $00:06FF - Reserved for CH376S SDCard Controller
-SDOS_BLOCK_BEGIN = $000320 ;
-SDOS_LOAD_ADDY   = $000324 ; 4 Bytes (Uses 3 Only)
-SDOS_FILE_SIZE   = $000328 ;
-SDOS_BYTE_NUMBER = $00032C ; Number of Byte to Read or Write before changing the Pointer
-SDOS_REG_WR32_AD = $000330 ; 4 Bytes (Used to read and Write Values in/from CH376S)
-SDOS_BYTE_PTR    = $000334
-SDOS_FILE_REC_PTR= $000337 ; 3 byte pointer to a simple file struct
-SDOS_LOOP        = $00033A ; variable to count file length
-SDOS_FILE_NAME   = $000380 ; // Max of 128 Chars
-SDOS_BLK_BEGIN   = $000400 ; 512 Bytes to Store SD Card Incoming or Outcoming Block
-SDOS_BLK_END     = $0006FF ;
+; Floppy drive code variables
+FDC_DRIVE        = $000300 ;1 byte - The number of the selected drive
+FDC_HEAD         = $000301 ;1 byte - The head number (0 or 1)
+FDC_CYLINDER     = $000302 ;1 byte - The cylinder number
+FDC_SECTOR       = $000303 ;1 byte - The sector number
+FDC_SECTOR_SIZE  = $000304 ;1 byte - The sector size code (2 = 512)
+FDC_SECPERTRK    = $000305 ;1 byte - The number of sectors per track (18 for 1.44 MB floppy)
+FDC_ST0          = $000306 ;1 byte - Status Register 0
+FDC_ST1          = $000307 ;1 byte - Status Register 1
+FDC_ST2          = $000308 ;1 byte - Status Register 2
+FDC_ST3          = $000309 ;1 byte - Status Register 3
+FDC_PCN          = $00030A ;1 byte - Present Cylinder Number
+FDC_STATUS       = $00030B ;1 byte - Status of what we think is going on with the FDC:
+                           ;    $80 = motor is on
 
+DIVIDEND         = $00030C ;4 bytes - Dividend for 32-bit division
+DIVISOR          = $000310 ;4 bytes - Divisor for 32-bit division
+REMAINDER        = $000314 ;4 bytes - Remainder for 32-bit division
+
+; $00:0320 to $00:06FF - Reserved for block device access and FAT file system support
+
+; Low-level (BIOS) sector access variables
+SDOS_VARIABLES   = $000320
+BIOS_STATUS      = $000320      ; 1 byte - Status of any BIOS operation
+BIOS_DEV         = $000321      ; 1 byte - Block device number for block operations
+BIOS_LBA         = $000322      ; 4 bytes - Address of block to read/write (this is the physical block, w/o reference to partition)
+BIOS_BUFF_PTR    = $000326      ; 4 bytes - 24-bit pointer to memory for read/write operations
+BIOS_FIFO_COUNT  = $00032A      ; 2 bytes - The number of bytes read on the last block read
+
+; FAT (cluster level) access
+DOS_STATUS       = $00032E      ; 1 byte - The error code describing any error with file access
+DOS_CLUS_ID      = $000330      ; 4 bytes - The cluster desired for a DOS operation
+DOS_DIR_PTR      = $000338      ; 4 bytes - Pointer to a directory entry (assumed to be within DOS_SECTOR)
+DOS_BUFF_PTR     = $00033C      ; 4 bytes - A pointer for DOS cluster read/write operations
+DOS_FD_PTR       = $000340      ; 4 bytes - A pointer to a file descriptor
+DOS_FAT_LBA      = $000344      ; 4 bytes - The LBA for a sector of the FAT we need to read/write
+DOS_TEMP         = $000348      ; 4 bytes - Temporary storage for DOS operations
+DOS_FILE_SIZE    = $00034C      ; 4 bytes - The size of a file
+DOS_SRC_PTR      = $000350      ; 4 bytes - Pointer for transferring data
+DOS_DST_PTR      = $000354      ; 4 bytes - Pointer for transferring data
+DOS_END_PTR      = $000358      ; 4 bytes - Pointer to the last byte to save
+DOS_RUN_PTR      = $00035C      ; 4 bytes - Pointer for starting a loaded program
+DOS_RUN_PARAM    = $000360      ; 4 bytes - Pointer to the ASCIIZ string for arguments in loading a program
+DOS_STR1_PTR     = $000364      ; 4 bytes - pointer to a string
+DOS_STR2_PTR     = $000368      ; 4 bytes - pointer to a string
+DOS_SCRATCH      = $00036B      ; 4 bytes - general purpose short term storage
+
+DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
+
+FDC_PARAMETERS   = $000500      ; 16 bytes - a buffer of parameter data for the FDC
+FDC_RESULTS      = $000510      ; 16 bytes - Buffer for results of FDC commands
+FDC_PARAM_NUM    = $000530      ; 1 byte - The number of parameters to send to the FDC (including command)
+FDC_RESULT_NUM   = $000532      ; 1 byte - The number of results expected
+FDC_EXPECT_DAT   = $000533      ; 1 byte - 0 = the command expects no data, otherwise expects data
+FDC_CMD_RETRY    = $000534      ; 1 byte - a retry counter for commands
 
 ;
-; Channel and UART variables
+; Channel, UART variables, and Timer
 ;
 CURRUART         = $000700 ; 3-bytes: the base address of the current UART
 CHAN_OUT         = $000703 ; 1-byte: the number of the current output channel (for PUTC, etc.)
 CHAN_IN          = $000704 ; 1-byte: the number of the current input channel (for GETCH, etc.)
+TIMERFLAGS       = $000705 ; 1-byte: flags to indicate that one of the timer interupts has triggered
+TIMER0TRIGGER    = $80
+TIMER1TRIGGER    = $40
+TIMER2TRIGGER    = $20
 
 ; COMMAND PARSER Variables
 ; Command Parser Stuff between $000F00 -> $000F84 (see CMD_Parser.asm)
-KEY_BUFFER       = $000F00 ;64 Bytes keyboard buffer
-KEY_BUFFER_SIZE  = $0080 ;128 Bytes (constant) keyboard buffer length
-KEY_BUFFER_END   = $000F7F ;1 Byte  Last byte of keyboard buffer
-KEY_BUFFER_CMD   = $000F83 ;1 Byte  Indicates the Command Process Status
-COMMAND_SIZE_STR = $000F84 ; 1 Byte
-COMMAND_COMP_TMP = $000F86 ; 2 Bytes
-KEYBOARD_SC_FLG  = $000F87 ;1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
-KEYBOARD_SC_TMP  = $000F88 ;1 Byte, Interrupt Save Scan Code while Processing
-KEYBOARD_LOCKS   = $000F89 ;1 Byte, the status of the various lock keys
-KEYFLAG          = $000F8A ;1 Byte, flag to indicate if CTRL-C has been pressed
-KEY_BUFFER_RPOS  = $000F8B ;2 Byte, position of the character to read from the KEY_BUFFER
-KEY_BUFFER_WPOS  = $000F8D ;2 Byte, position of the character to write to the KEY_BUFFER
+KEY_BUFFER       = $000F00 ; 64 Bytes keyboard buffer
+KEY_BUFFER_SIZE  = $0080   ;128 Bytes (constant) keyboard buffer length
+KEY_BUFFER_END   = $000F7F ;  1 Byte  Last byte of keyboard buffer
+KEY_BUFFER_CMD   = $000F83 ;  1 Byte  Indicates the Command Process Status
+COMMAND_SIZE_STR = $000F84 ;  1 Byte
+COMMAND_COMP_TMP = $000F86 ;  2 Bytes
+KEYBOARD_SC_FLG  = $000F87 ;  1 Bytes that indicate the Status of Left Shift, Left CTRL, Left ALT, Right Shift
+KEYBOARD_SC_TMP  = $000F88 ;  1 Byte, Interrupt Save Scan Code while Processing
+KEYBOARD_LOCKS   = $000F89 ;  1 Byte, the status of the various lock keys
+KEYFLAG          = $000F8A ;  1 Byte, flag to indicate if CTRL-C has been pressed
+KEY_BUFFER_RPOS  = $000F8B ;  2 Byte, position of the character to read from the KEY_BUFFER
+KEY_BUFFER_WPOS  = $000F8D ;  2 Byte, position of the character to write to the KEY_BUFFER
 
 KERNEL_JMP_BEGIN = $001000 ; Reserved for the Kernel jump table
 KERNEL_JMP_END   = $001FFF

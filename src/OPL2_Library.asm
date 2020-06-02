@@ -1,5 +1,5 @@
 .cpu "65816"
-.include "OPL2_def.asm"
+.include "OPL3_def.asm"
 .include "OPL2_Instruments.asm"
 .include "OPL2_Midi_Drums.asm"
 .include "OPL2_Midi_Instruments.asm"
@@ -94,10 +94,10 @@ OPL2_GET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
 
               setal
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_PARAMETER0
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -107,10 +107,10 @@ OPL2_GET_WAVEFORM_SELECT   ; Return Bool
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC #$0001
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -150,10 +150,10 @@ OPL2_GET_BLOCK            ; Return Byte, Param: (byte channel);
               setaxl
 ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas 
               LDA [OPL2_IND_ADDY_LL]
@@ -176,10 +176,10 @@ OPL2_GET_KEYON            ; Return Bool, Param: (byte channel);
               setaxl
               ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -200,10 +200,10 @@ OPL2_GET_FEEDBACK         ; Return Byte, Param: (byte channel);
               setaxl
               ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -225,10 +225,10 @@ OPL2_GET_SYNTHMODE        ; Return Bool, Param: (byte channel);
               setaxl
               ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -251,10 +251,10 @@ OPL2_GET_DEEPVIBRATO      ; Return Bool, Param: (none);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC #$00BD
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -265,10 +265,10 @@ OPL2_GET_PERCUSSION       ; Return Bool, Param: (none);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC #$00BD
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -279,10 +279,10 @@ OPL2_GET_DRUMS          ; Return Byte, Param: (none);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC #$00BD
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA [OPL2_IND_ADDY_LL]
@@ -436,7 +436,7 @@ Percussion_Default
               AND #$0F
               TAX
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 6 in Instrument Profile
-              STA @lOPL2_S_FEEDBACK,X
+              STA @lOPL3_R_FEEDBACK,X
               INY
               ; Deal with Operator 1
               LDA #$01
@@ -485,93 +485,93 @@ Percussion_Default
 Percussion_A
               setas
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 1 in Instrument Profile
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $11
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $11
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 2 in Instrument Profile
-              STA @lOPL2_S_KSL_TL + $11
+              STA @lOPL3_R_KSL_TL + $11
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 3 in Instrument Profile
-              STA @lOPL2_S_AR_DR + $11
+              STA @lOPL3_R_AR_DR + $11
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 4 in Instrument Profile
-              STA @lOPL2_S_SL_RR + $11
+              STA @lOPL3_R_SL_RR + $11
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 5 in Instrument Profile
-              STA @lOPL2_S_WAVE_SELECT + $11
+              STA @lOPL3_R_WAVE_SELECT + $11
                 RTL
 Percussion_9
               setas
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 1 in Instrument Profile
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $15
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $15
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 2 in Instrument Profile
-              STA @lOPL2_S_KSL_TL + $15
+              STA @lOPL3_R_KSL_TL + $15
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 3 in Instrument Profile
-              STA @lOPL2_S_AR_DR + $15
+              STA @lOPL3_R_AR_DR + $15
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 4 in Instrument Profile
-              STA @lOPL2_S_SL_RR + $15
+              STA @lOPL3_R_SL_RR + $15
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 5 in Instrument Profile
-              STA @lOPL2_S_WAVE_SELECT + $15
+              STA @lOPL3_R_WAVE_SELECT + $15
               RTL
 Percussion_8
               setas
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 1 in Instrument Profile
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $12
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $12
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 2 in Instrument Profile
-              STA @lOPL2_S_KSL_TL + $12
+              STA @lOPL3_R_KSL_TL + $12
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 3 in Instrument Profile
-              STA @lOPL2_S_AR_DR + $12
+              STA @lOPL3_R_AR_DR + $12
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 4 in Instrument Profile
-              STA @lOPL2_S_SL_RR + $12
+              STA @lOPL3_R_SL_RR + $12
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 5 in Instrument Profile
-              STA @lOPL2_S_WAVE_SELECT + $12
+              STA @lOPL3_R_WAVE_SELECT + $12
               RTL
 Percussion_7
               setas
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 1 in Instrument Profile
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $14
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $14
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 2 in Instrument Profile
-              STA @lOPL2_S_KSL_TL + $14
+              STA @lOPL3_R_KSL_TL + $14
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 3 in Instrument Profile
-              STA @lOPL2_S_AR_DR + $14
+              STA @lOPL3_R_AR_DR + $14
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 4 in Instrument Profile
-              STA @lOPL2_S_SL_RR + $14
+              STA @lOPL3_R_SL_RR + $14
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 5 in Instrument Profile
-              STA @lOPL2_S_WAVE_SELECT + $14
+              STA @lOPL3_R_WAVE_SELECT + $14
               RTL
 ; If Percussion Type 6, Use the Profile to Adjust those Registers
 Percussion_6
               setas
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 1 in Instrument Profile
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $10
-              STA @lOPL2_S_AM_VID_EG_KSR_MULT + $13
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $10
+              STA @lOPL3_R_AM_VID_EG_KSR_MULT + $13
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 2 in Instrument Profile
-              STA @lOPL2_S_KSL_TL + $10
-              STA @lOPL2_S_KSL_TL + $13
+              STA @lOPL3_R_KSL_TL + $10
+              STA @lOPL3_R_KSL_TL + $13
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 3 in Instrument Profile
-              STA @lOPL2_S_AR_DR + $10
-              STA @lOPL2_S_AR_DR + $13
+              STA @lOPL3_R_AR_DR + $10
+              STA @lOPL3_R_AR_DR + $13
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 4 in Instrument Profile
-              STA @lOPL2_S_SL_RR + $10
-              STA @lOPL2_S_SL_RR + $13
+              STA @lOPL3_R_SL_RR + $10
+              STA @lOPL3_R_SL_RR + $13
               INY
               LDA [OPL2_ADDY_PTR_LO], Y ; Pointer Location 5 in Instrument Profile
-              STA @lOPL2_S_WAVE_SELECT + $10
-              STA @lOPL2_S_WAVE_SELECT + $13
+              STA @lOPL3_R_WAVE_SELECT + $10
+              STA @lOPL3_R_WAVE_SELECT + $13
               RTL
 
 
@@ -588,10 +588,10 @@ OPL2_SET_REGISTER        ;Return Byte, Param: (byte reg, byte value);
 
               setal
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_PARAMETER0
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA OPL2_PARAMETER1
@@ -602,9 +602,9 @@ OPL2_SET_WAVEFORMSELECT     ;Return Byte, Param: (bool enable);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE + $0001
+              LDA #<>OPL3_R_BASE + $0001
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               BCS OPL2_Set_WaveFormSelect_set
@@ -1143,10 +1143,10 @@ OPL2_SET_FNUMBER            ;Return Byte, Param: (byte channel, short fNumber);
                 setaxl
                 ;Address Creation in $AFE700 Memory Section
                 CLC
-                LDA #<>OPL2_S_BASE
+                LDA #<>OPL3_R_BASE
                 ADC OPL2_REG_OFFSET
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 LDA OPL2_PARAMETER0     ; Load the first 8 Bits Value of FNumber
@@ -1188,10 +1188,10 @@ OPL2_GET_FNUMBER
                 setaxl
                 ;Address Creation in $AFE700 Memory Section
                 CLC
-                LDA #<>OPL2_S_BASE
+                LDA #<>OPL3_R_BASE
                 ADC OPL2_REG_OFFSET
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 LDA [OPL2_IND_ADDY_LL]
@@ -1233,10 +1233,10 @@ OPL2_SET_BLOCK           ;Return Byte, Param: (byte channel, byte block);
                 setaxl
                 ;Address Creation in $AFE700 Memory Section
                 CLC
-                LDA #<>OPL2_S_BASE
+                LDA #<>OPL3_R_BASE
                 ADC OPL2_REG_OFFSET
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 LDA OPL2_OCTAVE
@@ -1270,10 +1270,10 @@ OPL2_SET_KEYON              ;Return Byte, Param: (byte channel, bool keyOn);
                 setaxl
                 ;Address Creation in $AFE700 Memory Section
                 CLC
-                LDA #<>OPL2_S_BASE
+                LDA #<>OPL3_R_BASE
                 ADC OPL2_REG_OFFSET
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 LDA OPL2_PARAMETER0
@@ -1308,10 +1308,10 @@ OPL2_SET_FEEDBACK           ;Return Byte, Param: (byte channel, byte feedback);
               setaxl
               ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               LDA OPL2_PARAMETER0
@@ -1345,10 +1345,10 @@ OPL2_SET_SYNTHMODE          ;Return Byte, Param: (byte channel, bool isAdditive)
               setaxl
               ;Address Creation in $AFE700 Memory Section
               CLC
-              LDA #<>OPL2_S_BASE
+              LDA #<>OPL3_R_BASE
               ADC OPL2_REG_OFFSET
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               PLP ; Pull the Carry out
               setas
@@ -1376,9 +1376,9 @@ OPL2_SET_DEEPTREMOLO        ;Return Byte, Param: (bool enable);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE + $00BD
+              LDA #<>OPL3_R_BASE + $00BD
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               BCS OPL2_Set_DeepTremolo_Set;
@@ -1404,9 +1404,9 @@ OPL2_SET_DEEPVIBRATO        ;Return Byte, Param: (bool enable);
               setdp BANK0_BEGIN
 
               setal
-              LDA #<>OPL2_S_BASE + $00BD
+              LDA #<>OPL3_R_BASE + $00BD
               STA OPL2_IND_ADDY_LL
-              LDA #`OPL2_S_BASE
+              LDA #`OPL3_R_BASE
               STA OPL2_IND_ADDY_HL
               setas
               BCS OPL2_Set_DeepVibrato_Set;
@@ -1432,9 +1432,9 @@ OPL2_SET_PERCUSSION         ;Return Byte, Param: (bool enable);
               setdp BANK0_BEGIN
 
                 setal
-                LDA #<>OPL2_S_BASE + $00BD
+                LDA #<>OPL3_R_BASE + $00BD
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 BCS OPL2_Set_Percussion_Set;
@@ -1466,9 +1466,9 @@ OPL2_SET_DRUMS              ;Return Byte, Param: (bool bass, bool snare, bool to
               setdp BANK0_BEGIN
 
                 setal
-                LDA #<>OPL2_S_BASE + $00BD
+                LDA #<>OPL3_R_BASE + $00BD
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 setas
                 LDA OPL2_PARAMETER0
@@ -1525,10 +1525,10 @@ OPL2_Get_Register_Offset_exit
                 setaxl
                 ;Address Creation in $AFE700 Memory Section
                 CLC
-                LDA #<>OPL2_S_BASE
+                LDA #<>OPL3_R_BASE
                 ADC OPL2_REG_OFFSET
                 ADC OPL2_REG_REGION ; Ex: $20, or $40, $60, $80 (in 16bits)
                 STA OPL2_IND_ADDY_LL
-                LDA #`OPL2_S_BASE
+                LDA #`OPL3_R_BASE
                 STA OPL2_IND_ADDY_HL
                 RTS

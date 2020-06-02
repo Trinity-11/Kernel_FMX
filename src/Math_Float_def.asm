@@ -11,6 +11,7 @@ FP_MATH_CTRL0_ADD_IN0_MUX0 = $10 ; 00: Input Mux0, 01: Input Mux1
 FP_MATH_CTRL0_ADD_IN0_MUX1 = $20 ; 10: Mult Out, 11: Div Out
 FP_MATH_CTRL0_ADD_IN1_MUX0 = $40 ; 00: Input Mux0, 01: Input Mux1
 FP_MATH_CTRL0_ADD_IN1_MUX1 = $80 ; 10: Mult Out, 11: Div Out
+
 FP_MATH_CTRL1 = $AFE201
 FP_MATH_CTRL1_OUTPUT_MUX0 = $01 ; 00: Mult Output, 01: Div Output
 FP_MATH_CTRL1_OUTPUT_MUX1 = $02 ; 10: Add/Substract Output, 11: '1'

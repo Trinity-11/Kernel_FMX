@@ -61,3 +61,18 @@ setdbr          .macro          ; Set the B (Data bank) register
                 PLA             ; end setdbr macro 
                 .endm 
 
+TRACE           .macro message
+;                 PHA
+;                 PHX
+;                 PHY
+;                 PEA #`txt_message
+;                 PEA #<>txt_message
+;                 JSL ITRACE
+;                 BRA continue
+
+; txt_message     .null 13,\message
+
+; continue        PLY
+;                 PLX
+;                 PLA
+                .endm

@@ -19,17 +19,27 @@ IRQ_HANDLER
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 CMP #FNX0_INT00_SOF
-                BNE SERVICE_NEXT_IRQ6
+                BNE SERVICE_NEXT_IRQ2
                 STA @lINT_PENDING_REG0
                 ; Start of Frame Interrupt
                 JSR SOF_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
 
                 ;IRQ1 - Not Implemented Yet
-                ;IRQ2 - Not Implemented Yet
                 ;IRQ3 - Not Implemented Yet
-                ;IRQ4 - Not Implemented Yet
                 ;IRQ5 - Not Tested Yet
+                ;IRQ6
+                setas
+
+SERVICE_NEXT_IRQ2
+                ; Timer0 Interrupt
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT02_TMR0
+                CMP #FNX0_INT02_TMR0
+                BNE SERVICE_NEXT_IRQ6
+                STA @lINT_PENDING_REG0
+                ; Timer 0
+                JSR TIMER0_INTERRUPT
+
                 ;IRQ6
                 setas
 SERVICE_NEXT_IRQ6 ; FDC Interrupt
@@ -40,7 +50,7 @@ SERVICE_NEXT_IRQ6 ; FDC Interrupt
                 STA @lINT_PENDING_REG0
                 ; Floppy Disk Controller
                 JSR FDC_INTERRUPT
-;                BRA EXIT_IRQ_HANDLE
+
                 ;IRQ7
                 setas
 SERVICE_NEXT_IRQ7 ; Mouse IRQ
@@ -51,7 +61,6 @@ SERVICE_NEXT_IRQ7 ; Mouse IRQ
                 STA @lINT_PENDING_REG0
                 ; Mouse Interrupt
                 JSR MOUSE_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
 
 ; Second Block of 8 Interrupts
                 ;IRQ8
@@ -132,8 +141,47 @@ SOF_INTERRUPT
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 STA @lINT_PENDING_REG0
-;; PUT YOUR CODE HERE
+
+                setal
+                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
+                BEQ sof_int_done                ; If it's zero, do nothing
+
+                DEC A                           ; Otherwise, decrement it...
+                STA @l FDC_MOTOR_TIMER
+                BNE sof_int_done                ; If it's not zero, we're done for this tick
+
+                JSL FDC_Motor_Off               ; Otherwise, turn off the motor
+
+sof_int_done    RTS
+
+; ///////////////////////////////////////////////////////////////////
+; ///
+; /// Timer 0 Interrupt
+; ///
+; ///////////////////////////////////////////////////////////////////
+TIMER0_INTERRUPT
+                setas
+
+                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+                ORA #TIMER0TRIGGER
+                STA @l TIMERFLAGS
+
                 RTS
+
+; ///////////////////////////////////////////////////////////////////
+; ///
+; /// Timer 2 Interrupt
+; ///
+; ///////////////////////////////////////////////////////////////////
+TIMER2_INTERRUPT
+                setas
+
+                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+                ORA #TIMER2TRIGGER
+                STA @l TIMERFLAGS
+
+                RTS
+
 ;
 ; ///////////////////////////////////////////////////////////////////
 ; ///
