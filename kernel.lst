@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=1 --long-address --flat -b -o kernel.bin --list kernel.lst --labels=kernel.lbl src\kernel.asm
-; Tue Feb 18 16:34:20 2020
+; Tue Jun 02 10:21:23 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -448,7 +448,7 @@
 ;******  Return to file: src\kernel.asm
 
 
-;******  Processing file: src\vicky_def.asm
+;******  Processing file: src\vicky_ii_def.asm
 
 =$af0000				MASTER_CTRL_REG_L	      = $AF0000
 =$01					Mstr_Ctrl_Text_Mode_En  = $01       ; Enable the Text Mode
@@ -461,7 +461,7 @@
 =$80					Mstr_Ctrl_Disable_Vid   = $80       ; This will disable the Scanning of the Video hence giving 100% bandwith to the CPU
 =$af0001				MASTER_CTRL_REG_H       = $AF0001
 =$01					Mstr_Ctrl_Video_Mode0   = $01       ; 0 - 640x480 (Clock @ 25.175Mhz), 1 - 800x600 (Clock @ 40Mhz)
-=$02					Mstt_Ctrl_Video_Mode1   = $02       ; 0 - No Pixel Doubling, 1- Pixel Doubling (Reduce the Pixel Resolution by 2)
+=$02					Mstr_Ctrl_Video_Mode1   = $02       ; 0 - No Pixel Doubling, 1- Pixel Doubling (Reduce the Pixel Resolution by 2)
 =$af0002				VKY_RESERVED_00         = $AF0002
 =$af0003				VKY_RESERVED_01         = $AF0003
 =$01					Border_Ctrl_Enable      = $01
@@ -496,59 +496,6 @@
 =$af001d				VKY_INFO_CHIP_NUM_H     = $AF001D
 =$af001e				VKY_INFO_CHIP_VER_L     = $AF001E
 =$af001f				VKY_INFO_CHIP_VER_H     = $AF001F
-=$01					TILE_Enable             = $01
-=$02					TILE_LUT0               = $02
-=$04					TILE_LUT1               = $04
-=$08					TILE_LUT2               = $08
-=$80					TILESHEET_256x256_En    = $80   ; 0 -> Sequential, 1-> 256x256 Tile Sheet Striding
-=$af0100				TL0_CONTROL_REG         = $AF0100       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
-=$af0101				TL0_START_ADDY_L        = $AF0101       ; Not USed right now - Starting Address to where is the MAP
-=$af0102				TL0_START_ADDY_M        = $AF0102
-=$af0103				TL0_START_ADDY_H        = $AF0103
-=$af0104				TL0_MAP_X_STRIDE_L      = $AF0104       ; The Stride of the Map
-=$af0105				TL0_MAP_X_STRIDE_H      = $AF0105
-=$af0106				TL0_MAP_Y_STRIDE_L      = $AF0106       ; The Stride of the Map
-=$af0107				TL0_MAP_Y_STRIDE_H      = $AF0107
-=$af0108				TL1_CONTROL_REG         = $AF0108       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
-=$af0109				TL1_START_ADDY_L        = $AF0109       ; Not USed right now - Starting Address to where is the MAP
-=$af010a				TL1_START_ADDY_M        = $AF010A
-=$af010b				TL1_START_ADDY_H        = $AF010B
-=$af010c				TL1_MAP_X_STRIDE_L      = $AF010C       ; The Stride of the Map
-=$af010d				TL1_MAP_X_STRIDE_H      = $AF010D
-=$af010e				TL1_MAP_Y_STRIDE_L      = $AF010E       ; The Stride of the Map
-=$af010f				TL1_MAP_Y_STRIDE_H      = $AF010F
-=$af0110				TL2_CONTROL_REG         = $AF0110       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
-=$af0111				TL2_START_ADDY_L        = $AF0111       ; Not USed right now - Starting Address to where is the MAP
-=$af0112				TL2_START_ADDY_M        = $AF0112
-=$af0113				TL2_START_ADDY_H        = $AF0113
-=$af0114				TL2_MAP_X_STRIDE_L      = $AF0114       ; The Stride of the Map
-=$af0115				TL2_MAP_X_STRIDE_H      = $AF0115
-=$af0116				TL2_MAP_Y_STRIDE_L      = $AF0116       ; The Stride of the Map
-=$af0117				TL2_MAP_Y_STRIDE_H      = $AF0117
-=$af0118				TL3_CONTROL_REG         = $AF0118       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
-=$af0119				TL3_START_ADDY_L        = $AF0119       ; Not USed right now - Starting Address to where is the MAP
-=$af011a				TL3_START_ADDY_M        = $AF011A
-=$af011b				TL3_START_ADDY_H        = $AF011B
-=$af011c				TL3_MAP_X_STRIDE_L      = $AF011C       ; The Stride of the Map
-=$af011d				TL3_MAP_X_STRIDE_H      = $AF011D
-=$af011e				TL3_MAP_Y_STRIDE_L      = $AF011E       ; The Stride of the Map
-=$af011f				TL3_MAP_Y_STRIDE_H      = $AF011F
-=$af0140				BM_CONTROL_REG          = $AF0140
-=$af0141				BM_START_ADDY_L         = $AF0141
-=$af0142				BM_START_ADDY_M         = $AF0142
-=$af0143				BM_START_ADDY_H         = $AF0143
-=$af0144				BM_X_SIZE_L             = $AF0144
-=$af0145				BM_X_SIZE_H             = $AF0145
-=$af0146				BM_Y_SIZE_L             = $AF0146
-=$af0147				BM_Y_SIZE_H             = $AF0147
-=$af0148				BM_RESERVED_0           = $AF0148
-=$af0149				BM_RESERVED_1           = $AF0149
-=$af014a				BM_RESERVED_2           = $AF014A
-=$af014b				BM_RESERVED_3           = $AF014B
-=$af014c				BM_RESERVED_4           = $AF014C
-=$af014d				BM_RESERVED_5           = $AF014D
-=$af014e				BM_RESERVED_6           = $AF014E
-=$af014f				BM_RESERVED_7           = $AF014F
 =$01					SPRITE_Enable             = $01
 =$02					SPRITE_LUT0               = $02 ; This is the LUT that the Sprite will use
 =$04					SPRITE_LUT1               = $04
@@ -700,36 +647,6 @@
 =$af028d				SP17_X_POS_H            = $AF028D
 =$af028e				SP17_Y_POS_L            = $AF028E
 =$af028f				SP17_Y_POS_H            = $AF028F
-=$af0400				VDMA_CONTROL_REG        = $AF0400
-=$01					VDMA_CTRL_Enable        = $01
-=$02					VDMA_CTRL_1D_2D         = $02     ; 0 - 1D (Linear) Transfer , 1 - 2D (Block) Transfer
-=$04					VDMA_CTRL_TRF_Fill      = $04     ; 0 - Transfer Src -> Dst, 1 - Fill Destination with "Byte2Write"
-=$08					VDMA_CTRL_Int_Enable    = $08     ; Set to 1 to Enable the Generation of Interrupt when the Transfer is over.
-=$80					VDMA_CTRL_Start_TRF     = $80     ; Set to 1 To Begin Process, Need to Cleared before, you can start another
-=$af0401				VDMA_BYTE_2_WRITE       = $AF0401 ; Write Only - Byte to Write in the Fill Function
-=$af0401				VDMA_STATUS_REG         = $AF0401 ; Read only
-=$01					VDMA_STAT_Size_Err      = $01     ; If Set to 1, Overall Size is Invalid
-=$02					VDMA_STAT_Dst_Add_Err   = $02     ; If Set to 1, Destination Address Invalid
-=$04					VDMA_STAT_Src_Add_Err   = $04     ; If Set to 1, Source Address Invalid
-=$80					VDMA_STAT_VDMA_IPS      = $80     ; If Set to 1, VDMA Transfer in Progress (this Inhibit CPU Access to Mem)
-=$af0402				VDMA_SRC_ADDY_L         = $AF0402 ; Pointer to the Source of the Data to be stransfered
-=$af0403				VDMA_SRC_ADDY_M         = $AF0403 ; This needs to be within Vicky's Range ($00_0000 - $3F_0000)
-=$af0404				VDMA_SRC_ADDY_H         = $AF0404
-=$af0405				VDMA_DST_ADDY_L         = $AF0405 ; Destination Pointer within Vicky's video memory Range
-=$af0406				VDMA_DST_ADDY_M         = $AF0406 ; ($00_0000 - $3F_0000)
-=$af0407				VDMA_DST_ADDY_H         = $AF0407
-=$af0408				VDMA_SIZE_L             = $AF0408 ; Maximum Value: $40:0000 (4Megs)
-=$af0409				VDMA_SIZE_M             = $AF0409
-=$af040a				VDMA_SIZE_H             = $AF040A
-=$af040b				VDMA_IGNORED            = $AF040B
-=$af0408				VDMA_X_SIZE_L           = $AF0408 ; Maximum Value: 65535
-=$af0409				VDMA_X_SIZE_H           = $AF0409
-=$af040a				VDMA_Y_SIZE_L           = $AF040A ; Maximum Value: 65535
-=$af040b				VDMA_Y_SIZE_H           = $AF040B
-=$af040c				VDMA_SRC_STRIDE_L       = $AF040C ; Always use an Even Number ( The Engine uses Even Ver of that value)
-=$af040d				VDMA_SRC_STRIDE_H       = $AF040D ;
-=$af040e				VDMA_DST_STRIDE_L       = $AF040E ; Always use an Even Number ( The Engine uses Even Ver of that value)
-=$af040f				VDMA_DST_STRIDE_H       = $AF040F ;
 =$af0500				MOUSE_PTR_GRAP0_START    = $AF0500 ; 16 x 16 = 256 Pixels (Grey Scale) 0 = Transparent, 1 = Black , 255 = White
 =$af05ff				MOUSE_PTR_GRAP0_END      = $AF05FF ; Pointer 0
 =$af0600				MOUSE_PTR_GRAP1_START    = $AF0600 ;
@@ -771,6 +688,153 @@
 =$afc000				CS_COLOR_MEM_PTR        = $AFC000
 =$afe000				BTX_START               = $AFE000     ; BEATRIX Registers
 =$afffff				BTX_END                 = $AFFFFF
+
+;******  Processing file: src\VKYII_CFP9553_BITMAP_def.asm
+
+=$af0100				BM0_CONTROL_REG     = $AF0100
+=$af0101				BM0_START_ADDY_L    = $AF0101
+=$af0102				BM0_START_ADDY_M    = $AF0102
+=$af0103				BM0_START_ADDY_H    = $AF0103
+=$af0104				BM0_X_OFFSET        = $AF0104
+=$af0105				BM0_Y_OFFSET        = $AF0105
+=$af0106				BM0_PRIORITY        = $AF0106
+=$af0107				BM0_RESERVED_7      = $AF0107
+=$af0108				BM1_CONTROL_REG     = $AF0108
+=$af0109				BM1_START_ADDY_L    = $AF0109
+=$af010a				BM1_START_ADDY_M    = $AF010A
+=$af010b				BM1_START_ADDY_H    = $AF010B
+=$af010c				BM1_X_OFFSET        = $AF010C
+=$af010d				BM1_Y_OFFSET        = $AF010D
+=$af010e				BM1_PRIORITY        = $AF010E
+=$af010f				BM1_RESERVED_7      = $AF010F
+
+;******  Return to file: src\vicky_ii_def.asm
+
+
+;******  Processing file: src\VKYII_CFP9553_TILEMAP_def.asm
+
+=$01					TILE_Enable             = $01
+=$af0200				TL0_CONTROL_REG         = $AF0200       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+=$af0201				TL0_START_ADDY_L        = $AF0201       ; Not USed right now - Starting Address to where is the MAP
+=$af0202				TL0_START_ADDY_M        = $AF0202
+=$af0203				TL0_START_ADDY_H        = $AF0203
+=$af0204				TL0_TOTAL_X_SIZE_L      = $AF0204       ; Size of the Map in X Tile Count [9:0] (1024 Max)
+=$af0205				TL0_TOTAL_X_SIZE_H      = $AF0205
+=$af0206				TL0_TOTAL_Y_SIZE_L      = $AF0206       ; Size of the Map in Y Tile Count [9:0]
+=$af0207				TL0_TOTAL_Y_SIZE_H      = $AF0207
+=$af0208				TL0_WINDOW_X_POS_L      = $AF0208       ; Top Left Corner Position of the TileMAp Window in X + Scroll
+=$af0209				TL0_WINDOW_X_POS_H      = $AF0209       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af020a				TL0_WINDOW_Y_POS_L      = $AF020A       ; Top Left Corner Position of the TileMAp Window in Y
+=$af020b				TL0_WINDOW_Y_POS_H      = $AF020B       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af020c				TL1_CONTROL_REG         = $AF020C       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+=$af020d				TL1_START_ADDY_L        = $AF020D       ; Not USed right now - Starting Address to where is the MAP
+=$af020e				TL1_START_ADDY_M        = $AF020E
+=$af020f				TL1_START_ADDY_H        = $AF020F
+=$af0210				TL1_TOTAL_X_SIZE_L      = $AF0210       ; Size of the Map in X Tile Count [9:0] (1024 Max)
+=$af0211				TL1_TOTAL_X_SIZE_H      = $AF0211
+=$af0212				TL1_TOTAL_Y_SIZE_L      = $AF0212       ; Size of the Map in Y Tile Count [9:0]
+=$af0213				TL1_TOTAL_Y_SIZE_H      = $AF0213
+=$af0214				TL1_WINDOW_X_POS_L      = $AF0214       ; Top Left Corner Position of the TileMAp Window in X + Scroll
+=$af0215				TL1_WINDOW_X_POS_H      = $AF0215       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af0216				TL1_WINDOW_Y_POS_L      = $AF0216       ; Top Left Corner Position of the TileMAp Window in Y
+=$af0217				TL1_WINDOW_Y_POS_H      = $AF0217       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af0218				TL2_CONTROL_REG         = $AF0218       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+=$af0219				TL2_START_ADDY_L        = $AF0219       ; Not USed right now - Starting Address to where is the MAP
+=$af021a				TL2_START_ADDY_M        = $AF021A
+=$af021b				TL2_START_ADDY_H        = $AF021B
+=$af021c				TL2_TOTAL_X_SIZE_L      = $AF021C       ; Size of the Map in X Tile Count [9:0] (1024 Max)
+=$af021d				TL2_TOTAL_X_SIZE_H      = $AF021D
+=$af021e				TL2_TOTAL_Y_SIZE_L      = $AF021E       ; Size of the Map in Y Tile Count [9:0]
+=$af021f				TL2_TOTAL_Y_SIZE_H      = $AF021F
+=$af0220				TL2_WINDOW_X_POS_L      = $AF0220       ; Top Left Corner Position of the TileMAp Window in X + Scroll
+=$af0221				TL2_WINDOW_X_POS_H      = $AF0221       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af0222				TL2_WINDOW_Y_POS_L      = $AF0222       ; Top Left Corner Position of the TileMAp Window in Y
+=$af0223				TL2_WINDOW_Y_POS_H      = $AF0223       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af0224				TL3_CONTROL_REG         = $AF0224       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+=$af0225				TL3_START_ADDY_L        = $AF0225       ; Not USed right now - Starting Address to where is the MAP
+=$af0226				TL3_START_ADDY_M        = $AF0226
+=$af0227				TL3_START_ADDY_H        = $AF0227
+=$af0228				TL3_TOTAL_X_SIZE_L      = $AF0228       ; Size of the Map in X Tile Count [9:0] (1024 Max)
+=$af0229				TL3_TOTAL_X_SIZE_H      = $AF0229
+=$af022a				TL3_TOTAL_Y_SIZE_L      = $AF022A       ; Size of the Map in Y Tile Count [9:0]
+=$af022b				TL3_TOTAL_Y_SIZE_H      = $AF022B
+=$af022c				TL3_WINDOW_X_POS_L      = $AF022C       ; Top Left Corner Position of the TileMAp Window in X + Scroll
+=$af022d				TL3_WINDOW_X_POS_H      = $AF022D       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af022e				TL3_WINDOW_Y_POS_L      = $AF022E       ; Top Left Corner Position of the TileMAp Window in Y
+=$af022f				TL3_WINDOW_Y_POS_H      = $AF022F       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af0280				TILESET0_ADDY_L         = $AF0280   ; Pointer to Tileset 0 [21:0]
+=$af0281				TILESET0_ADDY_M         = $AF0281
+=$af0282				TILESET0_ADDY_H         = $AF0282
+=$af0283				TILESET0_ADDY_CFG       = $AF0283   ; [3] - TileStride256x256 [2:0] LUT
+=$af0284				TILESET1_ADDY_L         = $AF0284
+=$af0285				TILESET1_ADDY_M         = $AF0285
+=$af0286				TILESET1_ADDY_H         = $AF0286
+=$af0287				TILESET1_ADDY_CFG       = $AF0287
+=$af0288				TILESET2_ADDY_L         = $AF0288
+=$af0289				TILESET2_ADDY_M         = $AF0289
+=$af028a				TILESET2_ADDY_H         = $AF028A
+=$af028b				TILESET2_ADDY_CFG       = $AF028B
+=$af028c				TILESET3_ADDY_L         = $AF028C
+=$af028d				TILESET3_ADDY_M         = $AF028D
+=$af028e				TILESET3_ADDY_H         = $AF028E
+=$af028f				TILESET3_ADDY_CFG       = $AF028F
+=$af0290				TILESET4_ADDY_L         = $AF0290
+=$af0291				TILESET4_ADDY_M         = $AF0291
+=$af0292				TILESET4_ADDY_H         = $AF0292
+=$af0293				TILESET4_ADDY_CFG       = $AF0293
+=$af0294				TILESET5_ADDY_L         = $AF0294
+=$af0295				TILESET5_ADDY_M         = $AF0295
+=$af0296				TILESET5_ADDY_H         = $AF0296
+=$af0297				TILESET5_ADDY_CFG       = $AF0297
+=$af0298				TILESET6_ADDY_L         = $AF0298
+=$af0299				TILESET6_ADDY_M         = $AF0299
+=$af029a				TILESET6_ADDY_H         = $AF029A
+=$af029b				TILESET6_ADDY_CFG       = $AF029B
+=$af029c				TILESET7_ADDY_L         = $AF029C
+=$af029d				TILESET7_ADDY_M         = $AF029D
+=$af029e				TILESET7_ADDY_H         = $AF029E
+=$af029f				TILESET7_ADDY_CFG       = $AF029F
+
+;******  Return to file: src\vicky_ii_def.asm
+
+
+;******  Processing file: src\VKYII_CFP9553_VDMA_def.asm
+
+=$af0400				VDMA_CONTROL_REG        = $AF0400
+=$01					VDMA_CTRL_Enable        = $01
+=$02					VDMA_CTRL_1D_2D         = $02     ; 0 - 1D (Linear) Transfer , 1 - 2D (Block) Transfer
+=$04					VDMA_CTRL_TRF_Fill      = $04     ; 0 - Transfer Src -> Dst, 1 - Fill Destination with "Byte2Write"
+=$08					VDMA_CTRL_Int_Enable    = $08     ; Set to 1 to Enable the Generation of Interrupt when the Transfer is over.
+=$10					VDMA_CTRL_SysRAM_Src    = $10     ; Set to 1 to Indicate that the Source is the System Ram Memory
+=$20					VDMA_CTRL_SysRAM_Dst    = $20     ; Set to 1 to Indicate that the Destination is the System Ram Memory
+=$80					VDMA_CTRL_Start_TRF     = $80     ; Set to 1 To Begin Process, Need to Cleared before, you can start another
+=$af0401				VDMA_BYTE_2_WRITE       = $AF0401 ; Write Only - Byte to Write in the Fill Function
+=$af0401				VDMA_STATUS_REG         = $AF0401 ; Read only
+=$01					VDMA_STAT_Size_Err      = $01     ; If Set to 1, Overall Size is Invalid
+=$02					VDMA_STAT_Dst_Add_Err   = $02     ; If Set to 1, Destination Address Invalid
+=$04					VDMA_STAT_Src_Add_Err   = $04     ; If Set to 1, Source Address Invalid
+=$80					VDMA_STAT_VDMA_IPS      = $80     ; If Set to 1, VDMA Transfer in Progress (this Inhibit CPU Access to Mem)
+=$af0402				VDMA_SRC_ADDY_L         = $AF0402 ; Pointer to the Source of the Data to be stransfered
+=$af0403				VDMA_SRC_ADDY_M         = $AF0403 ; This needs to be within Vicky's Range ($00_0000 - $3F_0000)
+=$af0404				VDMA_SRC_ADDY_H         = $AF0404
+=$af0405				VDMA_DST_ADDY_L         = $AF0405 ; Destination Pointer within Vicky's video memory Range
+=$af0406				VDMA_DST_ADDY_M         = $AF0406 ; ($00_0000 - $3F_0000)
+=$af0407				VDMA_DST_ADDY_H         = $AF0407
+=$af0408				VDMA_SIZE_L             = $AF0408 ; Maximum Value: $40:0000 (4Megs)
+=$af0409				VDMA_SIZE_M             = $AF0409
+=$af040a				VDMA_SIZE_H             = $AF040A
+=$af040b				VDMA_IGNORED            = $AF040B
+=$af0408				VDMA_X_SIZE_L           = $AF0408 ; Maximum Value: 65535
+=$af0409				VDMA_X_SIZE_H           = $AF0409
+=$af040a				VDMA_Y_SIZE_L           = $AF040A ; Maximum Value: 65535
+=$af040b				VDMA_Y_SIZE_H           = $AF040B
+=$af040c				VDMA_SRC_STRIDE_L       = $AF040C ; Always use an Even Number ( The Engine uses Even Ver of that value)
+=$af040d				VDMA_SRC_STRIDE_H       = $AF040D ;
+=$af040e				VDMA_DST_STRIDE_L       = $AF040E ; Always use an Even Number ( The Engine uses Even Ver of that value)
+=$af040f				VDMA_DST_STRIDE_H       = $AF040F ;
+
+;******  Return to file: src\vicky_ii_def.asm
+
 
 ;******  Return to file: src\kernel.asm
 
@@ -5153,13 +5217,13 @@
 .390580	ea		nop		CREDIT_LOCK     NOP
 .390581	80 fd		bra $390580	                BRA CREDIT_LOCK
 .390583					BOOTSDC
-.390583	a2 8b 18	ldx #$188b	                LDX #<>sdcard_notimpl ; Print a message saying SD card booting is not implemented
+.390583	a2 87 18	ldx #$1887	                LDX #<>sdcard_notimpl ; Print a message saying SD card booting is not implemented
 .390586	80 08		bra $390590	                BRA PR_BOOT_ERROR
 .390588					BOOTIDE
-.390588	a2 b8 18	ldx #$18b8	                LDX #<>ide_notimpl    ; Print a message saying SD card booting is not implemented
+.390588	a2 b4 18	ldx #$18b4	                LDX #<>ide_notimpl    ; Print a message saying SD card booting is not implemented
 .39058b	80 03		bra $390590	                BRA PR_BOOT_ERROR
 .39058d					BOOTFLOPPY
-.39058d	a2 e7 18	ldx #$18e7	                LDX #<>floppy_notimpl ; Print a message saying SD card booting is not implemented
+.39058d	a2 e3 18	ldx #$18e3	                LDX #<>floppy_notimpl ; Print a message saying SD card booting is not implemented
 .390590	22 3b 06 39	jsl $39063b	PR_BOOT_ERROR   JSL IPRINT
 .390594	ea		nop		LOOP_FOREVER    NOP
 .390595	80 fd		bra $390594	                BRA LOOP_FOREVER
@@ -5206,7 +5270,7 @@
 .3905e6	28		plp		                PLP
 .3905e7	68		pla		                PLA             ; end setdbr macro
 .3905e8	e2 20		sep #$20	                SEP #$20        ; set A short
-.3905ea	a2 19 19	ldx #$1919	                LDX #<>ready_msg
+.3905ea	a2 15 19	ldx #$1915	                LDX #<>ready_msg
 .3905ed	22 3b 06 39	jsl $39063b	                JSL IPRINT
 .3905f1					IREADYWAIT
 .3905f1	22 0b 06 39	jsl $39060b	                JSL IGETCHE
@@ -5743,7 +5807,7 @@
 .39098e	c2 20		rep #$20	                REP #$20        ; set A long
 .390990	29 0f 00	and #$000f	                AND #$0F
 .390993	aa		tax		                TAX
-.390994	bf 2d 19 39	lda $39192d,x	                LDA hex_digits,X
+.390994	bf 29 19 39	lda $391929,x	                LDA hex_digits,X
 .390998	22 5b 06 39	jsl $39065b	                JSL IPUTC       ; Print the digit
 .39099c	fa		plx		                PLX
 .39099d	6b		rtl		                RTL
@@ -5808,7 +5872,7 @@
 .3909fe	85 04		sta $04		                STA TMPPTR2
 .390a00	a9 af 00	lda #$00af	                LDA #`CS_COLOR_MEM_PTR
 .390a03	85 06		sta $06		                STA TMPPTR2+2
-.390a05	a9 18 16	lda #$1618	                LDA #<>greet_clr_line1
+.390a05	a9 14 16	lda #$1614	                LDA #<>greet_clr_line1
 .390a08	85 00		sta $00		                STA TMPPTR1
 .390a0a	a9 39 00	lda #$0039	                LDA #`greet_clr_line1
 .390a0d	85 02		sta $02		                STA TMPPTR1+2
@@ -5817,7 +5881,7 @@
 .390a13	a5 04		lda $04		                LDA TMPPTR2
 .390a15	65 11		adc $11		                ADC COLS_PER_LINE
 .390a17	85 04		sta $04		                STA TMPPTR2
-.390a19	a9 42 16	lda #$1642	                LDA #<>greet_clr_line2
+.390a19	a9 3e 16	lda #$163e	                LDA #<>greet_clr_line2
 .390a1c	85 00		sta $00		                STA TMPPTR1
 .390a1e	a9 39 00	lda #$0039	                LDA #`greet_clr_line2
 .390a21	85 02		sta $02		                STA TMPPTR1+2
@@ -5826,7 +5890,7 @@
 .390a27	a5 04		lda $04		                LDA TMPPTR2
 .390a29	65 11		adc $11		                ADC COLS_PER_LINE
 .390a2b	85 04		sta $04		                STA TMPPTR2
-.390a2d	a9 6c 16	lda #$166c	                LDA #<>greet_clr_line3
+.390a2d	a9 68 16	lda #$1668	                LDA #<>greet_clr_line3
 .390a30	85 00		sta $00		                STA TMPPTR1
 .390a32	a9 39 00	lda #$0039	                LDA #`greet_clr_line3
 .390a35	85 02		sta $02		                STA TMPPTR1+2
@@ -5835,7 +5899,7 @@
 .390a3b	a5 04		lda $04		                LDA TMPPTR2
 .390a3d	65 11		adc $11		                ADC COLS_PER_LINE
 .390a3f	85 04		sta $04		                STA TMPPTR2
-.390a41	a9 96 16	lda #$1696	                LDA #<>greet_clr_line4
+.390a41	a9 92 16	lda #$1692	                LDA #<>greet_clr_line4
 .390a44	85 00		sta $00		                STA TMPPTR1
 .390a46	a9 39 00	lda #$0039	                LDA #`greet_clr_line4
 .390a49	85 02		sta $02		                STA TMPPTR1+2
@@ -5844,7 +5908,7 @@
 .390a4f	a5 04		lda $04		                LDA TMPPTR2
 .390a51	65 11		adc $11		                ADC COLS_PER_LINE
 .390a53	85 04		sta $04		                STA TMPPTR2
-.390a55	a9 c0 16	lda #$16c0	                LDA #<>greet_clr_line5
+.390a55	a9 bc 16	lda #$16bc	                LDA #<>greet_clr_line5
 .390a58	85 00		sta $00		                STA TMPPTR1
 .390a5a	a9 39 00	lda #$0039	                LDA #`greet_clr_line5
 .390a5d	85 02		sta $02		                STA TMPPTR1+2
@@ -5863,13 +5927,13 @@
 .390a6d	e2 20		sep #$20	                SEP #$20        ; set A short
 .390a6f	e2 10		sep #$10	                SEP #$10        ; set X short
 .390a71	a2 00		ldx #$00					        LDX	#$00
-.390a73	bf ea 16 39	lda $3916ea,x	lutinitloop0	  LDA @lfg_color_lut,x		; get Local Data
+.390a73	bf e6 16 39	lda $3916e6,x	lutinitloop0	  LDA @lfg_color_lut,x		; get Local Data
 .390a77	9f 40 1f af	sta $af1f40,x	                STA FG_CHAR_LUT_PTR,x	; Write in LUT Memory
 .390a7b	e8		inx		                inx
 .390a7c	e0 40		cpx #$40	                cpx #$40
 .390a7e	d0 f3		bne $390a73	                bne lutinitloop0
 .390a80	a2 00		ldx #$00	                LDX	#$00
-.390a82	bf 2a 17 39	lda $39172a,x	lutinitloop1	  LDA @lbg_color_lut,x		; get Local Data
+.390a82	bf 26 17 39	lda $391726,x	lutinitloop1	  LDA @lbg_color_lut,x		; get Local Data
 .390a86	9f 80 1f af	sta $af1f80,x	                STA BG_CHAR_LUT_PTR,x	; Write in LUT Memory
 .390a8a	e8		inx		                INX
 .390a8b	e0 40		cpx #$40	                CPX #$40
@@ -6035,7 +6099,7 @@
 .390c06	64 01		stz $01		                STZ TMPPTR1+1
 .390c08	e2 20		sep #$20	                SEP #$20        ; set A short
 .390c0a	af 01 00 af	lda $af0001	                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-.390c0e	89 02		bit #$02	                BIT #Mstt_Ctrl_Video_Mode1
+.390c0e	89 02		bit #$02	                BIT #Mstr_Ctrl_Video_Mode1
 .390c10	f0 04		beq $390c16	                BEQ adjust_width            ; No... just adjust the width of the screen
 .390c12	c2 20		rep #$20	                REP #$20        ; set A long
 .390c14	46 00		lsr $00		                LSR TMPPTR1                 ; Yes... cut the adjustment in half
@@ -6059,7 +6123,7 @@
 .390c34	64 01		stz $01		                STZ TMPPTR1+1
 .390c36	e2 20		sep #$20	                SEP #$20        ; set A short
 .390c38	af 01 00 af	lda $af0001	                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-.390c3c	89 02		bit #$02	                BIT #Mstt_Ctrl_Video_Mode1
+.390c3c	89 02		bit #$02	                BIT #Mstr_Ctrl_Video_Mode1
 .390c3e	f0 04		beq $390c44	                BEQ adjust_height           ; No... just adjust the height of the screen
 .390c40	c2 20		rep #$20	                REP #$20        ; set A long
 .390c42	46 00		lsr $00		                LSR TMPPTR1                 ; Yes... cut the adjustment in half
@@ -6083,21 +6147,21 @@
 .390c66	48		pha		                PHA
 .390c67	e2 20		sep #$20	                SEP #$20        ; set A short
 .390c69	a9 00		lda #$00	                LDA #$00          ; Enable Bit-Map and uses LUT0
-.390c6b	8f 40 01 af	sta $af0140	                STA @lBM_CONTROL_REG
+.390c6b	8f 00 01 af	sta $af0100	                STA @lBM0_CONTROL_REG
 .390c6f	a9 00		lda #$00	                LDA #$00          ;; (L)Load Base Address of where Bitmap begins
-.390c71	8f 41 01 af	sta $af0141	                STA @lBM_START_ADDY_L
+.390c71	8f 01 01 af	sta $af0101	                STA @lBM0_START_ADDY_L
 .390c75	a9 c0		lda #$c0	                LDA #$C0
-.390c77	8f 42 01 af	sta $af0142	                STA @lBM_START_ADDY_M
+.390c77	8f 02 01 af	sta $af0102	                STA @lBM0_START_ADDY_M
 .390c7b	a9 00		lda #$00	                LDA #$00
-.390c7d	8f 43 01 af	sta $af0143	                STA @lBM_START_ADDY_H ; This address is always base from
-.390c81	a9 80		lda #$80	                LDA #$80
-.390c83	8f 44 01 af	sta $af0144	                STA BM_X_SIZE_L
-.390c87	a9 02		lda #$02	                LDA #$02
-.390c89	8f 45 01 af	sta $af0145	                STA BM_X_SIZE_H         ; $0280 = 640
-.390c8d	a9 e0		lda #$e0	                LDA #$E0
-.390c8f	8f 46 01 af	sta $af0146	                STA BM_Y_SIZE_L
-.390c93	a9 01		lda #$01	                LDA #$01
-.390c95	8f 47 01 af	sta $af0147	                STA BM_Y_SIZE_H         ; $01E0 = 480
+.390c7d	8f 03 01 af	sta $af0103	                STA @lBM0_START_ADDY_H ; This address is always base from
+.390c81	a9 00		lda #$00	                LDA #$00          ; Enable Bit-Map and uses LUT0
+.390c83	8f 08 01 af	sta $af0108	                STA @lBM1_CONTROL_REG
+.390c87	a9 00		lda #$00	                LDA #$00          ;; (L)Load Base Address of where Bitmap begins
+.390c89	8f 09 01 af	sta $af0109	                STA @lBM1_START_ADDY_L
+.390c8d	a9 c0		lda #$c0	                LDA #$C0
+.390c8f	8f 0a 01 af	sta $af010a	                STA @lBM1_START_ADDY_M
+.390c93	a9 00		lda #$00	                LDA #$00
+.390c95	8f 0b 01 af	sta $af010b	                STA @lBM1_START_ADDY_H ; This address is always base from
 .390c99	c2 30		rep #$30	                REP #$30        ; set A&X long
 .390c9b	68		pla		                PLA
 .390c9c	6b		rtl		                RTL
@@ -6401,10 +6465,10 @@
 .390fde	af 4c 01 00	lda $00014c	                LDA @lINT_MASK_REG0
 .390fe2	29 7f		and #$7f	                AND #~FNX0_INT07_MOUSE
 .390fe4	8f 4c 01 00	sta $00014c	                STA @lINT_MASK_REG0
-.390fe8	a2 e6 17	ldx #$17e6	                LDX #<>Success_kb_init
+.390fe8	a2 e2 17	ldx #$17e2	                LDX #<>Success_kb_init
 .390feb	38		sec		                SEC
 .390fec	b0 03		bcs $390ff1	                BCS InitSuccess
-.390fee	a2 f8 17	ldx #$17f8	initkb_loop_out LDX #<>Failed_kb_init
+.390fee	a2 f4 17	ldx #$17f4	initkb_loop_out LDX #<>Failed_kb_init
 .390ff1	22 3b 06 39	jsl $39063b	InitSuccess     JSL IPRINT       ; print Message
 .390ff5	c2 20		rep #$20	                REP #$20        ; set A long
 .390ff7	c2 10		rep #$10	                REP #$10        ; set X long
@@ -6743,10 +6807,10 @@
 .391380	af 2a 01 00	lda $00012a	                LDA @lADDER32_R_HL
 .391384	85 46		sta $46		                STA BMP_PRSE_SRC_PTR+2
 .391386	20 f6 13	jsr $3913f6	                JSR BMP_PARSER_DMA_SHIT_OUT  ; We are going to start with the slow method
-.391389	a2 34 18	ldx #$1834	                LDX #<>bmp_parser_msg0
+.391389	a2 30 18	ldx #$1830	                LDX #<>bmp_parser_msg0
 .39138c	80 03		bra $391391	                BRA BMP_PARSER_END_NO_ERROR
 .39138e					BMP_PARSER_END_WITH_ERROR
-.39138e	a2 20 18	ldx #$1820	                LDX #<>bmp_parser_err0
+.39138e	a2 1c 18	ldx #$181c	                LDX #<>bmp_parser_err0
 .391391					BMP_PARSER_END_NO_ERROR
 .391391	22 3b 06 39	jsl $39063b	                JSL IPRINT       ; print the first line
 .391395	6b		rtl		                RTL
@@ -6954,112 +7018,112 @@
 
 ;******  Processing file: src\version.asm
 
->391605	46 65 62 72 75 61 72 79		.text "February 18, 2020"
->39160d	20 31 38 2c 20 32 30 32 30
+>391605	4a 75 6e 65 20 30 32 2c		.text "June 02, 2020"
+>39160d	20 32 30 32 30
 
 ;******  Return to file: src\kernel.asm
 
->391616	0d 00				                .text $0D,$00
-.391618					old_pc_style_stat
->391618	1d 1d 1d 1d 1d 1d 8d 8d		greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
->391620	4d 4d 2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd
->391630	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->391640	fd fd
->391642	1d 1d 1d 1d 1d 8d 8d 4d		greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
->39164a	4d 2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd
->39165a	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->39166a	fd fd
->39166c	1d 1d 1d 1d 8d 8d 4d 4d		greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
->391674	2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd fd
->391684	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->391694	fd fd
->391696	1d 1d 1d 8d 8d 4d 4d 2d		greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
->39169e	2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd fd fd
->3916ae	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->3916be	fd fd
->3916c0	1d 1d 8d 8d 4d 4d 2d 2d		greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
->3916c8	5d 5d fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->3916d8	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
->3916e8	fd fd
->3916ea	00 00 00 ff			fg_color_lut	  .text $00, $00, $00, $FF
->3916ee	00 00 80 ff			                .text $00, $00, $80, $FF
->3916f2	00 80 00 ff			                .text $00, $80, $00, $FF
->3916f6	80 00 00 ff			                .text $80, $00, $00, $FF
->3916fa	00 80 80 ff			                .text $00, $80, $80, $FF
->3916fe	80 80 00 ff			                .text $80, $80, $00, $FF
->391702	80 00 80 ff			                .text $80, $00, $80, $FF
->391706	80 80 80 ff			                .text $80, $80, $80, $FF
->39170a	00 45 ff ff			                .text $00, $45, $FF, $FF
->39170e	13 45 8b ff			                .text $13, $45, $8B, $FF
->391712	00 00 20 ff			                .text $00, $00, $20, $FF
->391716	00 20 00 ff			                .text $00, $20, $00, $FF
->39171a	20 00 00 ff			                .text $20, $00, $00, $FF
->39171e	20 20 20 ff			                .text $20, $20, $20, $FF
->391722	40 40 40 ff			                .text $40, $40, $40, $FF
->391726	ff ff ff ff			                .text $FF, $FF, $FF, $FF
->39172a	00 00 00 ff			bg_color_lut	  .text $00, $00, $00, $FF
->39172e	00 00 80 ff			                .text $00, $00, $80, $FF
->391732	00 80 00 ff			                .text $00, $80, $00, $FF
->391736	80 00 00 ff			                .text $80, $00, $00, $FF
->39173a	00 20 20 ff			                .text $00, $20, $20, $FF
->39173e	20 20 00 ff			                .text $20, $20, $00, $FF
->391742	20 00 20 ff			                .text $20, $00, $20, $FF
->391746	20 20 20 ff			                .text $20, $20, $20, $FF
->39174a	1e 69 d2 ff			                .text $1E, $69, $D2, $FF
->39174e	13 45 8b ff			                .text $13, $45, $8B, $FF
->391752	00 00 20 ff			                .text $00, $00, $20, $FF
->391756	00 20 00 ff			                .text $00, $20, $00, $FF
->39175a	40 00 00 ff			                .text $40, $00, $00, $FF
->39175e	10 10 10 ff			                .text $10, $10, $10, $FF
->391762	40 40 40 ff			                .text $40, $40, $40, $FF
->391766	ff ff ff ff			                .text $FF, $FF, $FF, $FF
->39176a	43 6d 64 20 30 78 41 41		pass_tst0xAAmsg .text "Cmd 0xAA Test passed...", $0D, $00
->391772	20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
->391782	00
->391783	43 6d 64 20 30 78 41 42		pass_tst0xABmsg .text "Cmd 0xAB Test passed...", $0D, $00
->39178b	20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
->39179b	00
->39179c	43 6d 64 20 30 78 36 30		pass_cmd0x60msg .text "Cmd 0x60 Executed.", $0D, $00
->3917a4	20 45 78 65 63 75 74 65 64 2e 0d 00
->3917b0	43 6d 64 20 30 78 46 46		pass_cmd0xFFmsg .text "Cmd 0xFF (Reset) Done.", $0D, $00
->3917b8	20 28 52 65 73 65 74 29 20 44 6f 6e 65 2e 0d 00
->3917c8	43 6d 64 20 30 78 45 45		pass_cmd0xEEmsg .text "Cmd 0xEE Echo Test passed...", $0D, $00
->3917d0	20 45 63 68 6f 20 54 65 73 74 20 70 61 73 73 65
->3917e0	64 2e 2e 2e 0d 00
->3917e6	4b 65 79 62 6f 61 72 64		Success_kb_init .text "Keyboard Present", $0D, $00
->3917ee	20 50 72 65 73 65 6e 74 0d 00
->3917f8	4e 6f 20 4b 65 79 62 6f		Failed_kb_init  .text "No Keyboard Attached or Failed Init...", $0D, $00
->391800	61 72 64 20 41 74 74 61 63 68 65 64 20 6f 72 20
->391810	46 61 69 6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
->391820	4e 4f 20 53 49 47 4e 41		bmp_parser_err0 .text "NO SIGNATURE FOUND.", $00
->391828	54 55 52 45 20 46 4f 55 4e 44 2e 00
->391834	42 4d 50 20 4c 4f 41 44		bmp_parser_msg0 .text "BMP LOADED.", $00
->39183c	45 44 2e 00
->391840	45 58 45 43 55 54 49 4e		bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
->391848	47 20 42 4d 50 20 50 41 52 53 45 52 00
->391855	49 44 45 20 48 44 44 20		IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
->39185d	50 72 65 73 65 6e 74 3a 00
->391866	42 6f 6f 74 20 44 49 50		boot_invalid    .text "Boot DIP switch settings are invalid", $00
->39186e	20 73 77 69 74 63 68 20 73 65 74 74 69 6e 67 73
->39187e	20 61 72 65 20 69 6e 76 61 6c 69 64 00
->39188b	42 6f 6f 74 69 6e 67 20		sdcard_notimpl  .text "Booting from SD card is not yet implemented.", $00
->391893	66 72 6f 6d 20 53 44 20 63 61 72 64 20 69 73 20
->3918a3	6e 6f 74 20 79 65 74 20 69 6d 70 6c 65 6d 65 6e
->3918b3	74 65 64 2e 00
->3918b8	42 6f 6f 74 69 6e 67 20		ide_notimpl     .text "Booting from IDE drive is not yet implemented.", $00
->3918c0	66 72 6f 6d 20 49 44 45 20 64 72 69 76 65 20 69
->3918d0	73 20 6e 6f 74 20 79 65 74 20 69 6d 70 6c 65 6d
->3918e0	65 6e 74 65 64 2e 00
->3918e7	42 6f 6f 74 69 6e 67 20		floppy_notimpl  .text "Booting from floppy drive is not yet implemented.", $00
->3918ef	66 72 6f 6d 20 66 6c 6f 70 70 79 20 64 72 69 76
->3918ff	65 20 69 73 20 6e 6f 74 20 79 65 74 20 69 6d 70
->39190f	6c 65 6d 65 6e 74 65 64 2e 00
->391919	0d 52 45 41 44 59 2e 00		ready_msg       .null $0D,"READY."
->391921	41 42 4f 52 54 20 45 52		error_01        .null "ABORT ERROR"
->391929	52 4f 52 00
->39192d	30 31 32 33 34 35 36 37		hex_digits      .text "0123456789ABCDEF",0
->391935	38 39 41 42 43 44 45 46 00
->39193e					.align 256
+>391612	0d 00				                .text $0D,$00
+.391614					old_pc_style_stat
+>391614	1d 1d 1d 1d 1d 1d 8d 8d		greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+>39161c	4d 4d 2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd
+>39162c	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>39163c	fd fd
+>39163e	1d 1d 1d 1d 1d 8d 8d 4d		greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+>391646	4d 2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd
+>391656	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>391666	fd fd
+>391668	1d 1d 1d 1d 8d 8d 4d 4d		greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+>391670	2d 2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd fd
+>391680	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>391690	fd fd
+>391692	1d 1d 1d 8d 8d 4d 4d 2d		greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+>39169a	2d 5d 5d fd fd fd fd fd fd fd fd fd fd fd fd fd
+>3916aa	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>3916ba	fd fd
+>3916bc	1d 1d 8d 8d 4d 4d 2d 2d		greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+>3916c4	5d 5d fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>3916d4	fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+>3916e4	fd fd
+>3916e6	00 00 00 ff			fg_color_lut	  .text $00, $00, $00, $FF
+>3916ea	00 00 80 ff			                .text $00, $00, $80, $FF
+>3916ee	00 80 00 ff			                .text $00, $80, $00, $FF
+>3916f2	80 00 00 ff			                .text $80, $00, $00, $FF
+>3916f6	00 80 80 ff			                .text $00, $80, $80, $FF
+>3916fa	80 80 00 ff			                .text $80, $80, $00, $FF
+>3916fe	80 00 80 ff			                .text $80, $00, $80, $FF
+>391702	80 80 80 ff			                .text $80, $80, $80, $FF
+>391706	00 45 ff ff			                .text $00, $45, $FF, $FF
+>39170a	13 45 8b ff			                .text $13, $45, $8B, $FF
+>39170e	00 00 20 ff			                .text $00, $00, $20, $FF
+>391712	00 20 00 ff			                .text $00, $20, $00, $FF
+>391716	20 00 00 ff			                .text $20, $00, $00, $FF
+>39171a	20 20 20 ff			                .text $20, $20, $20, $FF
+>39171e	40 40 40 ff			                .text $40, $40, $40, $FF
+>391722	ff ff ff ff			                .text $FF, $FF, $FF, $FF
+>391726	00 00 00 ff			bg_color_lut	  .text $00, $00, $00, $FF
+>39172a	00 00 80 ff			                .text $00, $00, $80, $FF
+>39172e	00 80 00 ff			                .text $00, $80, $00, $FF
+>391732	80 00 00 ff			                .text $80, $00, $00, $FF
+>391736	00 20 20 ff			                .text $00, $20, $20, $FF
+>39173a	20 20 00 ff			                .text $20, $20, $00, $FF
+>39173e	20 00 20 ff			                .text $20, $00, $20, $FF
+>391742	20 20 20 ff			                .text $20, $20, $20, $FF
+>391746	1e 69 d2 ff			                .text $1E, $69, $D2, $FF
+>39174a	13 45 8b ff			                .text $13, $45, $8B, $FF
+>39174e	00 00 20 ff			                .text $00, $00, $20, $FF
+>391752	00 20 00 ff			                .text $00, $20, $00, $FF
+>391756	40 00 00 ff			                .text $40, $00, $00, $FF
+>39175a	10 10 10 ff			                .text $10, $10, $10, $FF
+>39175e	40 40 40 ff			                .text $40, $40, $40, $FF
+>391762	ff ff ff ff			                .text $FF, $FF, $FF, $FF
+>391766	43 6d 64 20 30 78 41 41		pass_tst0xAAmsg .text "Cmd 0xAA Test passed...", $0D, $00
+>39176e	20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
+>39177e	00
+>39177f	43 6d 64 20 30 78 41 42		pass_tst0xABmsg .text "Cmd 0xAB Test passed...", $0D, $00
+>391787	20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
+>391797	00
+>391798	43 6d 64 20 30 78 36 30		pass_cmd0x60msg .text "Cmd 0x60 Executed.", $0D, $00
+>3917a0	20 45 78 65 63 75 74 65 64 2e 0d 00
+>3917ac	43 6d 64 20 30 78 46 46		pass_cmd0xFFmsg .text "Cmd 0xFF (Reset) Done.", $0D, $00
+>3917b4	20 28 52 65 73 65 74 29 20 44 6f 6e 65 2e 0d 00
+>3917c4	43 6d 64 20 30 78 45 45		pass_cmd0xEEmsg .text "Cmd 0xEE Echo Test passed...", $0D, $00
+>3917cc	20 45 63 68 6f 20 54 65 73 74 20 70 61 73 73 65
+>3917dc	64 2e 2e 2e 0d 00
+>3917e2	4b 65 79 62 6f 61 72 64		Success_kb_init .text "Keyboard Present", $0D, $00
+>3917ea	20 50 72 65 73 65 6e 74 0d 00
+>3917f4	4e 6f 20 4b 65 79 62 6f		Failed_kb_init  .text "No Keyboard Attached or Failed Init...", $0D, $00
+>3917fc	61 72 64 20 41 74 74 61 63 68 65 64 20 6f 72 20
+>39180c	46 61 69 6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
+>39181c	4e 4f 20 53 49 47 4e 41		bmp_parser_err0 .text "NO SIGNATURE FOUND.", $00
+>391824	54 55 52 45 20 46 4f 55 4e 44 2e 00
+>391830	42 4d 50 20 4c 4f 41 44		bmp_parser_msg0 .text "BMP LOADED.", $00
+>391838	45 44 2e 00
+>39183c	45 58 45 43 55 54 49 4e		bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
+>391844	47 20 42 4d 50 20 50 41 52 53 45 52 00
+>391851	49 44 45 20 48 44 44 20		IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
+>391859	50 72 65 73 65 6e 74 3a 00
+>391862	42 6f 6f 74 20 44 49 50		boot_invalid    .text "Boot DIP switch settings are invalid", $00
+>39186a	20 73 77 69 74 63 68 20 73 65 74 74 69 6e 67 73
+>39187a	20 61 72 65 20 69 6e 76 61 6c 69 64 00
+>391887	42 6f 6f 74 69 6e 67 20		sdcard_notimpl  .text "Booting from SD card is not yet implemented.", $00
+>39188f	66 72 6f 6d 20 53 44 20 63 61 72 64 20 69 73 20
+>39189f	6e 6f 74 20 79 65 74 20 69 6d 70 6c 65 6d 65 6e
+>3918af	74 65 64 2e 00
+>3918b4	42 6f 6f 74 69 6e 67 20		ide_notimpl     .text "Booting from IDE drive is not yet implemented.", $00
+>3918bc	66 72 6f 6d 20 49 44 45 20 64 72 69 76 65 20 69
+>3918cc	73 20 6e 6f 74 20 79 65 74 20 69 6d 70 6c 65 6d
+>3918dc	65 6e 74 65 64 2e 00
+>3918e3	42 6f 6f 74 69 6e 67 20		floppy_notimpl  .text "Booting from floppy drive is not yet implemented.", $00
+>3918eb	66 72 6f 6d 20 66 6c 6f 70 70 79 20 64 72 69 76
+>3918fb	65 20 69 73 20 6e 6f 74 20 79 65 74 20 69 6d 70
+>39190b	6c 65 6d 65 6e 74 65 64 2e 00
+>391915	0d 52 45 41 44 59 2e 00		ready_msg       .null $0D,"READY."
+>39191d	41 42 4f 52 54 20 45 52		error_01        .null "ABORT ERROR"
+>391925	52 4f 52 00
+>391929	30 31 32 33 34 35 36 37		hex_digits      .text "0123456789ABCDEF",0
+>391931	38 39 41 42 43 44 45 46 00
+>39193a					.align 256
 >391a00	00 1b 31 32 33 34 35 36		ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
 >391a08	37 38 39 30 2d 3d 08 09
 >391a10	71 77 65 72 74 79 75 69		                      .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10

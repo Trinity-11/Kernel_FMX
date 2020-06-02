@@ -12,7 +12,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "Math_def.asm"                     ; Math Co_processor Definition
 .include "interrupt_def.asm"                ; Interrupr Controller Registers Definitions
 .include "dram_inc.asm"                     ; old Definition file that was supposed to be a Memory map
-.include "vicky_def.asm"                    ; VICKY's registers Definitions
+.include "vicky_ii_def.asm"                 ; VICKY II's registers Definitions
 .include "super_io_def.asm"                 ; SuperIO Registers Definitions
 .include "keyboard_def.asm"                 ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
 .include "SID_def.asm"                      ; SID, but not the latest - Deprecated for now.
@@ -37,7 +37,7 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "SDOS.asm"           ; Code Library for SD Card Controller (Working, needs a lot improvement and completion)
 .include "OPL2_Library.asm"   ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
 .include "ide_library.asm"
-;.include "YM26XX.asm"
+
 .include "keyboard.asm"       ; Include the keyboard reading code
 .include "uart.asm"           ; The code to handle the UART
 .include "joystick.asm"       ; Code for the joysticks and gamepads
@@ -1454,7 +1454,7 @@ store_width     STA TMPPTR1
 
                 setas
                 LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-                BIT #Mstt_Ctrl_Video_Mode1
+                BIT #Mstr_Ctrl_Video_Mode1
                 BEQ adjust_width            ; No... just adjust the width of the screen
 
                 setal
@@ -1484,7 +1484,7 @@ store_height    STA TMPPTR1
 
                 setas
                 LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-                BIT #Mstt_Ctrl_Video_Mode1
+                BIT #Mstr_Ctrl_Video_Mode1
                 BEQ adjust_height           ; No... just adjust the height of the screen
 
                 setal
@@ -1520,23 +1520,27 @@ IINITVKYGRPMODE
                 PHA
                 setas
                 LDA #$00          ; Enable Bit-Map and uses LUT0
-                STA @lBM_CONTROL_REG
+                STA @lBM0_CONTROL_REG
                 ; Set the BitMap Start Address to $00C0000 ($B0C000)
                 LDA #$00          ;; (L)Load Base Address of where Bitmap begins
-                STA @lBM_START_ADDY_L
+                STA @lBM0_START_ADDY_L
                 LDA #$C0
-                STA @lBM_START_ADDY_M
+                STA @lBM0_START_ADDY_M
                 LDA #$00
-                STA @lBM_START_ADDY_H ; This address is always base from
+                STA @lBM0_START_ADDY_H ; This address is always base from
                                       ; of starting of FRAME Buffer $B00000
-                LDA #$80
-                STA BM_X_SIZE_L
-                LDA #$02
-                STA BM_X_SIZE_H         ; $0280 = 640
-                LDA #$E0
-                STA BM_Y_SIZE_L
-                LDA #$01
-                STA BM_Y_SIZE_H         ; $01E0 = 480
+
+                LDA #$00          ; Enable Bit-Map and uses LUT0
+                STA @lBM1_CONTROL_REG
+                ; Set the BitMap Start Address to $00C0000 ($B0C000)
+                LDA #$00          ;; (L)Load Base Address of where Bitmap begins
+                STA @lBM1_START_ADDY_L
+                LDA #$C0
+                STA @lBM1_START_ADDY_M
+                LDA #$00
+                STA @lBM1_START_ADDY_H ; This address is always base from
+                                      ; of starting of FRAME Buffer $B00000
+
                 setaxl        ; Set Acc back to 16bits before setting the Cursor Position
                 PLA
                 RTL
