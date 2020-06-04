@@ -166,18 +166,19 @@ DOS_DIR_TYPE            = $38E045       ; 1 byte - a code indicating the type of
 DOS_CURR_DIR_ID         = $38E046       ; 4 byte - the ID of the first sector or cluster of the current directory
 DOS_DEV_NAMES           = $38E04A       ; 4 byte - pointer to the linked list of device names
 FDC_MOTOR_TIMER         = $38E04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+FDC_WATCHDOG_TIMER      = $38E050       ; 2 byte2 - count-down timer (in 1/60th second) to serve as a watchdog for waiting loops
 
 ; Larger buffers
 
-DOS_DIR_CLUSTER         = $37E100       ; 512 bytes - A buffer for directory entries
-DOS_DIR_CLUSTER_END     = $37E300       ; The byte just past the end of the directory cluster buffer
-DOS_SECTOR              = $37E300       ; 512 bytes - A buffer for block device read/write
-DOS_SECTOR_END          = $37E500       ; The byte just past the end of the cluster buffer
-DOS_FAT_SECTORS         = $37E500       ; 1024 bytes - two sectors worth of the FAT
-DOS_FAT_SECTORS_END     = $37E900       ; The byte just past the end of the FAT buffers
-DOS_SPARE_SECTOR        = $37E900       ; A spare 512 byte buffer for loading sectors
-DOS_SPARE_SECTOR_END    = $37EB00
-DOS_SPARE_FD            = $37EB00       ; A spare file descriptor buffer
+DOS_DIR_CLUSTER         = $38E100       ; 512 bytes - A buffer for directory entries
+DOS_DIR_CLUSTER_END     = $38E300       ; The byte just past the end of the directory cluster buffer
+DOS_SECTOR              = $38E300       ; 512 bytes - A buffer for block device read/write
+DOS_SECTOR_END          = $38E500       ; The byte just past the end of the cluster buffer
+DOS_FAT_SECTORS         = $38E500       ; 1024 bytes - two sectors worth of the FAT
+DOS_FAT_SECTORS_END     = $38E900       ; The byte just past the end of the FAT buffers
+DOS_SPARE_SECTOR        = $38E900       ; A spare 512 byte buffer for loading sectors
+DOS_SPARE_SECTOR_END    = $38EB00
+DOS_SPARE_FD            = $38EB00       ; A spare file descriptor buffer
 
 ;;
 ;; Code for the file system

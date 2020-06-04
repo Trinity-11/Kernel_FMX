@@ -960,10 +960,12 @@ ISCROLLUP       ; Scroll the screen up by one row
                 setaxl
                 ; Calculate the number of bytes to move
                 LDA COLS_PER_LINE
-                STA @lM0_OPERAND_A
+                STA @l UNSIGNED_MULT_A_LO
+
                 LDA LINES_VISIBLE
-                STA @lM0_OPERAND_B
-                LDA @lM0_RESULT
+                STA @l UNSIGNED_MULT_B_LO
+                
+                LDA @l UNSIGNED_MULT_AL_LO
                 STA TMPPTR1
 
                 ; Scroll Text Up

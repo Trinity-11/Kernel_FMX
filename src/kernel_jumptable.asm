@@ -78,7 +78,6 @@ RESETCODEC      JML IRESETCODEC
 BMP_PARSER      JML IBMP_PARSER
 BM_FILL_SCREEN  JML IBM_FILL_SCREEN
 OPL2_TONE_TEST  JML IOPL2_TONE_TEST
-SETSIZES        JML ISETSIZES
 
 ; SimpleDOS Jumps
 
@@ -98,7 +97,7 @@ CMDBLOCK        JML ICMDBLOCK       ; Send a command to a block device
 F_RUN           JML IF_RUN          ; Load an run a binary file
 
 
-
+SETSIZES        JML ISETSIZES
 
 
 

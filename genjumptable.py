@@ -29,8 +29,4 @@ with open("src\kernel_inc.txt", "r") as src:
                 else:
                     dest.write("; Undefined label for: {}".format(line))
             else:
-<<<<<<< HEAD
                 dest.write(line)
-=======
-                dest.write(line)
->>>>>>> pjw-dos
