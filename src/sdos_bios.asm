@@ -7,6 +7,12 @@
 ;
 
 ;
+; BIOS Flags
+;
+
+BIOS_TIMEOUT = $80              ; Flag to indicate if a time out has occurred (see ISETTIMEOUT)
+
+;
 ; Block device numbers, used by GETBLOCK and PUTBLOCK routines
 ;
 
@@ -37,6 +43,7 @@ BIOS_ERR_RESULT = $88           ; Couldn't get the result bytes for some reason
 BIOS_ERR_OOS = $89              ; FDC state is somehow out of sync with the driver.
 BIOS_ERR_NOTATA = $8A           ; IDE drive is not ATA
 BIOS_ERR_NOTINIT = $8B          ; Could not initilize the device
+BIOS_ERR_TIMEOUT = $8C          ; Timeout error
 
 ;;
 ;; General Routines
@@ -97,6 +104,42 @@ ITRACE          .proc
                 PLA
 
                 PLP
+                RTL
+                .pend
+
+;
+; Set a timeout for an operation that may get stuck.
+;
+; Immediately after the call, the BIOS_TIMEOUT flag of BIOS_FLAGS will be cleared
+; and a timer will be set. If the timer reaches the end before the timeout is cleared,
+; the BIOS_TIMEOUT flag will be set. It is the caller's responsibility to monitor the
+; flag and to act appropriately.
+;
+; NOTE: the timer will be managed by the SOF interrupt
+;
+; Inputs:
+;   A = the number of 1/60 second ticks to wait until the time out should occurr
+;
+ISETTIMEOUT     .proc
+                PHB
+                PHD
+                PHP
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                SEI                             ; We don't want to be interrupted
+
+                setas
+                STA @b BIOS_TIMER               ; Set the number of ticks to wait
+
+                LDA @b BIOS_FLAGS               ; Clear the BIOS_TIMEOUT flag
+                AND #~BIOS_TIMEOUT
+                STA @b BIOS_FLAGS
+
+done            PLP
+                PLD
+                PLB
                 RTL
                 .pend
 

@@ -152,6 +152,18 @@ SOF_INTERRUPT
 
                 JSL FDC_Motor_Off               ; Otherwise, turn off the motor
 
+sof_timeout     setas
+                LDA @l BIOS_TIMER               ; Check the BIOS_TIMER
+                BEQ sof_int_done                ; If it's 0, we don't do anything
+
+                DEC A                           ; Count down one tick
+                STA @l BIOS_TIMER
+                BNE sof_int_done                ; If not 0, we're done
+
+                LDA @l BIOS_FLAGS               ; Otherwise: flag a time out event
+                ORA #BIOS_TIMEOUT
+                STA @l BIOS_FLAGS
+
 sof_int_done    RTS
 
 ; ///////////////////////////////////////////////////////////////////
