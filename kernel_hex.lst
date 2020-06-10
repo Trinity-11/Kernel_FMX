@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 --long-address --flat --intel-hex -o kernel.hex --list kernel_hex.lst --labels=kernel_hex.lbl src\kernel.asm
-; Wed Jun 10 15:25:00 2020
+; Wed Jun 10 15:29:50 2020
 
 ;Offset	;Hex		;Monitor	;Source
 
@@ -1386,10 +1386,10 @@
 .3811ec	8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
 .3811f0	c2 20		rep #$20	                REP #$20        ; set A long
 .3811f2	af 4e e0 38	lda $38e04e	                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
-.3811f6	f0 24		beq $38121c	                BEQ sof_int_done                ; If it's zero, do nothing
+.3811f6	f0 0b		beq $381203	                BEQ sof_timeout                 ; If it's zero, check for the watchdog timeout
 .3811f8	3a		dec a		                DEC A                           ; Otherwise, decrement it...
 .3811f9	8f 4e e0 38	sta $38e04e	                STA @l FDC_MOTOR_TIMER
-.3811fd	d0 1d		bne $38121c	                BNE sof_int_done                ; If it's not zero, we're done for this tick
+.3811fd	d0 04		bne $381203	                BNE sof_timeout                 ; If it's not zero, check for the watchdog timeout
 .3811ff	22 c5 5c 39	jsl $395cc5	                JSL FDC_Motor_Off               ; Otherwise, turn off the motor
 .381203					sof_timeout
 .381203	e2 20		sep #$20	                SEP #$20        ; set A short
@@ -12136,8 +12136,8 @@
 
 ;******  Processing file: src\version.asm
 
->3968dd	76 30 2e 31 2e 30 2d 61		.text "v0.1.0-alpha+685 (2020-06-10)"
->3968e5	6c 70 68 61 2b 36 38 35 20 28 32 30 32 30 2d 30
+>3968dd	76 30 2e 31 2e 30 2d 61		.text "v0.1.0-alpha+687 (2020-06-10)"
+>3968e5	6c 70 68 61 2b 36 38 37 20 28 32 30 32 30 2d 30
 >3968f5	36 2d 31 30 29
 
 ;******  Return to file: src\kernel.asm

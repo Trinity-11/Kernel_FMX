@@ -144,11 +144,11 @@ SOF_INTERRUPT
 
                 setal
                 LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
-                BEQ sof_int_done                ; If it's zero, do nothing
+                BEQ sof_timeout                 ; If it's zero, check for the watchdog timeout
 
                 DEC A                           ; Otherwise, decrement it...
                 STA @l FDC_MOTOR_TIMER
-                BNE sof_int_done                ; If it's not zero, we're done for this tick
+                BNE sof_timeout                 ; If it's not zero, check for the watchdog timeout
 
                 JSL FDC_Motor_Off               ; Otherwise, turn off the motor
 
