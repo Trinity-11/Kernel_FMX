@@ -6,7 +6,7 @@ FDC_MOTOR_TIME = 4295454        ; Time to wait for the motor to come on: 300ms
 FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
 
 FDC_MOTOR_ON_TIME = 60 * 30     ; Time (in SOF interrupt counts) for the motor to stay on: ~30s?
-FDC_WAIT_TIME = 10              ; Time (in SOF interrupt counts) to allow for a waiting loop to continue
+FDC_WAIT_TIME = 30              ; Time (in SOF interrupt counts) to allow for a waiting loop to continue
 
 BPB_SECPERCLUS12_OFF = 13       ; Offset to sectors per cluster in a FAT12 boot sector
 BPB_ROOT_MAX_ENTRY12_OFF = 17   ; Offset to the maximum number of entries in the root directory in FAT12 boot sector
@@ -51,16 +51,23 @@ is_ok1              JSL FDC_MOUNT
 mount_err           TRACE "Could not mount drive."
                     BRL motor_off
 
-is_ok2              setas
-                    LDA #BIOS_DEV_FDC
-                    STA @l BIOS_DEV
-                    
-                    setaxl
-                    JSL DOS_FREECLUS12
+is_ok2              JSL FDC_TEST_PUTBLOCK
                     BCS all_ok
 
-                    TRACE "Could not find a free cluster."
+                    TRACE "Could not write cluster."
                     BRA motor_off
+
+                    ; setaxl
+                    ; LDA #<>BOOT_FILE
+                    ; STA @l DOS_RUN_PTR
+                    ; LDA #`BOOT_FILE
+                    ; STA @l DOS_RUN_PTR+2
+                    
+                    ; JSL FDC_WRITEVBR
+                    ; BCS all_ok
+
+                    ; TRACE "Could not find a free cluster."
+                    ; BRA motor_off
 
 all_ok              TRACE "Everything worked OK!"
 
@@ -73,20 +80,32 @@ motor_off           JSL PRINTCR
                     RTL
                     .pend
 
-FDC_BRK_ON_ERR      .proc
-                    PHP
+FDC_TEST_PUTBLOCK   .proc
                     setas
+                    LDA #0                          ; Initialize the data to write to the drive
+                    LDX #0
+init_loop           STA @l TEST_BUFFER,X
+                    INC A
+                    INX
+                    CPX #512
+                    BNE init_loop
 
-                    LDA @l FDC_ST0
-                    AND #%11010000          ; Check only the error bits
-                    BEQ done
+                    setal
+                    LDA #<>TEST_BUFFER              ; Set BIOS_BUFF_PTR
+                    STA @l BIOS_BUFF_PTR
+                    LDA #`TEST_BUFFER
+                    STA @l BIOS_BUFF_PTR+2
 
-lock                NOP
-                    BRA lock
+                    LDA #100                        ; Set LBA = 100
+                    STA @l BIOS_LBA
+                    LDA #0
+                    STA @l BIOS_LBA+2
 
-done                PLP
+                    JSL FDC_PUTBLOCK                ; Try to write the data
+
                     RTL
                     .pend
+
 
 BOOT_FILE           .null "@F:SAMPLE.PGX Hello, world!"
 TEST_LOCATION = $020000                     ; Location to try to load it
@@ -355,14 +374,19 @@ send_param          LDA FDC_PARAMETERS,X                    ; Get the parameter/
                     BNE send_loop                           ; Keep sending until we've sent them all
 
                     LDA FDC_EXPECT_DAT                      ; Check the data expectation byte
-                    BEQ result_phase                        ; If 0: we just want a result
-                    BPL rd_data                             ; If >0: we want to read data
+                    BNE chk_data_dir
+                    BRL result_phase                        ; If 0: we just want a result
+chk_data_dir        BPL rd_data                             ; If >0: we want to read data
 
                     ; Write data...
 
 wr_data             ; JSR FDC_CAN_WRITE
 
-wr_data_rdy         LDA @l SIO_FDC_MSR                      ; Wait for ready to write
+wr_data_rdy         LDA FDC_STATUS                          ; Check that the motor is still spinning
+                    BMI wr_chk_rqm
+                    BRL time_out                            ; If not, raise an error
+                    
+wr_chk_rqm          LDA @l SIO_FDC_MSR                      ; Wait for ready to write
                     BIT #FDC_MSR_RQM
                     BEQ wr_data_rdy
 
@@ -377,7 +401,7 @@ wr_data_phase       setxl
                     LDY #0
 
 wr_data_loop        LDA FDC_STATUS                          ; Check that the motor is still spinning
-                    BPL wr_chk_nondma
+                    BMI wr_chk_nondma
                     BRL time_out                            ; If not, raise an error
                     
 wr_chk_nondma       LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
@@ -1514,9 +1538,10 @@ FDC_PUTBLOCK        .proc
                     JSL LBA2CHS                 ; Convert the LBA to CHS
 
 retry               JSL FDC_Write_Sector        ; Write the sector
-                    BCC attempt_retry
+                    BCS chk_st0
+                    BRL attempt_retry
 
-                    setas
+chk_st0             setas
                     LDA FDC_ST0
                     AND #%11010000              ; Check the error bits
                     BNE write_failure
@@ -1893,10 +1918,9 @@ path_copy_done      setal
                     LDA #`DOS_SECTOR
                     STA BIOS_BUFF_PTR+2
 
-                    LDA #1                      ; Set the sector to #1 (boot record)
+                    LDA #0                      ; Set the sector to #0 (boot record)
                     STA BIOS_LBA
-                    LDA #0
-                    STA BIOS_LBA
+                    STA BIOS_LBA+2
 
                     setas
                     LDA #BIOS_DEV_FDC

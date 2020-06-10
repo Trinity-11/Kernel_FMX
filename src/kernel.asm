@@ -223,6 +223,7 @@ jmpcopy         LDA @l BOOT,X
                 JSL DOS_INIT          ; Initialize the "disc operating system"
                 JSL FDC_INIT
                 ; JSL FDC_TEST
+                ; BRA BOOTBASIC
                 ; JSL DOS_TEST
                 ; JML BOOTFLOPPY
 
