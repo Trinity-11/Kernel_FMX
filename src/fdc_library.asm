@@ -5,7 +5,7 @@
 FDC_MOTOR_TIME = 4295454        ; Time to wait for the motor to come on: 300ms
 FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
 
-FDC_MOTOR_ON_TIME = 60 * 30     ; Time (in SOF interrupt counts) for the motor to stay on: ~30s?
+FDC_MOTOR_ON_TIME = 60 * 15     ; Time (in SOF interrupt counts) for the motor to stay on: ~15s?
 FDC_WAIT_TIME = 30              ; Time (in SOF interrupt counts) to allow for a waiting loop to continue
 
 BPB_SECPERCLUS12_OFF = 13       ; Offset to sectors per cluster in a FAT12 boot sector

@@ -70,3 +70,4 @@ F_LOAD           = $001118 ; load a binary file into memory, supports multiple f
 F_SAVE           = $00111C ; Save memory to a binary file
 CMDBLOCK         = $001120 ; Send a command to a block device
 F_RUN            = $001124 ; Load and run an executable binary file
+F_MOUNT          = $001128 ; Mount the designated block device
