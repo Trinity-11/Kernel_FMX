@@ -71,3 +71,4 @@ F_LOAD           = %ADDR% ; load a binary file into memory, supports multiple fi
 F_SAVE           = %ADDR% ; Save memory to a binary file
 CMDBLOCK         = %ADDR% ; Send a command to a block device
 F_RUN            = %ADDR% ; Load and run an executable binary file
+F_MOUNT          = %ADDR% ; Mount the designated block device

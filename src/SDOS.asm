@@ -837,7 +837,7 @@ next_byte       INY                                 ; Otherwise, move to the nex
                 CPY CLUSTER_SIZE                    ; Are we at the end of the cluster?
                 BNE copy_loop                       ; No: keep copying
 
-                JSL NEXTCLUSTER                     ; Yes: Load the next cluster
+                JSL DOS_READNEXT                    ; Yes: Load the next cluster
                 BCS next_cluster
                 BRL IF_PASSFAILURE                  ; If failed: pass that up the chain
 

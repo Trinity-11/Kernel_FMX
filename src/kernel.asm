@@ -228,9 +228,10 @@ jmpcopy         LDA @l BOOT,X
                 CPX #$1000
                 BNE jmpcopy
 
-                JSL DOS_INIT          ; Initialize the "disc operating system"
+retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
                 JSL FDC_INIT
                 ; JSL FDC_TEST
+                ; BRA BOOTBASIC
                 ; JSL DOS_TEST
                 ; JML BOOTFLOPPY
 
@@ -289,9 +290,24 @@ BOOTFLOPPY      LDX #<>fdc_boot
 
 fdc_error       LDX #<>fdc_err_boot   ; Print a message saying SD card booting is not implemented
 
-PR_BOOT_ERROR   JSL IPRINT
-LOOP_FOREVER    NOP
-                BRA LOOP_FOREVER
+PR_BOOT_ERROR   JSL IPRINT            ; Print the error message in X
+
+                LDX #<>boot_retry     ; Print the boot retry prompt
+                JSL IPRINT
+
+boot_wait_key   JSL IGETCHW           ; Wait for a keypress
+                CMP #'R'              ; Was "R" pressed?
+                BNE chk_r_lc
+                BRL retry_boot        ; Yes: retry the boot sequence
+chk_r_lc        CMP #'r'
+                BNE chk_b_lc
+                BRL retry_boot
+
+chk_b_lc        CMP #'b'              ; Was "B" pressed?
+                BEQ BOOTBASIC         ; Yes: try going to BASIC
+                CMP #'B'
+                BEQ BOOTBASIC
+                BRA boot_wait_key     ; No: keep waiting
 
 ;
 ; IBREAK
@@ -2846,11 +2862,12 @@ bmp_parser_msg0 .text "BMP LOADED.", $00
 bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
 IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
 
-boot_invalid    .text "Boot DIP switch settings are invalid", $00
+boot_invalid    .null "Boot DIP switch settings are invalid."
+boot_retry      .null "Press R to retry, B to go to BASIC.", 13
 sdc_err_boot    .null "Unable to read the SD card."
 ide_err_boot    .null "Unable to read from the IDE drive."
 fdc_err_boot    .null "Unable to read from the floppy drive."
-fdc_boot        .null "Booting from floppy...", 13
+fdc_boot        .null "Booting from floppy..."
 
 ready_msg       .null $0D,"READY."
 

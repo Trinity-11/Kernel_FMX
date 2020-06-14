@@ -1271,7 +1271,7 @@ find_entry      setal
                 LDA DOS_CLUS_ID
                 ASL A
                 ASL A                           ; * 4
-                AND #$7F                        ; DOS_CLUS_ID MOD 128
+                AND #$1FF                       ; DOS_CLUS_ID MOD 512
                 TAX                             ; X should be the offset within the sector
 
 ret_success     PLD

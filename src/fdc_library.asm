@@ -5,7 +5,8 @@
 FDC_MOTOR_TIME = 4295454        ; Time to wait for the motor to come on: 300ms
 FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
 
-FDC_MOTOR_ON_TIME = 60 * 30     ; Time (in SOF interrupt counts) for the motor to stay on: ~30s?
+FDC_MOTOR_ON_TIME = 60 * 15     ; Time (in SOF interrupt counts) for the motor to stay on: ~15s?
+FDC_WAIT_TIME = 30              ; Time (in SOF interrupt counts) to allow for a waiting loop to continue
 
 BPB_SECPERCLUS12_OFF = 13       ; Offset to sectors per cluster in a FAT12 boot sector
 BPB_ROOT_MAX_ENTRY12_OFF = 17   ; Offset to the maximum number of entries in the root directory in FAT12 boot sector
@@ -50,16 +51,23 @@ is_ok1              JSL FDC_MOUNT
 mount_err           TRACE "Could not mount drive."
                     BRL motor_off
 
-is_ok2              setas
-                    LDA #BIOS_DEV_FDC
-                    STA @l BIOS_DEV
-                    
-                    setaxl
-                    JSL DOS_FREECLUS12
+is_ok2              JSL FDC_TEST_PUTBLOCK
                     BCS all_ok
 
-                    TRACE "Could not find a free cluster."
+                    TRACE "Could not write cluster."
                     BRA motor_off
+
+                    ; setaxl
+                    ; LDA #<>BOOT_FILE
+                    ; STA @l DOS_RUN_PTR
+                    ; LDA #`BOOT_FILE
+                    ; STA @l DOS_RUN_PTR+2
+                    
+                    ; JSL FDC_WRITEVBR
+                    ; BCS all_ok
+
+                    ; TRACE "Could not find a free cluster."
+                    ; BRA motor_off
 
 all_ok              TRACE "Everything worked OK!"
 
@@ -72,20 +80,32 @@ motor_off           JSL PRINTCR
                     RTL
                     .pend
 
-FDC_BRK_ON_ERR      .proc
-                    PHP
+FDC_TEST_PUTBLOCK   .proc
                     setas
+                    LDA #0                          ; Initialize the data to write to the drive
+                    LDX #0
+init_loop           STA @l TEST_BUFFER,X
+                    INC A
+                    INX
+                    CPX #512
+                    BNE init_loop
 
-                    LDA @l FDC_ST0
-                    AND #%11010000          ; Check only the error bits
-                    BEQ done
+                    setal
+                    LDA #<>TEST_BUFFER              ; Set BIOS_BUFF_PTR
+                    STA @l BIOS_BUFF_PTR
+                    LDA #`TEST_BUFFER
+                    STA @l BIOS_BUFF_PTR+2
 
-lock                NOP
-                    BRA lock
+                    LDA #100                        ; Set LBA = 100
+                    STA @l BIOS_LBA
+                    LDA #0
+                    STA @l BIOS_LBA+2
 
-done                PLP
+                    JSL FDC_PUTBLOCK                ; Try to write the data
+
                     RTL
                     .pend
+
 
 BOOT_FILE           .null "@F:SAMPLE.PGX Hello, world!"
 TEST_LOCATION = $020000                     ; Location to try to load it
@@ -96,15 +116,37 @@ TEST_BUFFER = $030000                       ; Temporary location for a cluster b
 ;
 ; Bit[7] needs to be 1 in order to send a new command
 ;
+; Outputs:
+;   C is set on success, clear if there was a time out
+;
 FDC_Check_RQM       .proc
+                    PHD
                     PHP
-                    setas
 
-loop                LDA @l SIO_FDC_MSR
+                    setdp FDC_DRIVE
+
+                    setas
+                    LDA #FDC_WAIT_TIME      ; Set a time out for the loop
+                    JSL ISETTIMEOUT
+
+loop                LDA @b BIOS_FLAGS       ; Check if there was a time out
+                    BMI time_out            ; If so: signal a time out
+
+                    LDA @l SIO_FDC_MSR
                     BIT #FDC_MSR_RQM
                     BEQ loop
 
+                    LDA #0                  ; Clear the time out
+                    JSL ISETTIMEOUT
+
                     PLP
+                    PLD
+                    SEC
+                    RTS
+
+time_out            PLP
+                    PLD
+                    CLC
                     RTS
                     .pend
 
@@ -114,14 +156,33 @@ loop                LDA @l SIO_FDC_MSR
 ;Bit[0] needs to be cleared before doing anything else (1 = Seeking)
 ;
 FDC_Check_DRV0_BSY  .proc
+                    PHD
                     PHP
-                    setas
 
-fdc_drv0bsy_loop    LDA @l SIO_FDC_MSR
+                    setdp FDC_DRIVE
+
+                    setas
+                    LDA #FDC_WAIT_TIME      ; Set a time out for the loop
+                    JSL ISETTIMEOUT
+
+loop                LDA @b BIOS_FLAGS       ; Check if there was a time out
+                    BMI time_out            ; If so: signal a time out
+
+                    LDA @l SIO_FDC_MSR
                     BIT #FDC_MSR_DRV0BSY
-                    BNE fdc_drv0bsy_loop
+                    BNE loop
+
+                    LDA #0                  ; Clear the time out
+                    JSL ISETTIMEOUT
 
                     PLP
+                    PLD
+                    SEC
+                    RTS
+
+time_out            PLP
+                    PLD
+                    CLC
                     RTS
                     .pend
 
@@ -131,14 +192,33 @@ fdc_drv0bsy_loop    LDA @l SIO_FDC_MSR
 ;Bit[4] Command is in progress when 1
 ;
 FDC_Check_CMD_BSY   .proc
+                    PHD
                     PHP
-                    setas
 
-fdc_cmd_loop        LDA @l SIO_FDC_MSR
+                    setdp FDC_DRIVE
+
+                    setas
+                    LDA #FDC_WAIT_TIME      ; Set a time out for the loop
+                    JSL ISETTIMEOUT
+
+loop                LDA @b BIOS_FLAGS       ; Check if there was a time out
+                    BMI time_out            ; If so: signal a time out
+
+                    LDA @l SIO_FDC_MSR
                     BIT #FDC_MSR_CMDBSY
-                    BNE fdc_cmd_loop
+                    BNE loop
+
+                    LDA #0                  ; Clear the time out
+                    JSL ISETTIMEOUT
 
                     PLP
+                    PLD
+                    SEC
+                    RTS
+
+time_out            PLP
+                    PLD
+                    CLC
                     RTS
                     .pend
 
@@ -146,15 +226,34 @@ fdc_cmd_loop        LDA @l SIO_FDC_MSR
 ; Wait until data is available for reading
 ;
 FDC_Can_Read_Data   .proc
+                    PHD
                     PHP
-                    setas
 
-loop                LDA @l SIO_FDC_MSR
+                    setdp FDC_DRIVE
+
+                    setas
+                    LDA #FDC_WAIT_TIME      ; Set a time out for the loop
+                    JSL ISETTIMEOUT
+
+loop                LDA @b BIOS_FLAGS       ; Check if there was a time out
+                    BMI time_out            ; If so: signal a time out
+
+                    LDA @l SIO_FDC_MSR
                     AND #FDC_MSR_DIO
                     CMP #FDC_MSR_DIO
                     BNE loop
 
+                    LDA #0                  ; Clear the time out
+                    JSL ISETTIMEOUT
+
                     PLP
+                    PLD
+                    SEC
+                    RTS
+
+time_out            PLP
+                    PLD
+                    CLC
                     RTS
                     .pend
 
@@ -162,15 +261,34 @@ loop                LDA @l SIO_FDC_MSR
 ; Wait until the FDC is clear to receive a byte
 ;
 FDC_CAN_WRITE       .proc
+                    PHD
                     PHP
-                    setas
 
-loop                LDA @l SIO_FDC_MSR
+                    setdp FDC_DRIVE
+
+                    setas
+                    LDA #FDC_WAIT_TIME      ; Set a time out for the loop
+                    JSL ISETTIMEOUT
+
+loop                LDA @b BIOS_FLAGS       ; Check if there was a time out
+                    BMI time_out            ; If so: signal a time out
+
+                    LDA @l SIO_FDC_MSR
                     AND #FDC_MSR_RQM | FDC_MSR_DIO
                     CMP #FDC_MSR_RQM
                     BNE loop
 
+                    LDA #0                  ; Clear the time out
+                    JSL ISETTIMEOUT
+
                     PLP
+                    PLD
+                    SEC
+                    RTS
+
+time_out            PLP
+                    PLD
+                    CLC
                     RTS
                     .pend
 
@@ -243,8 +361,10 @@ fdc_reset           JSL FDC_INIT                            ; Reset the FDC
 start_send          setxs
                     LDX #0
 send_loop           JSR FDC_Check_RQM                       ; Wait until we can write
+                    BCS send_param
+                    BRL time_out                            ; If there was a timeout, flag the time out
 
-                    LDA FDC_PARAMETERS,X                    ; Get the parameter/command byte to write
+send_param          LDA FDC_PARAMETERS,X                    ; Get the parameter/command byte to write
                     STA @l SIO_FDC_DTA                      ; Send it
 
                     JSL FDC_DELAY_10MS                      ; Wait around 10ms for things to settle
@@ -254,25 +374,24 @@ send_loop           JSR FDC_Check_RQM                       ; Wait until we can 
                     BNE send_loop                           ; Keep sending until we've sent them all
 
                     LDA FDC_EXPECT_DAT                      ; Check the data expectation byte
-                    BEQ result_phase                        ; If 0: we just want a result
-                    BPL rd_data                             ; If >0: we want to read data
+                    BNE chk_data_dir
+                    BRL result_phase                        ; If 0: we just want a result
+chk_data_dir        BPL rd_data                             ; If >0: we want to read data
 
                     ; Write data...
 
 wr_data             ; JSR FDC_CAN_WRITE
 
-wr_data_rdy         LDA @l SIO_FDC_MSR                      ; Wait for ready to write
+wr_data_rdy         LDA FDC_STATUS                          ; Check that the motor is still spinning
+                    BMI wr_chk_rqm
+                    BRL time_out                            ; If not, raise an error
+                    
+wr_chk_rqm          LDA @l SIO_FDC_MSR                      ; Wait for ready to write
                     BIT #FDC_MSR_RQM
                     BEQ wr_data_rdy
 
                     BIT #FDC_MSR_NONDMA                     ; Check if in execution mode
                     BNE wr_data_phase                       ; If so: transfer the data
-
-                    ; AND #FDC_MSR_RQM | FDC_MSR_DIO
-                    ; CMP #FDC_MSR_RQM
-                    ; BNE wr_data_rdy
-
-                    ; LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
 
                     BRL result_phase                          ; If not: it's an error
 
@@ -280,16 +399,17 @@ wr_data_rdy         LDA @l SIO_FDC_MSR                      ; Wait for ready to 
 
 wr_data_phase       setxl
                     LDY #0
-wr_data_loop        LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
+
+wr_data_loop        LDA FDC_STATUS                          ; Check that the motor is still spinning
+                    BMI wr_chk_nondma
+                    BRL time_out                            ; If not, raise an error
+                    
+wr_chk_nondma       LDA @l SIO_FDC_MSR                      ; Check to see if the FDC is in execution phase
                     BIT #FDC_MSR_NONDMA
                     BEQ result_phase                        ; If not: break out to result phase
 
-                    ; LDA @l SIO_FDC_MSR                      ; Wait for the FDC to be ready to accept a byte
-                    BIT #FDC_MSR_RQM
-                    BEQ wr_data_loop
-                    ; AND #FDC_MSR_RQM | FDC_MSR_DIO
-                    ; CMP #FDC_MSR_RQM
-                    ; BNE wr_data_loop
+                    BIT #FDC_MSR_RQM                        ; Check if we can read data
+                    BEQ wr_data_loop                        ; No: keep waiting
 
                     LDA [BIOS_BUFF_PTR],Y                   ; Get the data byte
                     STA @l SIO_FDC_DTA                      ; And save it to the buffer
@@ -306,7 +426,8 @@ rd_data             JSR FDC_Can_Read_Data
 rd_data_rdy         LDA FDC_STATUS                          ; Check that the motor is still spinning
                     BMI chk_rd_rdy                          ; If so, check to see if the data is ready
 
-                    LDA #BIOS_ERR_NOMEDIA                   ; Otherwise: throw a NOMEDIA error
+time_out            setas
+                    LDA #BIOS_ERR_TIMEOUT                   ; Otherwise: throw a BIOS_ERR_TIMEOUT error
                     BRL pass_error
 
 chk_rd_rdy          LDA @l SIO_FDC_MSR                      ; Wait for data to be ready
@@ -323,7 +444,10 @@ chk_rd_rdy          LDA @l SIO_FDC_MSR                      ; Wait for data to b
 
 rd_data_phase       setxl
                     LDY #0
-rd_data_loop        LDA @l SIO_FDC_MSR                      ; Wait for the next byte to be ready
+rd_data_loop        LDA FDC_STATUS                          ; Check that the motor is still spinning
+                    BPL time_out                            ; If not: throw a timeout error
+                    
+                    LDA @l SIO_FDC_MSR                      ; Wait for the next byte to be ready
                     AND #FDC_MSR_RQM | FDC_MSR_DIO
                     CMP #FDC_MSR_RQM | FDC_MSR_DIO
                     BNE rd_data_loop
@@ -338,19 +462,27 @@ rd_data_loop        LDA @l SIO_FDC_MSR                      ; Wait for the next 
                     ; Result read phase
 
 result_phase        LDA FDC_RESULT_NUM                      ; If no results are expected...
-                    BEQ chk_busy                                ; Then we're done
+                    BEQ chk_busy                            ; Then we're done
                     
                     setxs
                     LDX #0
+                    LDA #FDC_WAIT_TIME                      ; Set the watchdog timer
+                    JSL ISETTIMEOUT
+
 result_loop         JSR FDC_Can_Read_Data                   ; Wait until we can read
+                    BCC time_out                            ; If there was a time out, raise an error
+
                     LDA @l SIO_FDC_DTA                      ; Yes: get the data
                     JSR FDC_Can_Read_Data                   ; Wait until we can read
+                    BCC time_out                            ; If there was a time out, raise an error
 
 read_result         LDA @l SIO_FDC_DTA                      ; Yes: get the data
                     STA FDC_RESULTS,X                       ; Save it to the result buffer
 
                     JSR FDC_Check_RQM
-                    LDA @l SIO_FDC_MSR
+                    BCC time_out                            ; If there was a time out, flag the error
+
+rd_chk_1            LDA @l SIO_FDC_MSR
                     AND #FDC_MSR_DIO | FDC_MSR_CMDBSY
                     CMP #FDC_MSR_DIO | FDC_MSR_CMDBSY
                     BNE chk_busy
@@ -368,7 +500,10 @@ chk_busy            setxl
                     BEQ done                                ; If not set: we're done
 
                     JSR FDC_Can_Read_Data                   ; Wait until we can read
-                    LDA @l SIO_FDC_DTA                      ; Read the data
+                    BCS get_result_byte
+                    BRL time_out                            ; If there was a time out, flag the error
+
+get_result_byte     LDA @l SIO_FDC_DTA                      ; Read the data
                     STA FDC_RESULTS,X
                     INX
                     BRA chk_busy                            ; And keep checking
@@ -478,6 +613,9 @@ FDC_MOTOR_NEEDED    .proc
 ;
 ; Turn on the motor of the floppy drive
 ;
+; Outputs:
+;   C is set on success, clear if there was a timeout
+;
 FDC_Motor_On        .proc
                     PHP
 
@@ -494,6 +632,7 @@ FDC_Motor_On        .proc
                     LDA #FDC_DOR_MOT0 | FDC_DOR_NRESET
                     STA @l SIO_FDC_DOR
                     JSR FDC_Check_RQM           ; Make sure we can leave knowing that everything set properly
+                    BCC time_out
 
                     LDX #<>FDC_MOTOR_TIME       ; Wait a suitable time for the motor to spin up
                     LDY #`FDC_MOTOR_TIME
@@ -504,6 +643,11 @@ FDC_Motor_On        .proc
                     STA @l FDC_STATUS
 
 done                PLP
+                    SEC
+                    RTL
+
+time_out            PLP                         ; Return a timeout error
+                    CLC
                     RTL
                     .pend
 
@@ -590,6 +734,8 @@ pass_failure        PLP
 ;   None
 ;
 ; Results:
+;   BIOS_STATUS = status code describing any error
+;   C is set on success, clear on failure
 ;   FDC_ST0 = Status Register 0
 ;   FDC_PCN = Present cylinder number
 ;
@@ -613,25 +759,41 @@ FDC_Sense_Int_Status .proc
                     STA FDC_PCN                         ; Set PCN to some obviously bad value
 
                     JSR FDC_Check_CMD_BSY               ; Check I can send a command
+                    BCC time_out                        ; If there was a time out, raise an error
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
+                    BCC time_out                        ; If there was a time out, raise an error
                     LDA #FDC_CMD_SENSE_INTERRUPT
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Can_Read_Data
+                    BCC time_out                        ; If there was a time out, raise an error
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
+                    BCC time_out                        ; If there was a time out, raise an error
                     LDA @l SIO_FDC_DTA
                     STA FDC_ST0                         ; --- ST0 ---
 
                     JSR FDC_Check_RQM                   ; Check if I can transfer data
+                    BCC time_out                        ; If there was a time out, raise an error
                     LDA @l SIO_FDC_DTA
                     STA FDC_PCN                         ; --- Cylinder ---
 
+                    setas
+                    STZ @w BIOS_STATUS
                     PLP
                     PLD
                     PLB
                     SEC
+                    RTL
+
+time_out            setas
+                    LDA #BIOS_ERR_TIMEOUT               ; Return a time out error
+                    STA @w BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    CLC
                     RTL
                     .pend
 
@@ -657,16 +819,20 @@ FDC_Specify_Command .proc
 
                     setas
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
+                    BCC time_out            ; If there was a time out, raise an error
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #FDC_CMD_SPECIFY    ; Specify Command
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #$CF
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #$01                ; 1 = Non-DMA
                     STA @l SIO_FDC_DTA
 
@@ -674,6 +840,15 @@ FDC_Specify_Command .proc
                     PLD
                     PLB
                     SEC
+                    RTL
+
+time_out            setas
+                    LDA #BIOS_ERR_TIMEOUT   ; Return a time out error
+                    STA @w BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    CLC
                     RTL
                     .pend
 
@@ -696,29 +871,44 @@ FDC_Configure_Command .proc
 
                     setas
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
+                    BCC time_out            ; If there was a time out, raise an error
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #FDC_CMD_CONFIGURE  ; Specify Command
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #$00
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #$44                ; Implied Seek, FIFOTHR = 4 byte
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_RQM       ; Check if I can transfer data
+                    BCC time_out            ; If there was a time out, raise an error
                     LDA #$00
                     STA @l SIO_FDC_DTA
 
                     JSR FDC_Check_CMD_BSY   ; Check I can send a command
+                    BCC time_out            ; If there was a time out, raise an error
 
                     PLP
                     PLD
                     PLB
                     SEC
+                    RTL
+
+time_out            setas
+                    LDA #BIOS_ERR_TIMEOUT   ; Return a time out error
+                    STA @w BIOS_STATUS
+                    PLP
+                    PLD
+                    PLB
+                    CLC
                     RTL
                     .pend
 
@@ -1348,9 +1538,10 @@ FDC_PUTBLOCK        .proc
                     JSL LBA2CHS                 ; Convert the LBA to CHS
 
 retry               JSL FDC_Write_Sector        ; Write the sector
-                    BCC attempt_retry
+                    BCS chk_st0
+                    BRL attempt_retry
 
-                    setas
+chk_st0             setas
                     LDA FDC_ST0
                     AND #%11010000              ; Check the error bits
                     BNE write_failure
@@ -1727,10 +1918,9 @@ path_copy_done      setal
                     LDA #`DOS_SECTOR
                     STA BIOS_BUFF_PTR+2
 
-                    LDA #1                      ; Set the sector to #1 (boot record)
+                    LDA #0                      ; Set the sector to #0 (boot record)
                     STA BIOS_LBA
-                    LDA #0
-                    STA BIOS_LBA
+                    STA BIOS_LBA+2
 
                     setas
                     LDA #BIOS_DEV_FDC

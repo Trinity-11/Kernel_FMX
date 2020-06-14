@@ -189,6 +189,9 @@ BIOS_DEV         = $000321      ; 1 byte - Block device number for block operati
 BIOS_LBA         = $000322      ; 4 bytes - Address of block to read/write (this is the physical block, w/o reference to partition)
 BIOS_BUFF_PTR    = $000326      ; 4 bytes - 24-bit pointer to memory for read/write operations
 BIOS_FIFO_COUNT  = $00032A      ; 2 bytes - The number of bytes read on the last block read
+BIOS_FLAGS       = $00032C      ; 1 byte - Flags for various BIOSy things:
+                                ; $80 = time out flag: if set, a timeout has occurred (see ISETTIMEOUT)
+BIOS_TIMER       = $00032D      ; 1 byte - the number of 1/60 ticks for a time out
 
 ; FAT (cluster level) access
 DOS_STATUS       = $00032E      ; 1 byte - The error code describing any error with file access

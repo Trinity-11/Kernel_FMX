@@ -95,7 +95,7 @@ F_LOAD          JML IF_LOAD         ; load a binary file into memory, supports m
 F_SAVE          JML IF_SAVE         ; Save memory to a binary file
 CMDBLOCK        JML ICMDBLOCK       ; Send a command to a block device
 F_RUN           JML IF_RUN          ; Load an run a binary file
-
+F_MOUNT         JML DOS_MOUNT       ; Mount the designated block device
 
 SETSIZES        JML ISETSIZES
 
