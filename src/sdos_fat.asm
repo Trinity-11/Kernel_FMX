@@ -175,9 +175,11 @@ DOS_SECTOR              = $38E300       ; 512 bytes - A buffer for block device 
 DOS_SECTOR_END          = $38E500       ; The byte just past the end of the cluster buffer
 DOS_FAT_SECTORS         = $38E500       ; 1024 bytes - two sectors worth of the FAT
 DOS_FAT_SECTORS_END     = $38E900       ; The byte just past the end of the FAT buffers
-DOS_SPARE_SECTOR        = $38E900       ; A spare 512 byte buffer for loading sectors
-DOS_SPARE_SECTOR_END    = $38EB00
-DOS_SPARE_FD            = $38EB00       ; A spare file descriptor buffer
+DOS_BOOT_SECTOR         = $38E900       ; A sector for holding the boot sector
+DOS_BOOT_SECTOR_END     = $38EB00
+DOS_SPARE_SECTOR        = $38EB00       ; A spare 512 byte buffer for loading sectors
+DOS_SPARE_SECTOR_END    = $38ED00
+DOS_SPARE_FD            = $38ED00       ; A spare file descriptor buffer
 
 ;;
 ;; Code for the file system
@@ -438,25 +440,50 @@ ret_failure     setas
 ; If it is, execute the code found in the sector. Otherwise, this code just
 ; returns.
 ;
-; To be bootable, the DOS_SECTOR[0] must be $80 (BRA), and
-; DOS_SECTOR[3..11] must contain the text "C256BOOT".
-;
-; Inputs:
-;   DOS_SECTOR is expected to contain either an MBR or a VBR/
-;
 DOS_TESTBOOT    .proc
+                PHB
+                PHD
                 PHX
                 PHP
 
                 TRACE "DOS_TESTBOOT"
 
+                setdbr 0
+                setdp SDOS_VARIABLES
+                
                 setxl
-                setas
-                LDA @l DOS_SECTOR+FDC_BOOT_START
-                CMP #$80                    ; Is the first byte a BRL instruction?
-                BNE done                    ; No: just return
 
-                LDX #0
+chk_dev         setas
+                LDA @b BIOS_DEV             ; Look at the device #
+                CMP #BIOS_DEV_FDC           ; Is it the floppy drive?
+                BEQ chk_vbr_brl             ; Yes: check if BRL is in the right place in the VBR
+
+                setaxl                      ; Otherwise, we need to check the MBR/VBR
+                LDA #0                      ; Point to the MBR
+                STA @b BIOS_LBA
+                STA @b BIOS_LBA+2
+
+                LDA #<>DOS_SECTOR           ; And the buffer
+                STA @b BIOS_BUFF_PTR
+                LDA #`DOS_SECTOR
+                STA @b BIOS_BUFF_PTR+2
+
+                JSL GETBLOCK                ; Try to load the MBR
+                BCS chk_mbr_brl
+                BRL done                    ; If failed... just return
+
+chk_mbr_brl     setas
+                LDA @l DOS_SECTOR           ; Check the first byte of the MBR
+                BRA chk_brl
+
+chk_vbr_brl     LDA @l DOS_SECTOR+FDC_BOOT_START
+chk_brl         CMP #$80                    ; Is the first byte a BRL/BRA instruction?
+                BEQ chk_magic               ; Yes: check for the magic text
+                CMP #$82
+                BEQ chk_magic
+                BRA done                    ; No: just return
+
+chk_magic       LDX #0
 magic_loop      LDA @l DOS_SECTOR+3,X       ; Check the "vendor" byte
                 CMP DOS_BOOT_MAGIC,X        ; Compare it against our boot magic code
                 BNE done                    ; If it's not equal, just return
@@ -464,21 +491,27 @@ magic_loop      LDA @l DOS_SECTOR+3,X       ; Check the "vendor" byte
                 CPX #8
                 BNE magic_loop              ; Until we've checked all 8 bytes
 
-                setal
-                LDX #0
-copy_loop       LDA @l DOS_SECTOR,X         ; Copy the DOS_SECTOR to DOS_SPARE_SECTOR
-                STA @l DOS_SPARE_SECTOR,X
-                INX
-                INX
-                CPX #512
-                BNE copy_loop
+                setaxl                      ; Copy the data from DOS_SECTOR to DOS_BOOT_SECTOR
+                LDA #DOS_SECTOR_SIZE
+                LDX #<>(DOS_SECTOR+DOS_SECTOR_SIZE)
+                LDY #<>(DOS_BOOT_SECTOR+DOS_SECTOR_SIZE)
+                MVP #`DOS_SECTOR, #`DOS_BOOT_SECTOR
 
                 TRACE "Attempt bootstrap..."
 
                 ; Launch the boot code
-                JML DOS_SPARE_SECTOR+FDC_BOOT_START
+                setas
+                LDA @b BIOS_DEV             ; Check the device
+                CMP #BIOS_DEV_FDC           ; Is it the FDC?
+                BEQ jmp_fdc_start           ; Yes: jump to the start of the VBR code
+
+                JML DOS_BOOT_SECTOR         ; No: it's an MBR, start at the first byte
+
+jmp_fdc_start   JML DOS_BOOT_SECTOR+FDC_BOOT_START
 
 done            PLP
+                PLD
+                PLB
                 PLX
                 RTL
                 .pend
