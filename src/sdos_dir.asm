@@ -140,7 +140,7 @@ DOS_DIRNEXT     .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
-                TRACE "DOS_DIRNEXT"
+                ;TRACE "DOS_DIRNEXT"
 
                 setal
                 CLC                         ; Advance the directory entry pointer to the next entry

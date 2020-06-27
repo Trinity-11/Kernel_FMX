@@ -103,6 +103,9 @@ SETSIZES        JML ISETSIZES
 
 
 
+F_COPY          JML IF_COPY         ; Copy a file
+F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
+F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
 ;
 ; End of jump table
