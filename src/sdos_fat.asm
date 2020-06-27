@@ -57,14 +57,16 @@ CREATE_DATE         .word ?             ; The creation date of the file
 CREATE_TIME         .word ?             ; The creation time of the file
 MODIFIED_DATE       .word ?             ; The modification date of the file
 MODIFIED_TIME       .word ?             ; The modification time of the file
+RESERVED            .word ?             ; Two reserved bytes to bring the descriptor up to 32 bytes
                     .ends
 
 ; File descriptor status flags
 
 FD_STAT_READ = $01                      ; The file is readable
 FD_STAT_WRITE = $02                     ; The file is writable
-FD_STAT_OPEN = $40                      ; The file is open
-FD_STAT_ERROR = $60                     ; The file is in an error condition
+FD_STAT_ALLOC = $10                     ; The file descriptor has been allocated
+FD_STAT_OPEN = $20                      ; The file is open
+FD_STAT_ERROR = $40                     ; The file is in an error condition
 FD_STAT_EOF = $80                       ; The file cursor is at the end of the file
 
 ;;
@@ -83,6 +85,8 @@ BPB_EXTENDED_RECORD = $29               ; If SIGNATUREB of the BPB has this byte
 
 DOS_DIR_TYPE_FAT12ROOT = 0              ; Directory is a FAT12 root directory
 DOS_DIR_TYPE_FILE = 1                   ; Directory is a file type directory
+
+DOS_FD_MAX = 8                          ; The maximum number of open file descriptors
 
 ; Error Codes
 
@@ -107,6 +111,7 @@ DOS_ERR_MEDIAFULL = 18                  ; There are no more free clusters on the
 DOS_ERR_WRITEPROT = 19                  ; The medium is write-protected
 DOS_ERR_FATUPDATE = 20                  ; Can't update the FAT
 DOS_ERR_DIRFULL = 21                    ; The directory is full
+DOS_ERR_NOFD = 22                       ; No file descriptors are available for allocation
 
 ; MBR Field Offsets
 
@@ -136,50 +141,60 @@ BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 
 ; Device information from master boot record and boot sector
 
-DOS_HIGH_VARIABLES      = $38E000
-DEVICE                  = $38E000       ; 1 byte - The number of the block device
-FILE_SYSTEM             = $38E001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
-PARTITION               = $38E002       ; 1 byte - The number of the partitions on the device
-SECTORS_PER_CLUSTER     = $38E003       ; 1 byte - The number of sectors in a cluster
-FIRSTSECTOR             = $38E004       ; 4 bytes - The LBA of the first sector on the volume
-SECTORCOUNT             = $38E008       ; 4 bytes - The number of sectors in the volume
-NUM_RSRV_SEC            = $38E00C       ; 2 bytes - The number of hidden or reserved sectors
-CLUSTER_SIZE            = $38E00E       ; 2 bytes - The size of a cluster in bytes 
-SEC_PER_FAT             = $38E010       ; 4 bytes - The number of sectors per FAT
-FAT_BEGIN_LBA           = $38E014       ; 4 bytes - The LBA of the first sector of FAT #1
-FAT2_BEGIN_LBA          = $38E018       ; 4 bytes - The LBA of the first sector of FAT #2
-CLUSTER_BEGIN_LBA       = $38E01C       ; 4 bytes - The LBA of the first cluster in the storage area
-ROOT_DIR_FIRST_CLUSTER  = $38E020       ; 4 bytes - The number of the first cluster in the root directory
-ROOT_DIR_MAX_ENTRY      = $38E024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
-VOLUME_ID               = $38E026       ; 4 bytes - The ID of the volume
+DOS_HIGH_VARIABLES      = $38A000
+DEVICE                  = $38A000       ; 1 byte - The number of the block device
+FILE_SYSTEM             = $38A001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
+PARTITION               = $38A002       ; 1 byte - The number of the partitions on the device
+SECTORS_PER_CLUSTER     = $38A003       ; 1 byte - The number of sectors in a cluster
+FIRSTSECTOR             = $38A004       ; 4 bytes - The LBA of the first sector on the volume
+SECTORCOUNT             = $38A008       ; 4 bytes - The number of sectors in the volume
+NUM_RSRV_SEC            = $38A00C       ; 2 bytes - The number of hidden or reserved sectors
+CLUSTER_SIZE            = $38A00E       ; 2 bytes - The size of a cluster in bytes 
+SEC_PER_FAT             = $38A010       ; 4 bytes - The number of sectors per FAT
+FAT_BEGIN_LBA           = $38A014       ; 4 bytes - The LBA of the first sector of FAT #1
+FAT2_BEGIN_LBA          = $38A018       ; 4 bytes - The LBA of the first sector of FAT #2
+CLUSTER_BEGIN_LBA       = $38A01C       ; 4 bytes - The LBA of the first cluster in the storage area
+ROOT_DIR_FIRST_CLUSTER  = $38A020       ; 4 bytes - The number of the first cluster in the root directory
+ROOT_DIR_MAX_ENTRY      = $38A024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
+VOLUME_ID               = $38A026       ; 4 bytes - The ID of the volume
 
 ; Other variables we don't need in bank 0
 
-DOS_CURR_CLUS           = $38E02A       ; 4 bytes - The current cluster (for delete)
-DOS_NEXT_CLUS           = $38E02E       ; 4 bytes - The next cluster in a file (for delete)
-DOS_DIR_BLOCK_ID        = $38E032       ; 4 bytes - The ID of the current directory block
+DOS_CURR_CLUS           = $38A02A       ; 4 bytes - The current cluster (for delete)
+DOS_NEXT_CLUS           = $38A02E       ; 4 bytes - The next cluster in a file (for delete)
+DOS_DIR_BLOCK_ID        = $38A032       ; 4 bytes - The ID of the current directory block
                                         ;   If DOS_DIR_TYPE = 0, this is a cluster ID
                                         ;   If DOS_DIR_TYPE = $80, this is a sector LBA
-DOS_NEW_CLUSTER         = $38E036       ; 4 bytes - Space to store a newly written cluster ID
-DOS_SHORT_NAME          = $38E03A       ; 11 bytes - The short name for a desired file
-DOS_DIR_TYPE            = $38E045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
-DOS_CURR_DIR_ID         = $38E046       ; 4 byte - the ID of the first sector or cluster of the current directory
-DOS_DEV_NAMES           = $38E04A       ; 4 byte - pointer to the linked list of device names
-FDC_MOTOR_TIMER         = $38E04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+DOS_NEW_CLUSTER         = $38A036       ; 4 bytes - Space to store a newly written cluster ID
+DOS_SHORT_NAME          = $38A03A       ; 11 bytes - The short name for a desired file
+DOS_DIR_TYPE            = $38A045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
+DOS_CURR_DIR_ID         = $38A046       ; 4 byte - the ID of the first sector or cluster of the current directory
+DOS_DEV_NAMES           = $38A04A       ; 4 byte - pointer to the linked list of device names
+FDC_MOTOR_TIMER         = $38A04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+DOS_MOUNT_DEV           = $38A050       ; 1 byte - the device code of the currently mounted device
 
 ; Larger buffers
 
-DOS_DIR_CLUSTER         = $38E100       ; 512 bytes - A buffer for directory entries
-DOS_DIR_CLUSTER_END     = $38E300       ; The byte just past the end of the directory cluster buffer
-DOS_SECTOR              = $38E300       ; 512 bytes - A buffer for block device read/write
-DOS_SECTOR_END          = $38E500       ; The byte just past the end of the cluster buffer
-DOS_FAT_SECTORS         = $38E500       ; 1024 bytes - two sectors worth of the FAT
-DOS_FAT_SECTORS_END     = $38E900       ; The byte just past the end of the FAT buffers
-DOS_BOOT_SECTOR         = $38E900       ; A sector for holding the boot sector
-DOS_BOOT_SECTOR_END     = $38EB00
-DOS_SPARE_SECTOR        = $38EB00       ; A spare 512 byte buffer for loading sectors
-DOS_SPARE_SECTOR_END    = $38ED00
-DOS_SPARE_FD            = $38ED00       ; A spare file descriptor buffer
+DOS_DIR_CLUSTER         = $38A100       ; 512 bytes - A buffer for directory entries
+DOS_DIR_CLUSTER_END     = $38A300       ; The byte just past the end of the directory cluster buffer
+DOS_SECTOR              = $38A300       ; 512 bytes - A buffer for block device read/write
+DOS_SECTOR_END          = $38A500       ; The byte just past the end of the cluster buffer
+DOS_FAT_SECTORS         = $38A500       ; 1024 bytes - two sectors worth of the FAT
+DOS_FAT_SECTORS_END     = $38A900       ; The byte just past the end of the FAT buffers
+DOS_BOOT_SECTOR         = $38A900       ; A sector for holding the boot sector
+DOS_BOOT_SECTOR_END     = $38AB00
+DOS_SPARE_SECTOR        = $38AB00       ; A spare 512 byte buffer for loading sectors
+DOS_SPARE_SECTOR_END    = $38AD00
+DOS_SPARE_FD            = $38AD00       ; A spare file descriptor buffer
+DOS_SPARE_FD_END        = DOS_SPARE_FD + SIZE(FILEDESC)
+
+; Space for allocatable file descriptors (8 file descriptors of 32 bytes each)
+DOS_FILE_DESCS          = DOS_SPARE_FD_END
+DOS_FILE_DESCS_END      = DOS_FILE_DESCS + SIZE(FILEDESC) * DOS_FD_MAX
+
+; Space for sector buffers for the file descriptors (8 buffers of 512 bytes each)
+DOS_FILE_BUFFS          = $38B000
+DOS_FILE_BUFFS_END      = DOS_FILE_BUFFS + DOS_SECTOR_SIZE * DOS_FD_MAX
 
 ;;
 ;; Code for the file system
@@ -198,6 +213,8 @@ DOS_INIT        .proc
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
+                TRACE "DOS_INIT"
+
                 setal
                 LDA #<>DOS_HD_DESC      ; Initialize the device names list
                 STA @l DOS_DEV_NAMES
@@ -208,6 +225,67 @@ DOS_INIT        .proc
                 LDA #BIOS_DEV_SD        ; Default to the SD card
                 STA BIOS_DEV
 
+                LDA #$FF                ; Set the mounted device to a sentinel value
+                STA @l DOS_MOUNT_DEV
+
+                ; Zero out the file descriptors to prepare them for allocation
+                LDA #0
+                LDX #0
+fd_zero_loop    STA @w DOS_FILE_DESCS,X
+                INX
+                CPX #(DOS_FILE_DESCS_END - DOS_FILE_DESCS)
+                BNE fd_zero_loop
+
+                ; Zero out the sector buffers
+                LDA #0
+                LDX #0
+sect_zero_loop  STA @w DOS_FILE_BUFFS,X
+                INX
+                CPX #(DOS_FILE_BUFFS_END - DOS_FILE_BUFFS)
+                BNE sect_zero_loop
+
+                ; Link each file descriptor to its associated sector buffer
+
+                setal
+                LDA #<>DOS_FILE_DESCS   ; Initialize a pointer to the file descriptors
+                STA @b DOS_FD_PTR
+                LDA #`DOS_FILE_DESCS
+                STA @b DOS_FD_PTR+2
+
+                LDA #<>DOS_FILE_BUFFS   ; Initialize a pointer to the sector buffers
+                STA @b DOS_TEMP
+                LDA #`DOS_FILE_BUFFS
+                STA @b DOS_TEMP+2
+
+                LDX #DOS_FD_MAX         ; Set how many file descriptors to update
+
+fd_buff_loop    LDY #FILEDESC.BUFFER    ; Set the file descriptor's buffer pointer
+                LDA @b DOS_TEMP
+                STA [DOS_FD_PTR],Y
+                INY
+                INY
+                LDA @b DOS_TEMP+2
+                STA [DOS_FD_PTR],Y
+
+                CLC                     ; Advance the file descriptor pointer to the next file descriptor
+                LDA @b DOS_FD_PTR
+                ADC #SIZE(FILEDESC)
+                STA @b DOS_FD_PTR
+                LDA @b DOS_FD_PTR+2
+                ADC #0
+                STA @b DOS_FD_PTR+2
+
+                CLC                     ; Advance the sector buffer pointer to the next buffer
+                LDA @b DOS_TEMP
+                ADC #DOS_SECTOR_SIZE
+                STA @b DOS_TEMP
+                LDA @b DOS_TEMP+2
+                ADC #0
+                STA @b DOS_TEMP+2
+
+                DEX                     ; Count down the descriptors...
+                BNE fd_buff_loop        ; If not zero, keep setting the buffer pointers
+                
                 PLP
                 PLD
                 PLB
@@ -233,7 +311,13 @@ DOS_MOUNT       .proc
                 setdp SDOS_VARIABLES
 
                 setas
-                LDA BIOS_DEV            ; Check the device
+                LDA BIOS_DEV            ; Get the device to moount
+                CMP @l DOS_MOUNT_DEV    ; Is it already mounted?
+                BNE try_mount           ; No: try to moount it
+                BRL ret_success         ; Yes: just return success
+
+try_mount       STA @l DOS_MOUNT_DEV    ; Save the device we're going to try to mount
+
                 CMP #BIOS_DEV_SD        ; Is it the SDC?
                 BEQ do_sdc_mount        ; Yes: attempt to mount it
 
@@ -1468,10 +1552,13 @@ NEXTCLUSTER32   .proc
                 LDA DOS_TEMP+2
                 CMP #$0FFF
                 BNE found_next                  ; No: return this cluster as the next
+
+                setas
                 LDA #DOS_ERR_NOCLUSTER          ; Yes: return that there are no more clusters
                 BRA ret_failure
 
-found_next      LDA DOS_TEMP                    ; No: return DOS_TEMP as the new DOS_CLUS_ID
+found_next      setal
+                LDA DOS_TEMP                    ; No: return DOS_TEMP as the new DOS_CLUS_ID
                 STA DOS_CLUS_ID
                 LDA DOS_TEMP+2
                 STA DOS_CLUS_ID+2
@@ -1485,7 +1572,8 @@ ret_success     setas
                 SEC
                 RTL
 
-ret_failure     STA DOS_STATUS                  ; Record the error condition
+ret_failure     setas
+                STA DOS_STATUS                  ; Record the error condition
                 PLP
                 PLD
                 PLB

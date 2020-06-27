@@ -71,3 +71,6 @@ F_SAVE           = $00111C ; Save memory to a binary file
 CMDBLOCK         = $001120 ; Send a command to a block device
 F_RUN            = $001124 ; Load and run an executable binary file
 F_MOUNT          = $001128 ; Mount the designated block device
+F_COPY           = $00112C ; Copy a file
+F_ALLOCFD        = $001130 ; Allocate a file descriptor
+F_FREEFD         = $001134 ; Free a file descriptor

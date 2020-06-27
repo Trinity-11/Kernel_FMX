@@ -21,6 +21,7 @@
 ;;; F_DIRNEXT -- seek to the next directory of an open directory
 ;;; F_LOAD -- load a binary file into memory, supports multiple file formats
 ;;; F_SAVE -- save a block of memory to a file on a block device
+;;; F_COPY -- Copy a file (can be from one drive to another or the same drive)
 ;;;
 
 .dpage SDOS_VARIABLES
@@ -39,21 +40,27 @@ DOS_TEST        .proc
                 setdp SDOS_VARIABLES     
 
                 setaxl
-                LDA #<>sample
-                STA @l DOS_RUN_PARAM
-                LDA #`sample
-                STA @l DOS_RUN_PARAM+2
+                LDA #<>src_file
+                STA @l DOS_STR1_PTR
+                LDA #`src_file
+                STA @l DOS_STR1_PTR+2
 
-                JSL IF_RUN
+                LDA #<>dst_file
+                STA @l DOS_STR2_PTR
+                LDA #`dst_file
+                STA @l DOS_STR2_PTR+2
+
+                JSL IF_COPY
                 BCS done
 
-                TRACE "Could not run file."
+                TRACE "Could not copy file."
 
 done            PLP
                 PLD
                 PLB
                 RTL
-sample          .null "@F:SAMPLE.PGX Hello, world!"
+src_file        .null "@s:hello.bas"
+dst_file        .null "@s:hello2.bas"
                 .pend
 
 ;
@@ -152,7 +159,7 @@ read_cluster    LDY #FILEDESC.FIRST_CLUSTER     ; Set the first cluster in the f
                 .pend
 
 ;
-; IF_CREATE -- Not implemented yet
+; IF_CREATE
 ;
 ; Open a file for creating. The file must not already exist, and clusters can only be appended.
 ;
@@ -203,6 +210,8 @@ pass_failure    BRL IF_FAILURE
 ; a read only file, but for create/append/write files, this will ensure
 ; the current cluster is saved back to the block device
 ;
+; Note: if the file descriptor was allocated, it will be flagged as deallocated
+;
 ; Inputs:
 ;     DOS_FD_PTR = pointer to the file descriptor
 ;
@@ -231,10 +240,7 @@ IF_CLOSE        .proc
                 BCS set_flag
                 BRL IF_PASSFAILURE              ; If there was a problem, pass it up the chain
 
-set_flag        LDY #FILEDESC.STATUS
-                LDA #~FD_STAT_OPEN              ; Mark file as closed
-                AND [DOS_FD_PTR],Y
-                STA [DOS_FD_PTR],Y
+set_flag        JSL IF_FREEFD                   ; Free the file descriptor as well
 
                 BRL IF_SUCCESS
                 .pend
@@ -288,6 +294,8 @@ get_dev         setas
                 LDA [DOS_FD_PTR],Y
                 STA BIOS_DEV
 
+                JSL DOS_MOUNT                   ; Make sure the device is mounted (if needed)
+
                 setal
                 LDY #FILEDESC.CLUSTER           ; Get the file's current cluster
                 LDA [DOS_FD_PTR],Y
@@ -298,7 +306,7 @@ get_dev         setas
                 STA DOS_CLUS_ID+2
 
                 JSL NEXTCLUSTER                 ; Find the next cluster of the file
-                BCC pass_failure                ; If not OK: pass the failure up the chaing
+                BCC pass_failure                ; If not OK: pass the failure up the chain
 
                 LDY #FILEDESC.BUFFER            ; Get the pointer to the file's cluster buffer
                 LDA [DOS_FD_PTR],Y
@@ -313,7 +321,15 @@ get_dev         setas
 pass_failure    TRACE "IF_READ FAIL"
                 BRL IF_PASSFAILURE              ; Otherwise: bubble up the failure
 
-ret_success     BRL IF_SUCCESS
+ret_success     LDY #FILEDESC.CLUSTER           ; Save the new cluster as the file's current cluster
+                LDA DOS_CLUS_ID
+                STA [DOS_FD_PTR],Y
+                INY
+                INY
+                LDA DOS_CLUS_ID+2
+                STA [DOS_FD_PTR],Y
+                
+                BRL IF_SUCCESS
                 .pend
 
 ;
@@ -363,6 +379,8 @@ IF_WRITE        .proc
 get_dev         LDY #FILEDESC.DEV               ; Get the device number from the file descriptor
                 LDA [DOS_FD_PTR],Y
                 STA BIOS_DEV
+
+                JSL DOS_MOUNT                   ; Make sure the device is mounted (if needed)
 
                 setal
                 LDY #FILEDESC.BUFFER            ; Get the pointer to the file's cluster buffer
@@ -1186,6 +1204,290 @@ try_execute     setas
 
                 JSL DOS_RUN_PTR-1                       ; And call to it
                 BRL IF_SUCCESS                          ; Return success
+                .pend
+
+;
+; Allocate a file descriptor for a program to use from the pool of file descriptors
+;
+; Outputs:
+;   DOS_FD_PTR = pointer to the allocated file descriptor
+;   DOS_STATUS = the status code for the operation
+;   C = set if there is a next cluster, clear if there isn't
+;
+IF_ALLOCFD      .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                TRACE "IF_ALLOCFD"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setxl
+                LDX #0                              ; Point to the first file descriptor
+
+chk_fd          setas
+                LDA @w DOS_FILE_DESCS,X             ; Check the file descriptor's status
+                BIT #FD_STAT_ALLOC                  ; Is the file descriptor allocated?
+                BEQ found                           ; No: flag and return the found descriptor
+                
+next_fd         setal
+                TXA                                 ; Yes: Move to the next file descriptor
+                CLC
+                ADC #SIZE(FILEDESC)
+                TAX
+                CPX #SIZE(FILEDESC) * DOS_FD_MAX    ; Are we out of file descriptors?
+                BLT chk_fd                          ; No: check this new file descriptor
+
+                setas
+                LDA #DOS_ERR_NOFD                   ; Yes: Return failure (no file descriptors available)
+                BRL IF_FAILURE
+
+found           ORA #FD_STAT_ALLOC                  ; No: Set the ALLOC bit
+                STA @w DOS_FILE_DESCS,X             ; And store it in the file descriptor's status
+
+                setal
+                TXA
+                CLC
+                ADC #<>DOS_FILE_DESCS
+                STA @b DOS_FD_PTR
+                LDA #`DOS_FILE_DESCS
+                ADC #0
+                STA @b DOS_FD_PTR+2
+
+                BRL IF_SUCCESS                      ; Return this file descriptor
+                .pend
+
+;
+; Deallocate a file descriptor
+;
+; Inputs:
+;   DOS_FD_PTR = pointer to the file descriptor to return to the pool
+;
+IF_FREEFD       .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                TRACE "IF_FREEFD"
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setas
+                setxl
+
+                LDA #0
+                STA [DOS_FD_PTR]
+
+                BRL IF_SUCCESS
+                .pend
+
+;
+; Copy the bytes from the source file descriptor's sector to the destination descriptor's sector buffer
+;
+; Note: this routine assumes that both sector buffers are in the DOS_FILE_BUFFS block
+;
+; Inputs:
+;   DOS_SRC_PTR = the pointer to the source file descriptor
+;   DOS_DST_PTR = the pointer to the destination file descriptor
+;
+DOS_SRC2DST     .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                TRACE "DOS_SRC2DST"
+
+                setdp SDOS_VARIABLES
+                setaxl
+
+                LDY #FILEDESC.BUFFER
+                LDA [DOS_SRC_PTR],Y
+                TAX                                     ; X := source buffer address
+
+                LDA [DOS_DST_PTR],Y
+                TAY                                     ; Y := destination buffer address
+
+                LDA #DOS_SECTOR_SIZE                    ; A := the size of the buffers
+                MVN #`DOS_FILE_BUFFS,#`DOS_FILE_BUFFS   ; Copy the sector data
+
+                PLP
+                PLB
+                PLD
+                PLY
+                PLX
+                RTL
+                .pend
+
+;
+; Copy a file (can be from one drive to another or the same drive)
+;
+; NOTE: It is an error if the destination file already exists.
+;
+; Inputs:
+;   DOS_STR1_PTR = pointer to the ASCIIZ path of the existing file (source)
+;   DOS_STR2_PTR = pointer to the ASCIIZ path for the new file (destination)
+;
+; Outputs:
+;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
+;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
+;   C = set if success, clear on error
+;
+IF_COPY         .proc
+                PHX
+                PHY
+                PHD
+                PHB
+                PHP
+
+                TRACE "IF_COPY"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                JSL IF_ALLOCFD                  ; Allocate an FD for the source
+                BCS set_src_path
+                BRL IF_PASSFAILURE              ; If failed: pass the failure up the chain
+
+set_src_path    setaxl
+                LDY #FILEDESC.PATH              ; Set the source path
+                LDA @b DOS_STR1_PTR
+                STA [DOS_FD_PTR],Y
+                INY
+                INY
+                LDA @b DOS_STR1_PTR+2
+                STA [DOS_FD_PTR],Y
+
+alloc_dest      setaxl
+                LDA @b DOS_FD_PTR               ; set DOS_SRC_PTR to the file descriptor pointer
+                STA @b DOS_SRC_PTR
+                LDA @b DOS_FD_PTR+2
+                STA @b DOS_SRC_PTR+2
+
+                JSL IF_ALLOCFD                  ; Allocate an FD for the destination
+                BCS set_paths                   ; If everything is ok... start setting the paths
+
+err_free_src_fd LDA @b DOS_SRC_PTR              ; Get the source file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_SRC_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL IF_FREEFD                   ; And free it
+                BRL IF_PASSFAILURE              ; Pass the failure up the chain
+
+set_paths       setaxl
+                LDA @b DOS_FD_PTR               ; Set DOS_DST_PTR to the file descriptor pointer for the destination
+                STA @b DOS_DST_PTR
+                LDA @b DOS_FD_PTR+2
+                STA @b DOS_DST_PTR+2
+
+                LDY #FILEDESC.PATH              ; Set the destination path
+                LDA @b DOS_STR2_PTR
+                STA [DOS_DST_PTR],Y
+                INY
+                INY
+                LDA @b DOS_STR2_PTR+2
+                STA [DOS_DST_PTR],Y
+
+                LDA @b DOS_SRC_PTR              ; Get the source file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_SRC_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL F_OPEN                      ; Try to open the file
+                BCS src_open                    ; If success, work with the openned file
+
+err_free_dst_fd LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_DST_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL IF_FREEFD                   ; And free it
+                BRL err_free_src_fd             ; Free the source file descriptor
+
+src_open        LDY #FILEDESC.SIZE              ; destination file size := source file size
+                LDA [DOS_SRC_PTR],Y
+                STA [DOS_DST_PTR],Y
+                INY
+                INY
+                LDA [DOS_SRC_PTR],Y
+                STA [DOS_DST_PTR],Y
+
+                JSL DOS_SRC2DST                 ; Copy the first sector's worth of data
+
+                LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_DST_PTR+2
+                STA @b DOS_FD_PTR+2 
+                JSL F_CREATE                    ; Attempt to create the file
+                BCS read_next                   ; If sucessful, try to get the next cluster
+
+err_src_close   LDA @b DOS_SRC_PTR              ; Get the source file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_SRC_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL F_CLOSE                     ; Close the source file (maybe not really necessary)
+                BRL err_free_dst_fd             ; Free the file descriptors and return an error
+
+read_next       TRACE "read_next"
+                LDA @b DOS_SRC_PTR              ; Get the source file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_SRC_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL F_READ                      ; Attempt to read the next sector of the source
+                BCS copy2dest                   ; If successful, copy the sector
+
+                setas
+                LDA @b DOS_STATUS
+                CMP #DOS_ERR_NOCLUSTER          ; Are there no more clusters in the source file?
+                BEQ file_copied                 ; Yes: we're done copying
+
+err_dest_close  setal                           ; Otherwise: there was an error
+                LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_DST_PTR+2
+                STA @b DOS_FD_PTR+2 
+                JSL F_CLOSE                     ; Attempt to close the destination
+                BRL err_src_close               ; Close the source and throw an error
+
+copy2dest       TRACE "copy2dest"
+                JSL DOS_SRC2DST                 ; Copy the source sector to the destination sector
+
+                LDY #FILEDESC.CLUSTER           ; destination sector cluster ID := 0 to append
+                LDA #0
+                STA [DOS_DST_PTR],Y
+                INY
+                INY
+                STA [DOS_DST_PTR],Y
+
+                LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_DST_PTR+2
+                STA @b DOS_FD_PTR+2 
+                JSL F_WRITE                     ; Attempt to write the destionation sector to the disk
+                BCC err_dest_close              ; If error: close all files and throw the error
+                BRL read_next                   ; Otherwise: repeat the loop
+
+file_copied     TRACE "file_copied"
+                setal
+                LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_DST_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL F_CLOSE                     ; Close the destination
+
+                LDA @b DOS_SRC_PTR              ; Get the source file descriptor pointer
+                STA @b DOS_FD_PTR
+                LDA @b DOS_SRC_PTR+2
+                STA @b DOS_FD_PTR+2
+                JSL F_CLOSE                     ; Close the source
+
+                BRL IF_SUCCESS
                 .pend
 
 .databank 0

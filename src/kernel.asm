@@ -223,9 +223,7 @@ jmpcopy         LDA @l BOOT,X
 retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
                 JSL FDC_INIT
                 ; JSL FDC_TEST
-                ; BRA BOOTBASIC
                 ; JSL DOS_TEST
-                ; JML BOOTFLOPPY
 
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified

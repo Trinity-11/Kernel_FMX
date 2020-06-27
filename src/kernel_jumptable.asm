@@ -96,13 +96,9 @@ F_SAVE          JML IF_SAVE         ; Save memory to a binary file
 CMDBLOCK        JML ICMDBLOCK       ; Send a command to a block device
 F_RUN           JML IF_RUN          ; Load an run a binary file
 F_MOUNT         JML DOS_MOUNT       ; Mount the designated block device
-
-
-
-
-
-
-
+F_COPY          JML IF_COPY         ; Copy a file
+F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
+F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
 ;
 ; End of jump table
