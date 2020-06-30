@@ -141,51 +141,51 @@ BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 
 ; Device information from master boot record and boot sector
 
-DOS_HIGH_VARIABLES      = $38A000
-DEVICE                  = $38A000       ; 1 byte - The number of the block device
-FILE_SYSTEM             = $38A001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
-PARTITION               = $38A002       ; 1 byte - The number of the partitions on the device
-SECTORS_PER_CLUSTER     = $38A003       ; 1 byte - The number of sectors in a cluster
-FIRSTSECTOR             = $38A004       ; 4 bytes - The LBA of the first sector on the volume
-SECTORCOUNT             = $38A008       ; 4 bytes - The number of sectors in the volume
-NUM_RSRV_SEC            = $38A00C       ; 2 bytes - The number of hidden or reserved sectors
-CLUSTER_SIZE            = $38A00E       ; 2 bytes - The size of a cluster in bytes 
-SEC_PER_FAT             = $38A010       ; 4 bytes - The number of sectors per FAT
-FAT_BEGIN_LBA           = $38A014       ; 4 bytes - The LBA of the first sector of FAT #1
-FAT2_BEGIN_LBA          = $38A018       ; 4 bytes - The LBA of the first sector of FAT #2
-CLUSTER_BEGIN_LBA       = $38A01C       ; 4 bytes - The LBA of the first cluster in the storage area
-ROOT_DIR_FIRST_CLUSTER  = $38A020       ; 4 bytes - The number of the first cluster in the root directory
-ROOT_DIR_MAX_ENTRY      = $38A024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
-VOLUME_ID               = $38A026       ; 4 bytes - The ID of the volume
+DOS_HIGH_VARIABLES      = $20A000
+DEVICE                  = $20A000       ; 1 byte - The number of the block device
+FILE_SYSTEM             = $20A001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
+PARTITION               = $20A002       ; 1 byte - The number of the partitions on the device
+SECTORS_PER_CLUSTER     = $20A003       ; 1 byte - The number of sectors in a cluster
+FIRSTSECTOR             = $20A004       ; 4 bytes - The LBA of the first sector on the volume
+SECTORCOUNT             = $20A008       ; 4 bytes - The number of sectors in the volume
+NUM_RSRV_SEC            = $20A00C       ; 2 bytes - The number of hidden or reserved sectors
+CLUSTER_SIZE            = $20A00E       ; 2 bytes - The size of a cluster in bytes 
+SEC_PER_FAT             = $20A010       ; 4 bytes - The number of sectors per FAT
+FAT_BEGIN_LBA           = $20A014       ; 4 bytes - The LBA of the first sector of FAT #1
+FAT2_BEGIN_LBA          = $20A018       ; 4 bytes - The LBA of the first sector of FAT #2
+CLUSTER_BEGIN_LBA       = $20A01C       ; 4 bytes - The LBA of the first cluster in the storage area
+ROOT_DIR_FIRST_CLUSTER  = $20A020       ; 4 bytes - The number of the first cluster in the root directory
+ROOT_DIR_MAX_ENTRY      = $20A024       ; 2 bytes - The maximum number of entries in the root directory (0 = no limit)
+VOLUME_ID               = $20A026       ; 4 bytes - The ID of the volume
 
 ; Other variables we don't need in bank 0
 
-DOS_CURR_CLUS           = $38A02A       ; 4 bytes - The current cluster (for delete)
-DOS_NEXT_CLUS           = $38A02E       ; 4 bytes - The next cluster in a file (for delete)
-DOS_DIR_BLOCK_ID        = $38A032       ; 4 bytes - The ID of the current directory block
+DOS_CURR_CLUS           = $20A02A       ; 4 bytes - The current cluster (for delete)
+DOS_NEXT_CLUS           = $20A02E       ; 4 bytes - The next cluster in a file (for delete)
+DOS_DIR_BLOCK_ID        = $20A032       ; 4 bytes - The ID of the current directory block
                                         ;   If DOS_DIR_TYPE = 0, this is a cluster ID
                                         ;   If DOS_DIR_TYPE = $80, this is a sector LBA
-DOS_NEW_CLUSTER         = $38A036       ; 4 bytes - Space to store a newly written cluster ID
-DOS_SHORT_NAME          = $38A03A       ; 11 bytes - The short name for a desired file
-DOS_DIR_TYPE            = $38A045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
-DOS_CURR_DIR_ID         = $38A046       ; 4 byte - the ID of the first sector or cluster of the current directory
-DOS_DEV_NAMES           = $38A04A       ; 4 byte - pointer to the linked list of device names
-FDC_MOTOR_TIMER         = $38A04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
-DOS_MOUNT_DEV           = $38A050       ; 1 byte - the device code of the currently mounted device
+DOS_NEW_CLUSTER         = $20A036       ; 4 bytes - Space to store a newly written cluster ID
+DOS_SHORT_NAME          = $20A03A       ; 11 bytes - The short name for a desired file
+DOS_DIR_TYPE            = $20A045       ; 1 byte - a code indicating the type of the current directory (0 = cluster based, $80 = sector based)
+DOS_CURR_DIR_ID         = $20A046       ; 4 byte - the ID of the first sector or cluster of the current directory
+DOS_DEV_NAMES           = $20A04A       ; 4 byte - pointer to the linked list of device names
+FDC_MOTOR_TIMER         = $20A04E       ; 2 bytes - count-down timer to automatically turn off the FDC spindle motor
+DOS_MOUNT_DEV           = $20A050       ; 1 byte - the device code of the currently mounted device
 
 ; Larger buffers
 
-DOS_DIR_CLUSTER         = $38A100       ; 512 bytes - A buffer for directory entries
-DOS_DIR_CLUSTER_END     = $38A300       ; The byte just past the end of the directory cluster buffer
-DOS_SECTOR              = $38A300       ; 512 bytes - A buffer for block device read/write
-DOS_SECTOR_END          = $38A500       ; The byte just past the end of the cluster buffer
-DOS_FAT_SECTORS         = $38A500       ; 1024 bytes - two sectors worth of the FAT
-DOS_FAT_SECTORS_END     = $38A900       ; The byte just past the end of the FAT buffers
-DOS_BOOT_SECTOR         = $38A900       ; A sector for holding the boot sector
-DOS_BOOT_SECTOR_END     = $38AB00
-DOS_SPARE_SECTOR        = $38AB00       ; A spare 512 byte buffer for loading sectors
-DOS_SPARE_SECTOR_END    = $38AD00
-DOS_SPARE_FD            = $38AD00       ; A spare file descriptor buffer
+DOS_DIR_CLUSTER         = $20A100       ; 512 bytes - A buffer for directory entries
+DOS_DIR_CLUSTER_END     = $20A300       ; The byte just past the end of the directory cluster buffer
+DOS_SECTOR              = $20A300       ; 512 bytes - A buffer for block device read/write
+DOS_SECTOR_END          = $20A500       ; The byte just past the end of the cluster buffer
+DOS_FAT_SECTORS         = $20A500       ; 1024 bytes - two sectors worth of the FAT
+DOS_FAT_SECTORS_END     = $20A900       ; The byte just past the end of the FAT buffers
+DOS_BOOT_SECTOR         = $20A900       ; A sector for holding the boot sector
+DOS_BOOT_SECTOR_END     = $20AB00
+DOS_SPARE_SECTOR        = $20AB00       ; A spare 512 byte buffer for loading sectors
+DOS_SPARE_SECTOR_END    = $20AD00
+DOS_SPARE_FD            = $20AD00       ; A spare file descriptor buffer
 DOS_SPARE_FD_END        = DOS_SPARE_FD + SIZE(FILEDESC)
 
 ; Space for allocatable file descriptors (8 file descriptors of 32 bytes each)
@@ -193,7 +193,7 @@ DOS_FILE_DESCS          = DOS_SPARE_FD_END
 DOS_FILE_DESCS_END      = DOS_FILE_DESCS + SIZE(FILEDESC) * DOS_FD_MAX
 
 ; Space for sector buffers for the file descriptors (8 buffers of 512 bytes each)
-DOS_FILE_BUFFS          = $38B000
+DOS_FILE_BUFFS          = $20B000
 DOS_FILE_BUFFS_END      = DOS_FILE_BUFFS + DOS_SECTOR_SIZE * DOS_FD_MAX
 
 ;;
@@ -291,7 +291,6 @@ fd_buff_loop    LDY #FILEDESC.BUFFER    ; Set the file descriptor's buffer point
                 PLB
                 RTL
                 .pend
-
 ;
 ; Mount a volume and load its information into a volume description
 ;
@@ -455,52 +454,108 @@ get_first_sec   ; Get the first cluster of the directory
                 STA FAT_BEGIN_LBA+2
 
                 ; Calculate the first sector of the data area
+
+                ; TODO: RDY GLITCH: Uncomment block
                 
                 ; Get the number of sectors per FAT
-                LDA DOS_SECTOR+BPB_SECPERFAT_OFF
-                STA SEC_PER_FAT
-                LDA DOS_SECTOR+BPB_SECPERFAT_OFF+2
-                STA SEC_PER_FAT+2
+                ; LDA @l DOS_SECTOR+BPB_SECPERFAT_OFF
+                ; STA @l SEC_PER_FAT
+                ; LDA @l DOS_SECTOR+BPB_SECPERFAT_OFF+2
+                ; STA @l SEC_PER_FAT+2
+
+                ; TODO: RDY GLITCH: Remove block
+
+                setas
+                LDX #0
+cpy_secperfat   LDA @l DOS_SECTOR+BPB_SECPERFAT_OFF,X
+                STA @l SEC_PER_FAT,X
+                INX
+                CPX #4
+                BNE cpy_secperfat
+       
+                ; TODO: RDY GLITCH: Uncomment block
+
+                ; setal
+                ; LDA SEC_PER_FAT
+                ; ASL A
+                ; STA CLUSTER_BEGIN_LBA
+                ; LDA SEC_PER_FAT+2
+                ; ROL A
+                ; STA CLUSTER_BEGIN_LBA+2
+
+                ; TODO: RDY GLITCH: Remove block
 
                 LDA SEC_PER_FAT
                 ASL A
                 STA CLUSTER_BEGIN_LBA
+
+                LDA SEC_PER_FAT+1
+                ROL A
+                STA CLUSTER_BEGIN_LBA+1
+
                 LDA SEC_PER_FAT+2
                 ROL A
                 STA CLUSTER_BEGIN_LBA+2
 
+                LDA SEC_PER_FAT+3
+                ROL A
+                STA CLUSTER_BEGIN_LBA+3
+
+                ; TODO: RDY GLITCH: Uncomment block
+
+                ; CLC
+                ; LDA CLUSTER_BEGIN_LBA                    ; Sectors Per FAT * 2 + fat_begin_lba
+                ; ADC FAT_BEGIN_LBA
+                ; STA CLUSTER_BEGIN_LBA
+                ; LDA CLUSTER_BEGIN_LBA+2
+                ; ADC FAT_BEGIN_LBA+2
+                ; STA CLUSTER_BEGIN_LBA+2
+
+                ; TODO: RDY GLITCH: Remove block
+
                 CLC
-                LDA CLUSTER_BEGIN_LBA                    ; Sectors Per FAT * 2 + fat_begin_lba
+                LDA CLUSTER_BEGIN_LBA
                 ADC FAT_BEGIN_LBA
                 STA CLUSTER_BEGIN_LBA
+
+                LDA CLUSTER_BEGIN_LBA+1
+                ADC FAT_BEGIN_LBA+1
+                STA CLUSTER_BEGIN_LBA+1
+
                 LDA CLUSTER_BEGIN_LBA+2
                 ADC FAT_BEGIN_LBA+2
                 STA CLUSTER_BEGIN_LBA+2
+
+                LDA CLUSTER_BEGIN_LBA+3
+                ADC FAT_BEGIN_LBA+3
+                STA CLUSTER_BEGIN_LBA+3
 
                 ; Get the sectors per cluster
                 setas
                 LDA DOS_SECTOR+BPB_SECPERCLUS_OFF
                 STA SECTORS_PER_CLUSTER
 
-                setal
-                AND #$00FF
-                PHA                                     ; Save the number of sectors per cluster
+                ; TODO: RDY GLITCH: Uncomment block
 
-                LDA #<>DOS_SECTOR_SIZE                  ; Default to one sector's worth of bytes
-                STA CLUSTER_SIZE
-                LDA #`DOS_SECTOR_SIZE
-                STA CLUSTER_SIZE+2
+                ; setal
+                ; AND #$00FF
+                ; PHA                                     ; Save the number of sectors per cluster
 
-                PLA                                     ; Restore the number of sectors per cluster
+                ; LDA #<>DOS_SECTOR_SIZE                  ; Default to one sector's worth of bytes
+                ; STA CLUSTER_SIZE
+                ; LDA #`DOS_SECTOR_SIZE
+                ; STA CLUSTER_SIZE+2
 
-clus_size_loop  CMP #1                                  ; If there's only one cluster, return success
-                BEQ ret_success
+                ; PLA                                     ; Restore the number of sectors per cluster
 
-                ASL CLUSTER_SIZE                        ; Otherwise, multiply the number of bytes by 2
-                ROL CLUSTER_SIZE+2
+; clus_size_loop  CMP #1                                  ; If there's only one cluster, return success
+;                 BEQ ret_success
 
-                LSR A                                   ; And divide the number of sectors by 2
-                BRA clus_size_loop
+;                 ASL CLUSTER_SIZE                        ; Otherwise, multiply the number of bytes by 2
+;                 ROL CLUSTER_SIZE+2
+
+;                 LSR A                                   ; And divide the number of sectors by 2
+;                 BRA clus_size_loop
 
 ret_success     setas
                 STZ DOS_STATUS          ; Set status code to 0
