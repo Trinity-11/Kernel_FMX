@@ -541,10 +541,10 @@ cpy_secperfat   LDA @l DOS_SECTOR+BPB_SECPERFAT_OFF,X
                 ; AND #$00FF
                 ; PHA                                     ; Save the number of sectors per cluster
 
-                ; LDA #<>DOS_SECTOR_SIZE                  ; Default to one sector's worth of bytes
-                ; STA CLUSTER_SIZE
-                ; LDA #`DOS_SECTOR_SIZE
-                ; STA CLUSTER_SIZE+2
+                LDA #<DOS_SECTOR_SIZE                   ; Default to one sector's worth of bytes
+                STA CLUSTER_SIZE
+                LDA #>DOS_SECTOR_SIZE
+                STA CLUSTER_SIZE+1
 
                 ; PLA                                     ; Restore the number of sectors per cluster
 
@@ -2690,7 +2690,6 @@ name_loop       LDA DOS_SHORT_NAME,Y            ; Copy the name over
                 STA [DOS_DIR_PTR],Y
                 LDY #DIRENTRY.MODIFIED_TIME     ; And DOS_DIR_PTR->MODIFIED_TIME
                 STA [DOS_DIR_PTR],Y
-
 
                 ; Save the directory cluster back to the block device
                 setal

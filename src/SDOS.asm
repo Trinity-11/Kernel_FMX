@@ -956,7 +956,7 @@ IF_NULLBUFFER   .proc
 loop            STA [DOS_TEMP],Y
                 INY
                 INY
-                CPY CLUSTER_SIZE
+                CPY #DOS_SECTOR_SIZE
                 BNE loop
 
                 PLP
@@ -999,7 +999,7 @@ copy_loop       setas
                 setal
                 
                 INY                         ; Count it
-                CPY CLUSTER_SIZE            ; Have we reached the limit?
+                CPY #DOS_SECTOR_SIZE        ; Have we reached the limit?
                 BEQ done                    ; Yes: we're done
 
                 LDA DOS_SRC_PTR             ; Check if we copied the last byte
@@ -1043,6 +1043,8 @@ IF_SAVE         .proc
                 PHD
                 PHB
                 PHP
+
+                TRACE "IF_SAVE"
 
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
