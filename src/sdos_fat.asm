@@ -2675,7 +2675,12 @@ name_loop       LDA DOS_SHORT_NAME,Y            ; Copy the name over
                 LDY #DIRENTRY.SIZE+2
                 STA [DOS_DIR_PTR],Y
 
-                JSL DOS_RTCCREATE               ; Pull the creation date-time from the RTC
+                ; JSL DOS_RTCCREATE               ; Pull the creation date-time from the RTC
+                LDA #0                          ; Force create date-time to 0
+                LDY #FILEDESC.CREATE_DATE       ; TODO: restore the RTC integration when that is working better.
+                STA [DOS_FD_PTR],Y
+                LDY #FILEDESC.CREATE_TIME
+                STA [DOS_FD_PTR],Y
 
                 LDY #FILEDESC.CREATE_DATE       ; DOS_DIR_PTR->CREATE_DATE := DOS_FD_PTR->CREATE_DATE
                 LDA [DOS_FD_PTR],Y
