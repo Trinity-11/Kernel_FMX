@@ -14,3 +14,16 @@ CHAR_SP = $20       ; Space
 CHAR_DOWN = $91     ; Down arrow
 CHAR_LEFT = $9D     ; Left arrow
 CHAR_DEL = $7F      ; Delete key (delete the character at the cursor)
+
+CHAR_F1 = $81       ; Function keys
+CHAR_F2 = $82
+CHAR_F3 = $83
+CHAR_F4 = $84
+CHAR_F5 = $85
+CHAR_F6 = $86
+CHAR_F7 = $87
+CHAR_F8 = $88
+CHAR_F9 = $89
+CHAR_F10 = $8A
+CHAR_F11 = $8B
+CHAR_F12 = $8C
