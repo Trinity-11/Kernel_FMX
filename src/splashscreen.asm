@@ -34,6 +34,23 @@ SET_GRAPHIC_MODE
         AND #$~Mstr_Ctrl_Text_Mode_En ; Disable the Text Mode
         ORA #$ (Mstr_Ctrl_Graph_Mode_En | Mstr_Ctrl_Bitmap_En | Mstr_Ctrl_TileMap_En | Mstr_Ctrl_Sprite_En) ; Enabling Graphic Mode, BM, Tile & Sprites
         STA @lMASTER_CTRL_REG_L
+
+        ; Make sure we're in 640x480 mode, this process is a bit of a work-around for a VICKY II quirk
+        
+        LDA @L MASTER_CTRL_REG_H
+        AND #Mstr_Ctrl_Video_Mode0
+        BEQ SET_GRMODE_DONE             ; Already 0, so just return
+
+        LDA #0                          ; Set it to 640x480
+        STA @L MASTER_CTRL_REG_H
+
+        LDA #Mstr_Ctrl_Video_Mode0      ; Temporarily go 800x600
+        STA @L MASTER_CTRL_REG_H
+
+        LDA #0                          ; Set it to 0 for real
+        STA @L MASTER_CTRL_REG_H
+
+SET_GRMODE_DONE
         RTS
 
 SET_BITMAP_MODE_PARAMETERS

@@ -230,14 +230,28 @@ jmpcopy         LDA @l BOOT,X
 
 retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
                 JSL FDC_INIT
-                ; JSL FDC_TEST
-                ; JSL DOS_TEST
+
+                JSL BOOT_MENU         ; Show the splash screen / boot menu and wait for key presses
+                CMP #CHAR_SP          ; Did the user press SPACE?
+                BEQ BOOT_DIP          ; Yes: boot via the DIP switches
+                
+                CMP #CHAR_CR          ; Did the user press RETURN?
+                BEQ BOOTBASIC         ; Yes: go straight to BASIC
+
+                CMP #CHAR_F1          ; Did the user press F1?
+                BEQ BOOTFLOPPY        ; Yes: boot via the floppy
+
+                CMP #CHAR_F2          ; Did the user press F2?
+                BEQ BOOTSDC           ; Yes: boot via the SDC
+
+                CMP #CHAR_F3          ; Did the user press F3?
+                BEQ BOOTIDE           ; Yes: boot via the IDE
 
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified
                 ;
 
-                LDA @lDIP_BOOTMODE    ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], BOOT_MODE[0]}
+BOOT_DIP        LDA @lDIP_BOOTMODE    ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], BOOT_MODE[0]}
                 AND #%00000011        ; Look at the mode bits
                 CMP #DIP_BOOT_IDE     ; DIP set for IDE?
                 BEQ BOOTIDE           ; Yes: Boot from the IDE
@@ -306,6 +320,63 @@ chk_b_lc        CMP #'b'              ; Was "B" pressed?
                 CMP #'B'
                 BEQ BOOTBASIC
                 BRA boot_wait_key     ; No: keep waiting
+
+;
+; Display the boot menu / splash screen and give the user some time to respond
+;
+; Outputs:
+;   A = 0 for no response
+;       CR for boot to BASIC
+;       F1 for boot to floppy
+;       F2 for boot to SDC
+;       F3 for boot to IDE
+;
+BOOT_MENU       .proc
+                PHB
+                PHP
+
+                setas
+                setxl
+                LDA #`bootmenu          ; Point DBR:X to the boot menu
+                PHA
+                PLB
+                LDX #<>bootmenu         
+
+                JSL PUTS                ; Display the boot menu
+                                        ; TODO: replace with the splash screen
+
+                setxl
+                LDY #1000               ; Number of cycles we'll wait... total wait time is about 30s (ish)
+
+                setas
+wait_key        LDX #1000
+                JSL ILOOP_MS            ; Wait ...
+                DEY                     ; Count down the tenths of seconds
+                BEQ timeout             ; If we've got to 0, we're done
+
+                JSL GETCH               ; Try to get a character
+                CMP #0                  ; Did we get anything
+                BEQ wait_key            ; No: keep waiting until timeout
+
+                CMP #CHAR_F1            ; Did the user press F1?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_F2            ; Did the user press F2?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_F3            ; Did the user press F3?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_CR            ; Did the user press CR?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_SP            ; Did the user press SPACE?
+                BNE wait_key            ; No: keep waiting
+
+timeout         LDA #0                  ; Return 0 for a timeout / SPACE
+
+return          PLP
+                PLB
+                RTL
+bootmenu        .null "F1=FDC, F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
+                .pend
+
 
 ;
 ; IBREAK
@@ -440,6 +511,54 @@ done            PLP
                 CLC                 ; Return carry clear for valid data
                 RTL
                 .pend
+
+;
+; IGETCH
+;
+; Get a character from the input channel.
+;
+; Inputs:
+;
+; Outputs:
+;   A = key pressed (0 for none)
+;
+IGETCH          .proc
+                PHX
+                PHY
+                PHB
+                PHD
+                PHP
+
+                setdbr 0
+
+                setas
+                LDA @w CHAN_IN          ; Check the channel
+                CMP #CHAN_CONSOLE       ; Is it the console
+                BEQ getch_console       ; Yes: dispatch on the console
+
+                ; TODO: handle the UART
+
+                BRL ret_nothing         ; Unhandled device: return 0
+
+getch_console   setal
+                LDA @w KEY_BUFFER_RPOS  ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
+                CMP @w KEY_BUFFER_WPOS
+                BCS ret_nothing         ; No: there's nothing ready yet... return 0
+
+                JSL GETCHW              ; Otherwise: retrieve the character
+                BRA done                ; And return it
+
+ret_nothing     setal
+                LDA #0                  ; Return 0 for no key
+
+done            PLP
+                PLD
+                PLB
+                PLY
+                PLX
+                RTL
+                .pend
+
 ;
 ; IPRINT
 ; Print a string, followed by a carriage return
@@ -1423,7 +1542,22 @@ IINITVKYTXTMODE PHA
                 LDA #0                            ; 640x480 mode (80 columns max)
                 STA @lMASTER_CTRL_REG_H
 
+                ; Make sure we're in 640x480 mode, this process is a bit of a work-around for a VICKY II quirk
+                
+                LDA @L MASTER_CTRL_REG_H
+                AND #Mstr_Ctrl_Video_Mode0
+                BEQ INITVICKYBORDER             ; Already 0, so set the border
 
+                LDA #0                          ; Set it to 640x480
+                STA @L MASTER_CTRL_REG_H
+
+                LDA #Mstr_Ctrl_Video_Mode0      ; Temporarily go 800x600
+                STA @L MASTER_CTRL_REG_H
+
+                LDA #0                          ; Set it to 640x480 for real
+                STA @L MASTER_CTRL_REG_H
+
+INITVICKYBORDER
                 ; Set the Border Color
                 LDA #$20
                 STA BORDER_COLOR_B
@@ -2755,7 +2889,6 @@ ISETNAM         BRK ; Obsolete (done in OPEN)
 IOPEN           BRK ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 ICLOSE          BRK ; Close a channel
 IGETB           BRK ; Get a byte from input channel. Return 0 if no input. Carry is set if no input.
-IGETCH          BRK ; Get a character from the input channel. A=0 and Carry=1 if no data is wating
 IGETS           BRK ; Get a string from the input channel. NULL terminates
 IGETLINE        BRK ; Get a line of text from input channel. CR or NULL terminates.
 IGETFIELD       BRK ; Get a field from the input channel. Value in A, CR, or NULL terminates
