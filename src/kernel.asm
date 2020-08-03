@@ -1535,30 +1535,24 @@ iinit_lut_exit
 IINITVKYTXTMODE PHA
                 PHP
 
-                setas
-                LDA #Mstr_Ctrl_Text_Mode_En       ; Okay, this Enables the Text Mode (Video Display)
-                STA MASTER_CTRL_REG_L
-
-                LDA #0                            ; 640x480 mode (80 columns max)
-                STA @lMASTER_CTRL_REG_H
-
                 ; Make sure we're in 640x480 mode, this process is a bit of a work-around for a VICKY II quirk
-                
-                LDA @L MASTER_CTRL_REG_H
-                AND #Mstr_Ctrl_Video_Mode0
-                BEQ INITVICKYBORDER             ; Already 0, so set the border
+                ; setas
+                ; LDA @L MASTER_CTRL_REG_H
+                ; BEQ INITVICKYMODE
 
-                LDA #0                          ; Set it to 640x480
-                STA @L MASTER_CTRL_REG_H
+                setal
+                LDA #0
+                STA @L MASTER_CTRL_REG_L
+                LDA #$101
+                STA @L MASTER_CTRL_REG_L
 
-                LDA #Mstr_Ctrl_Video_Mode0      ; Temporarily go 800x600
-                STA @L MASTER_CTRL_REG_H
-
-                LDA #0                          ; Set it to 640x480 for real
-                STA @L MASTER_CTRL_REG_H
+INITVICKYMODE   setal
+                LDA #Mstr_Ctrl_Text_Mode_En       ; Set it to 640x480 for real
+                STA @L MASTER_CTRL_REG_L
 
 INITVICKYBORDER
                 ; Set the Border Color
+                setas
                 LDA #$20
                 STA BORDER_COLOR_B
                 STA BORDER_COLOR_R
