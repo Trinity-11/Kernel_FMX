@@ -137,18 +137,36 @@ EXIT_IRQ_HANDLE
 ; ///
 ; ///////////////////////////////////////////////////////////////////
 SOF_INTERRUPT
-                .as
+                PHP
+
+                setas
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 STA @lINT_PENDING_REG0
 
-                setal
-                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
-                BEQ sof_timeout                 ; If it's zero, check for the watchdog timeout
+                ; TODO: seeing odd behavior with the timer
 
-                DEC A                           ; Otherwise, decrement it...
+                setas                           ; Switching to 8 bit counting... for now.
+                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
+                BNE dec_motor                   ; If not zero: decrement the timer
+                LDA @l FDC_MOTOR_TIMER+1        ; Check the high byte
+                BEQ sof_timeout                 ; If zero: move on to the next timer
+
+dec_motor       LDA @l FDC_MOTOR_TIMER          ; Decrement the low byte
+                DEC A
                 STA @l FDC_MOTOR_TIMER
-                BNE sof_timeout                 ; If it's not zero, check for the watchdog timeout
+                CMP #$FF                        ; Did it roll over?
+                BNE chk_motor_end               ; No: check to see if we're a the end
+
+                LDA @l FDC_MOTOR_TIMER+1        ; Decrement the high byte
+                DEC A
+                STA @l FDC_MOTOR_TIMER+1
+                BRA sof_timeout                 ; And move on to the next timer
+
+chk_motor_end   LDA @l FDC_MOTOR_TIMER          ; Check timer
+                BNE sof_timeout                 ; if it's <>0, move on to the next timer
+                LDA @l FDC_MOTOR_TIMER+1
+                BNE sof_timeout
 
                 JSL FDC_Motor_Off               ; Otherwise, turn off the motor
 
@@ -164,7 +182,8 @@ sof_timeout     setas
                 ORA #BIOS_TIMEOUT
                 STA @l BIOS_FLAGS
 
-sof_int_done    RTS
+sof_int_done    PLP
+                RTS
 
 ; ///////////////////////////////////////////////////////////////////
 ; ///
