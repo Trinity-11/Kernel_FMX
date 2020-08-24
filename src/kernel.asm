@@ -660,11 +660,11 @@ check_ctrl0     CMP #CHAR_TAB       ; If it's a TAB...
                 CMP #CHAR_RIGHT     ; If the right arrow key was pressed
                 BEQ go_right        ; ... move the cursor right one column
                 CMP #CHAR_INS       ; If the insert key was pressed
+                BEQ do_ins          ; ... insert a space
                 CMP #CHAR_CTRL_A    ; Check for CTRL-A (start of line)
                 BEQ go_sol          ; ... move the cursor to the start of the line
                 CMP #CHAR_CTRL_E    ; Check for CTRL-E (end of line)
                 BEQ go_eol          ; ... move the cursor to the end of the line
-                BEQ do_ins          ; ... insert a space
 
 printc          STA [CURSORPOS]     ; Save the character on the screen
 
@@ -782,7 +782,7 @@ SCRSHIFTLL      PHX
                 TAX
                 INX                 ; And set the next cell as the source
 
-                SEC                 ; Calculate the length of the block to move
+                CLC                 ; Calculate the length of the block to move
                 LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
@@ -816,10 +816,15 @@ SCRSHIFTLR      PHX
                 CMP COLS_VISIBLE    ; >= the # visible?
                 BGE done            ; Yes: just skip the whole thing
 
-                LDA CURSORPOS       ; Get the current cursor position
-                TAX                 ; Make it the source
-                INC A               ; Point to the next byte
+                SEC                 ; Calculate the length of the block to move
+                LDA COLS_VISIBLE
+                SBC CURSORX
+                CLC
+                ADC CURSORPOS       ; Add the current cursor position
+                DEC A
                 TAY                 ; Make it the destination
+                DEC A               ; Move to the previous column
+                TAX                 ; Make it the source              
 
                 SEC                 ; Calculate the length of the block to move
                 LDA COLS_VISIBLE    ; as columns visible - X
