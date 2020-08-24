@@ -578,6 +578,8 @@ FDC_Init            .proc
                     JSL FDC_Specify_Command
                     BCC pass_failure
 
+                    JSL FDC_Motor_On
+
                     PLP
                     SEC
                     RTL
@@ -1612,6 +1614,8 @@ FDC_MOUNT           .proc
                     setdp FDC_DRIVE
 
                     TRACE "FDC_MOUNT"
+
+                    JSL FDC_INIT
 
                     setas
                     setxl

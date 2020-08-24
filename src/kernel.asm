@@ -229,7 +229,6 @@ jmpcopy         LDA @l BOOT,X
                 BNE jmpcopy
 
 retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
-                JSL FDC_INIT
 
                 JSL BOOT_MENU         ; Show the splash screen / boot menu and wait for key presses
                 CMP #CHAR_SP          ; Did the user press SPACE?
@@ -661,6 +660,10 @@ check_ctrl0     CMP #CHAR_TAB       ; If it's a TAB...
                 CMP #CHAR_RIGHT     ; If the right arrow key was pressed
                 BEQ go_right        ; ... move the cursor right one column
                 CMP #CHAR_INS       ; If the insert key was pressed
+                CMP #CHAR_CTRL_A    ; Check for CTRL-A (start of line)
+                BEQ go_sol          ; ... move the cursor to the start of the line
+                CMP #CHAR_CTRL_E    ; Check for CTRL-E (end of line)
+                BEQ go_eol          ; ... move the cursor to the end of the line
                 BEQ do_ins          ; ... insert a space
 
 printc          STA [CURSORPOS]     ; Save the character on the screen
@@ -702,6 +705,11 @@ go_right        JSL ICSRRIGHT       ; Move the cursor right one column
 go_left         JSL ICSRLEFT        ; Move the cursor left one column
                 BRA done
 
+go_sol          setal               ; Move the cursor to the start of the line
+                LDX #0
+                LDY CURSORY
+                BRA do_locate
+
 do_TAB          setal
                 LDA CURSORX         ; Get the current column
                 AND #$FFF8          ; See which group of 8 it's in
@@ -724,6 +732,34 @@ check_row       CPY LINES_VISIBLE   ; Check if we're still on the screen vertica
 
 do_locate       JSL ILOCATE         ; Set the cursor position
                 BRA done
+
+; Move the cursor to be just to the right of the last non-white space character on the line
+; If the line is full, move it to the right-most column
+; If the line is empty, move it to the left-most column
+go_eol          LDX COLS_VISIBLE    ; Move the cursor to the right most column
+                DEX
+                LDY CURSORY
+                JSL ILOCATE
+
+                setas
+eol_loop        LDA [CURSORPOS]     ; Get the character under the cursor
+                CMP #CHAR_SP        ; Is it blank?
+                BNE eol_done        ; No: exit the loop
+
+                JSL ICSRLEFT        ; Yes: move to the left
+
+                LDX CURSORX         ; Are we at column 0?
+                BNE eol_loop        ; No: try again
+                BRL done            ; Yes: we're done
+
+eol_done        LDX CURSORX         ; Check the column
+                INX
+                CPX COLS_VISIBLE    ; Is it the right most?
+                BNE eol_right
+                BRL done            ; Yes: we're done
+                
+eol_right       JSL ICSRRIGHT       ; No: move right one column
+                BRL done
                 .pend
 
 ;
@@ -775,12 +811,15 @@ SCRSHIFTLR      PHX
                 setdp 0
 
                 setaxl
+                LDA CURSORX         ; What column are we on
+                INC A
+                CMP COLS_VISIBLE    ; >= the # visible?
+                BGE done            ; Yes: just skip the whole thing
+
                 LDA CURSORPOS       ; Get the current cursor position
-                AND #$FF80          ; Mask off the column bits
-                ORA #$007F          ; And compute the address of the last cell
-                TAY                 ; And set that as the destination address
-                DEC A               ; Compute the address of the character to the left
-                TAX                 ; And make it the source
+                TAX                 ; Make it the source
+                INC A               ; Point to the next byte
+                TAY                 ; Make it the destination
 
                 SEC                 ; Calculate the length of the block to move
                 LDA COLS_VISIBLE    ; as columns visible - X
@@ -792,7 +831,7 @@ SCRSHIFTLR      PHX
                 LDA #CHAR_SP        ; Put a blank space at the cursor position
                 STA [CURSORPOS]
 
-                PLP
+done            PLP
                 PLD
                 PLA
                 PLX
@@ -3021,9 +3060,9 @@ ScanCode_Shift_Set1   .text $00, $00, $21, $40, $23, $24, $25, $5E, $26, $2A, $2
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
 
 ScanCode_Ctrl_Set1    .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
-                      .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
-                      .text $64, $66, $67, $68, $6A, $6B, $6C, $3B, $27, $60, $00, $5C, $7A, $78, $03, $76    ; $20
-                      .text $62, $6E, $6D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
+                      .text $11, $17, $05, $12, $14, $19, $15, $09, $0F, $10, $5B, $5D, $0D, $00, $01, $13    ; $10
+                      .text $04, $06, $07, $08, $0A, $0B, $0C, $3B, $27, $00, $00, $5C, $1A, $18, $03, $16    ; $20
+                      .text $02, $0E, $0D, $2C, $2E, $2F, $00, $2A, $00, $20, $00, $00, $00, $00, $00, $00    ; $30
                       .text $00, $00, $00, $00, $00, $18, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $40
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
@@ -3051,7 +3090,7 @@ ScanCode_Prefix_Set1  .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $0
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $10
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $20
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $30
-                      .text $00, $00, $00, $00, $00, $00, $00, $00, $11, $00, $00, $9D, $00, $1D, $00, $00    ; $40
+                      .text $00, $00, $00, $00, $00, $00, $00, $01, $11, $00, $00, $9D, $00, $1D, $00, $05    ; $40
                       .text $91, $00, $0F, $7F, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $50
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $60
                       .text $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00    ; $70
@@ -3133,6 +3172,9 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
 
 * = $3FF000
 FONT_4_BANK0
+;.binary "FONT/AppleLikeFont.bin", 0, 2048
+;.binary "FONT/MSX_8x8.bin", 0, 2048
+;.binary "FONT/CBM-ASCII_new_8x8.bin", 0, 2048
 .binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
 FONT_4_BANK1
 .binary "FONT/CBM-ASCII_8x8.bin", 0, 2048

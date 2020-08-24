@@ -2,7 +2,9 @@
 ;;; Definitions of important characters
 ;;;
 
+CHAR_CTRL_A = $01   ; CTRL-A (move to start of line)
 CHAR_CTRL_C = $03   ; CTRL-C
+CHAR_CTRL_E = $05   ; CTRL-E (move to end of line)
 CHAR_BS = $08       ; Backspace (delete character to the left of the cursor)
 CHAR_TAB = $09      ; TAB (moves cursor to next tabulated column)
 CHAR_LF = $0A       ; Line feed

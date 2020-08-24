@@ -210,10 +210,31 @@ DOS_INIT        .proc
                 PHD
                 PHP
 
+                TRACE "DOS_INIT"
+
+                setdbr 0
+                setdp SDOS_VARIABLES
+
+                setas
+                setxl
+                LDX #0                  ; Zero out all the bank 0 variables
+                LDA #0
+b0_clr_loop     STA @w SDOS_VARIABLES,X
+                INX
+                CPX #<>(FDC_CMD_RETRY - SDOS_VARIABLES + 1)
+                BNE b0_clr_loop
+
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
 
-                TRACE "DOS_INIT"
+                setas
+                setxl
+                LDX #0                  ; Zero out all the bank $38 variables
+                LDA #0
+b38_clr_loop    STA @w DOS_HIGH_VARIABLES,X
+                INX
+                CPX #<>(DOS_FILE_BUFFS_END - DOS_HIGH_VARIABLES + 1)
+                BNE b38_clr_loop
 
                 setal
                 LDA #<>DOS_HD_DESC      ; Initialize the device names list
@@ -313,6 +334,10 @@ DOS_MOUNT       .proc
                 LDA BIOS_DEV            ; Get the device to moount
                 CMP @l DOS_MOUNT_DEV    ; Is it already mounted?
                 BNE try_mount           ; No: try to moount it
+
+                CMP #BIOS_DEV_FDC
+                BEQ try_mount
+                
                 BRL ret_success         ; Yes: just return success
 
 try_mount       STA @l DOS_MOUNT_DEV    ; Save the device we're going to try to mount
