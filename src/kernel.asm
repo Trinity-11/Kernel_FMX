@@ -1580,21 +1580,34 @@ IINITVKYTXTMODE PHA
                 PHP
 
                 ; Make sure we're in 640x480 mode, this process is a bit of a work-around for a VICKY II quirk
-                ; setas
-                ; LDA @L MASTER_CTRL_REG_H
-                ; BEQ INITVICKYMODE
 
-                setal
-                LDA #0
-                STA @L MASTER_CTRL_REG_L
-                LDA #$101
-                STA @L MASTER_CTRL_REG_L
+                setas
+                LDA @l MASTER_CTRL_REG_H
+                AND #$01
+                CMP #$01
+                BNE INITVICKYMODE
 
-INITVICKYMODE   setal
+                LDA #$00
+                STA @L MASTER_CTRL_REG_H
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+
+                LDA #$01
+                STA @L MASTER_CTRL_REG_H
+                NOP
+                NOP
+                NOP
+                NOP
+
+INITVICKYMODE
+                LDA #$00
+                STA @L MASTER_CTRL_REG_H
                 LDA #Mstr_Ctrl_Text_Mode_En       ; Set it to 640x480 for real
                 STA @L MASTER_CTRL_REG_L
-
-INITVICKYBORDER
+                
                 ; Set the Border Color
                 setas
                 LDA #$20

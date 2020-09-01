@@ -94,7 +94,8 @@ SDC_RESET       .proc
 ;   BIOS_STATUS contains an error code if relevant
 ;   FDC_ST0 contains the SDC error bits
 ;
-SDC_INIT        PHD
+SDC_INIT        .proc
+                PHD
                 PHB
                 PHP
 
@@ -104,7 +105,13 @@ SDC_INIT        PHD
                 setdp SDOS_VARIABLES
                 
                 setas
-                LDA #SDC_TRANS_INIT_SD
+                ; LDA @l SDCARD_STAT                  ; Check the SDC status
+                ; BIT #SDC_DETECTED                   ; Is a card present
+                ; BEQ start_trans                     ; Yes: start the transaction
+                ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
+                ; BRA set_error
+
+start_trans     LDA #SDC_TRANS_INIT_SD
                 STA @l SDC_TRANS_TYPE_REG           ; Set Init SD
 
                 LDA #SDC_TRANS_START                ; Set the transaction to start
@@ -124,12 +131,13 @@ ret_success     STZ BIOS_STATUS
 
 ret_error       STA @w FDC_ST0
                 LDA #BIOS_ERR_NOTINIT
-                STA BIOS_STATUS
+set_error       STA BIOS_STATUS
                 PLP
                 PLB
                 PLD
                 CLC
                 RTL
+                .pend
 
 ;
 ; Read a 512 byte block from the SDC into memory

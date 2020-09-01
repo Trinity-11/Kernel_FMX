@@ -814,6 +814,15 @@ IF_LOADPGX      .proc
 fail_sig        LDA #DOS_ERR_PGXSIG                 ; Fail with a PGXSIG error code
                 JSL IF_FAILURE
 
+adjust_size     setal
+                SEC                                 ; Subtract the 8 bytes of the header from the file size
+                LDA DOS_FILE_SIZE
+                SBC #8
+                STA DOS_FILE_SIZE
+                LDA DOS_FILE_SIZE+2
+                SBC #0
+                STA DOS_FILE_SIZE+2
+
                 ; Read destination address from the file
 get_dest        setal
                 INY
@@ -836,7 +845,7 @@ copy_loop       setas
                 setal
                 INC DOS_DST_PTR                     ; Move to the next destination location
                 BNE dec_file_size
-                INC DOS_DST_PTR
+                INC DOS_DST_PTR+2
 
 dec_file_size   SEC                                 ; Count down the number of bytes to read
                 LDA DOS_FILE_SIZE
@@ -859,7 +868,7 @@ next_byte       INY                                 ; Otherwise, move to the nex
                 BCS next_cluster
                 BRL IF_PASSFAILURE                  ; If failed: pass that up the chain
 
-next_cluster    LDY #0                              ; Reset the source index
+next_cluster    LDY #0
                 BRA copy_loop                       ; Go back to copying
 
 done            BRL IF_SUCCESS

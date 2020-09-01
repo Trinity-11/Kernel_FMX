@@ -332,13 +332,13 @@ DOS_MOUNT       .proc
 
                 setas
                 LDA BIOS_DEV            ; Get the device to moount
-                CMP @l DOS_MOUNT_DEV    ; Is it already mounted?
-                BNE try_mount           ; No: try to moount it
+                ; CMP @l DOS_MOUNT_DEV    ; Is it already mounted?
+                ; BNE try_mount           ; No: try to moount it
 
-                CMP #BIOS_DEV_FDC
-                BEQ try_mount
+                ; CMP #BIOS_DEV_FDC
+                ; BEQ try_mount
                 
-                BRL ret_success         ; Yes: just return success
+                ; BRL ret_success         ; Yes: just return success
 
 try_mount       STA @l DOS_MOUNT_DEV    ; Save the device we're going to try to mount
 
@@ -1621,27 +1621,42 @@ NEXTCLUSTER32   .proc
                 JSL FATFORCLUSTER32             ; Get the FAT entry for this cluster
                 BCC ret_failure                 ; If it did not work, return the error
 
-                LDA DOS_FAT_SECTORS,X           ; Get the entry and copy it to DOS_TEMP
+                setas
+                LDA @l DOS_FAT_SECTORS,X        ; Get the entry and copy it to DOS_TEMP
                 STA DOS_TEMP
-                LDA DOS_FAT_SECTORS+2,X
+                LDA @l DOS_FAT_SECTORS+1,X
+                STA DOS_TEMP+1
+                LDA @l DOS_FAT_SECTORS+2,X
                 STA DOS_TEMP+2
+                LDA @l DOS_FAT_SECTORS+3,X
+                STA DOS_TEMP+3
 
-                LDA DOS_TEMP                    ; Is DOS_TEMP = $FFFFFFFF?
-                CMP #$FFFF
+xxxx            LDA DOS_TEMP                    ; Is DOS_TEMP = $FFFFFFFF?
+                CMP #$FF
+                BNE found_next
+                LDA DOS_TEMP+1
+                CMP #$FF
                 BNE found_next
                 LDA DOS_TEMP+2
-                CMP #$0FFF
+                CMP #$FF
+                BNE found_next
+                LDA DOS_TEMP+3
+                CMP #$0F
                 BNE found_next                  ; No: return this cluster as the next
 
                 setas
                 LDA #DOS_ERR_NOCLUSTER          ; Yes: return that there are no more clusters
                 BRA ret_failure
 
-found_next      setal
+found_next      setas
                 LDA DOS_TEMP                    ; No: return DOS_TEMP as the new DOS_CLUS_ID
                 STA DOS_CLUS_ID
+                LDA DOS_TEMP+1
+                STA DOS_CLUS_ID+1
                 LDA DOS_TEMP+2
                 STA DOS_CLUS_ID+2
+                LDA DOS_TEMP+3
+                STA DOS_CLUS_ID+3
 
 ret_success     setas
                 STZ DOS_STATUS                  ; Record success
@@ -2007,18 +2022,14 @@ inc_ptr         INX                             ; Update the index to the entry
                 
                 ; Yes: load the next sector
 
-                CLC                             ; Point to the next sector in the FAT
-                LDA BIOS_LBA
-                ADC #DOS_SECTOR_SIZE
-                STA BIOS_LBA
-                LDA BIOS_LBA+2
-                ADC #0
-                STA BIOS_LBA+2
+                INC BIOS_LBA                    ; Point to the next sector in the FAT
+                BNE get_block
+                INC BIOS_LBA+2
 
                 ; TODO: check for end of FAT
 
-                JSL GETBLOCK                    ; Attempt to read the block
-                BCS set_ptr                     ; If OK: set the pointer and check it
+get_block       JSL GETBLOCK                    ; Attempt to read the block
+                BCC ret_fat_error               ; If error: throw a FAT error
 
 set_ptr         LDX #0                          ; Set index pointer to the first entry
                 BRA chk_entry                   ; Check this entry
@@ -2032,7 +2043,7 @@ found_free      setal
                 JSL PUTBLOCK                    ; Write the sector back to the block device
                 BCS ret_success                 ; If OK: return success
 
-                setas
+ret_fat_error   setas
                 LDA #DOS_ERR_FAT                ; Otherwise: return NOFAT error
 
 ret_failure     setas

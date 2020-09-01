@@ -88,22 +88,22 @@ FPGA_YOR                = $AF070F ;
 ;                       = $AF13FF ; The SuperIO Start is Here
 
 FG_CHAR_LUT_PTR         = $AF1F40
-BG_CHAR_LUT_PTR		      = $AF1F80
+BG_CHAR_LUT_PTR		    = $AF1F80
 
-GRPH_LUT0_PTR		        = $AF2000
-GRPH_LUT1_PTR		        = $AF2400
-GRPH_LUT2_PTR		        = $AF2800
-GRPH_LUT3_PTR		        = $AF2C00
-GRPH_LUT4_PTR		        = $AF3000
-GRPH_LUT5_PTR		        = $AF3400
-GRPH_LUT6_PTR		        = $AF3800
-GRPH_LUT7_PTR		        = $AF3C00
+GRPH_LUT0_PTR		    = $AF2000
+GRPH_LUT1_PTR		    = $AF2400
+GRPH_LUT2_PTR		    = $AF2800
+GRPH_LUT3_PTR		    = $AF2C00
+GRPH_LUT4_PTR		    = $AF3000
+GRPH_LUT5_PTR		    = $AF3400
+GRPH_LUT6_PTR		    = $AF3800
+GRPH_LUT7_PTR		    = $AF3C00
 
-GAMMA_B_LUT_PTR		      = $AF4000
-GAMMA_G_LUT_PTR		      = $AF4100
-GAMMA_R_LUT_PTR		      = $AF4200
+GAMMA_B_LUT_PTR		    = $AF4000
+GAMMA_G_LUT_PTR		    = $AF4100
+GAMMA_R_LUT_PTR		    = $AF4200
 
-TILE_MAP0       		    = $AF5000     ;$AF5000 - $AF57FF
+TILE_MAP0       		= $AF5000     ;$AF5000 - $AF57FF
 TILE_MAP1               = $AF5800     ;$AF5800 - $AF5FFF
 TILE_MAP2               = $AF6000     ;$AF6000 - $AF67FF
 TILE_MAP3               = $AF6800     ;$AF6800 - $AF6FFF
@@ -120,4 +120,5 @@ BTX_END                 = $AFFFFF
 .include "VKYII_CFP9553_BITMAP_def.asm"
 .include "VKYII_CFP9553_TILEMAP_def.asm"
 .include "VKYII_CFP9553_VDMA_def.asm"
+.include "VKYII_CFP9553_SDMA_def.asm"
 .include "VKYII_CFP9553_SPRITE_def.asm"
