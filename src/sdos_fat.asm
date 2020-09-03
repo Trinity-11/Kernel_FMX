@@ -562,6 +562,20 @@ cpy_secperfat   LDA @l DOS_SECTOR+BPB_SECPERFAT_OFF,X
 
                 ; TODO: RDY GLITCH: Uncomment block
 
+                CLC
+                LDA FAT_BEGIN_LBA                       ; Compute the address of the first sector of
+                ADC SEC_PER_FAT                         ; the second copy of the FAT
+                STA FAT2_BEGIN_LBA
+                LDA FAT_BEGIN_LBA+1
+                ADC SEC_PER_FAT+1
+                STA FAT2_BEGIN_LBA+1
+                LDA FAT_BEGIN_LBA+2
+                ADC SEC_PER_FAT+2
+                STA FAT2_BEGIN_LBA+2
+                LDA FAT_BEGIN_LBA+3
+                ADC SEC_PER_FAT+3
+                STA FAT2_BEGIN_LBA+3
+
                 ; setal
                 ; AND #$00FF
                 ; PHA                                     ; Save the number of sectors per cluster
@@ -2026,7 +2040,17 @@ inc_ptr         INX                             ; Update the index to the entry
                 BNE get_block
                 INC BIOS_LBA+2
 
-                ; TODO: check for end of FAT
+                ; Check to see if we have reached the end of the FAT
+                LDA BIOS_LBA+2
+                CMP FAT2_BEGIN_LBA+2
+                BLT get_block
+                LDA BIOS_LBA
+                CMP FAT2_BEGIN_LBA
+                BLT get_block
+
+                setas
+                LDA #DOS_ERR_MEDIAFULL          ; No: throw a media full error
+                BRA ret_failure
 
 get_block       JSL GETBLOCK                    ; Attempt to read the block
                 BCC ret_fat_error               ; If error: throw a FAT error

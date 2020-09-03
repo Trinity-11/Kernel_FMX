@@ -1898,27 +1898,26 @@ IINITSPRITE     PHA
 ;   None
 ; Affects:
 ;  Vicky's Internal FONT Memory
-IINITFONTSET
-                setas
-                setxl
-                LDX #$0000
-initFontsetbranch0
-                LDA @lFONT_4_BANK0,X    ; RAM Content
-                STA @lFONT_MEMORY_BANK0,X ; Vicky FONT RAM Bank
-                INX
-                CPX #$0800
-                BNE initFontsetbranch0
-                NOP
-                LDX #$0000
-initFontsetbranch1
-                LDA @lFONT_4_BANK1,X
-                STA @lFONT_MEMORY_BANK1,X ; Vicky FONT RAM Bank
-                INX
-                CPX #$0800
-                BNE initFontsetbranch1
-                NOP
+IINITFONTSET    .proc
+                PHA
+                PHX
+                PHY
+                PHB
+                PHP
                 setaxl
+
+                LDX #<>FONT_4_BANK0         ; Font data to load
+                LDY #<>FONT_MEMORY_BANK0    ; Location to load the font data
+                LDA #8 * 256                ; Size of a FONT in bytes
+                MVN #`FONT_4_BANK0, #`FONT_MEMORY_BANK0
+
+                PLP
+                PLB
+                PLY
+                PLX
+                PLA
                 RTL
+                .pend
 
 ;
 ;
