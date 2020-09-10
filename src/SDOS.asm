@@ -1006,22 +1006,21 @@ copy_loop       setas
                 LDA [DOS_SRC_PTR]           ; Copy a byte
                 STA [DOS_TEMP],Y
                 setal
-                
-                INY                         ; Count it
+
+                INC DOS_SRC_PTR             ; Advance the source pointer
+                BNE adv_dest
+                INC DOS_SRC_PTR+2
+
+adv_dest        INY                         ; Count it
                 CPY #DOS_SECTOR_SIZE        ; Have we reached the limit?
                 BEQ done                    ; Yes: we're done
 
                 LDA DOS_SRC_PTR             ; Check if we copied the last byte
                 CMP DOS_END_PTR
-                BNE next_byte
+                BNE copy_loop               ; No: keep copying
                 LDA DOS_SRC_PTR+2
                 CMP DOS_END_PTR+2
-                BEQ done                    ; Yes: we're done
-
-next_byte       INC DOS_SRC_PTR             ; No: advance the source pointer
                 BNE copy_loop
-                INC DOS_SRC_PTR+2
-                BRA copy_loop               ; And try this next byte
 
 done            PLP
                 PLD
