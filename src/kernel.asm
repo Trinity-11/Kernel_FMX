@@ -819,6 +819,7 @@ SCRSHIFTLR      PHX
                 SEC                 ; Calculate the length of the block to move
                 LDA COLS_VISIBLE
                 SBC CURSORX
+                INC A
                 CLC
                 ADC CURSORPOS       ; Add the current cursor position
                 DEC A
