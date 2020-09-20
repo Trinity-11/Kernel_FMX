@@ -25,7 +25,6 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 .include "timer_def.asm"                    ; Definitions for the timers
 
 .include "basic_inc.asm"                    ; Pointers into BASIC and the machine language monitor
-;.include "OPL2_Rad_Player.asm"
 
 ; C256 Foenix Kernel
 ; The Kernel is located in flash @ F8:0000 but not accessible by CPU
@@ -2953,6 +2952,9 @@ IPUSHKEY        BRK ;
 IPUSHKEYS       BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
+ITIMER0INTSUB   RTL;
+ITIMER1INTSUB   RTL;
+ITIMER2INTSUB   RTL;
 
 .include "OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
 .include "sdcard_controller_def.asm"

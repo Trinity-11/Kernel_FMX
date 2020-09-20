@@ -35,10 +35,30 @@ SERVICE_NEXT_IRQ2
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT02_TMR0
                 CMP #FNX0_INT02_TMR0
-                BNE SERVICE_NEXT_IRQ6
+                BNE SERVICE_NEXT_IRQ3
                 STA @lINT_PENDING_REG0
                 ; Timer 0
                 JSR TIMER0_INTERRUPT
+
+SERVICE_NEXT_IRQ3
+                ; Timer1 Interrupt
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT03_TMR1
+                CMP #FNX0_INT03_TMR1
+                BNE SERVICE_NEXT_IRQ4
+                STA @lINT_PENDING_REG0
+                ; Timer 1
+                JSR TIMER1_INTERRUPT
+
+SERVICE_NEXT_IRQ4
+                ; Timer2 Interrupt
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT04_TMR2
+                CMP #FNX0_INT04_TMR2
+                BNE SERVICE_NEXT_IRQ6
+                STA @lINT_PENDING_REG0
+                ; Timer 2
+                JSR TIMER2_INTERRUPT
 
                 ;IRQ6
                 setas
@@ -196,9 +216,27 @@ TIMER0_INTERRUPT
                 LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
                 ORA #TIMER0TRIGGER
                 STA @l TIMERFLAGS
+                
+                JSL TIMER0INTSUB
 
                 RTS
 
+; ///////////////////////////////////////////////////////////////////
+; ///
+; /// Timer 1 Interrupt
+; ///
+; ///////////////////////////////////////////////////////////////////
+TIMER1_INTERRUPT
+                setas
+
+                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+                ORA #TIMER1TRIGGER
+                STA @l TIMERFLAGS
+                
+                JSL TIMER1INTSUB
+
+                RTS
+                
 ; ///////////////////////////////////////////////////////////////////
 ; ///
 ; /// Timer 2 Interrupt
@@ -211,6 +249,8 @@ TIMER2_INTERRUPT
                 ORA #TIMER2TRIGGER
                 STA @l TIMERFLAGS
 
+                JSL TIMER2INTSUB
+                
                 RTS
 
 ;

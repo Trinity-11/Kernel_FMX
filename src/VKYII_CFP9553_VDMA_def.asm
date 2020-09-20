@@ -22,7 +22,7 @@ VDMA_STAT_Dst_Add_Err   = $02       ; If Set to 1, Destination Address Invalid
 VDMA_STAT_Src_Add_Err   = $04       ; If Set to 1, Source Address Invalid
 VDMA_STAT_VDMA_IPS      = $80       ; If Set to 1, VDMA Transfer in Progress (this Inhibit CPU Access to Mem)
 
-                                    ; Let me repeat, don't Access the Video Memory then there is a VDMA in progress!
+                                    ; Let me repeat, don't Access the Video Memory when there is a VDMA in progress!
 
 VDMA_SRC_ADDY_L         = $AF0402   ; Pointer to the Source of the Data to be stransfered
 VDMA_SRC_ADDY_M         = $AF0403   ; This needs to be within Vicky's Range ($00_0000 - $3F_0000)
