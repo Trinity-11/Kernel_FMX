@@ -80,6 +80,6 @@ F_ALLOCFD        = $001134 ; Allocate a file descriptor
 F_FREEFD         = $001138 ; Free a file descriptor
 
 ; interrupt addresses
-TIMER0INTSUB     = $001140 ; Interrupt routine for Timer0
-TIMER1INTSUB     = $001144 ; Interrupt routine for Timer1
-TIMER2INTSUB     = $001148 ; Interrupt routine for Timer2
+TIMER0INTSUB     = $00113C ; Interrupt routine for Timer0
+TIMER1INTSUB     = $001140 ; Interrupt routine for Timer1
+TIMER2INTSUB     = $001144 ; Interrupt routine for Timer2
