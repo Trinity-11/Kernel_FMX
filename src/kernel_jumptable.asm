@@ -107,6 +107,10 @@ F_COPY          JML IF_COPY         ; Copy a file
 F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
 F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
+TIMER0INTSUB    JML ITIMER0INTSUB
+TIMER1INTSUB    JML ITIMER1INTSUB
+TIMER2INTSUB    JML ITIMER2INTSUB
+
 ;
 ; End of jump table
 ;

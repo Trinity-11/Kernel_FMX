@@ -55,7 +55,7 @@ INITGAMMATABLE   = $0010C4 ; Init the RGB GAMMA Look Up Table
 INITALLLUT       = $0010C8 ; Init the Graphic Engine (Bitmap/Tile/Sprites) LUT
 INITVKYTXTMODE   = $0010CC ; Init the Text Mode @ Reset Time
 INITVKYGRPMODE   = $0010D0 ; Init the Basic Registers for the Graphic Mode
-SETSIZES         = $00112C ; Set the text screen size variables based on the border and screen resolution.
+
 F_OPEN           = $0010F0 ; open a file for reading/writing/creating
 F_CREATE         = $0010F4 ; create a new file
 F_CLOSE          = $0010F8 ; close a file (make sure last cluster is written)
@@ -72,6 +72,14 @@ F_SAVE           = $00111C ; Save memory to a binary file
 CMDBLOCK         = $001120 ; Send a command to a block device
 F_RUN            = $001124 ; Load and run an executable binary file
 F_MOUNT          = $001128 ; Mount the designated block device
+
+SETSIZES         = $00112C ; Set the text screen size variables based on the border and screen resolution.
+
 F_COPY           = $001130 ; Copy a file
 F_ALLOCFD        = $001134 ; Allocate a file descriptor
 F_FREEFD         = $001138 ; Free a file descriptor
+
+; interrupt addresses
+TIMER0INTSUB     = $001140 ; Interrupt routine for Timer0
+TIMER1INTSUB     = $001144 ; Interrupt routine for Timer1
+TIMER2INTSUB     = $001148 ; Interrupt routine for Timer2
