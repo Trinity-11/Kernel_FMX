@@ -198,6 +198,7 @@ pass_failure    PLP
 ;   C = set if success, clear on error
 ;
 IGETBLOCK       .proc
+                PHY
                 PHD
                 PHB
                 PHP
@@ -208,6 +209,15 @@ IGETBLOCK       .proc
                 setdp SDOS_VARIABLES
 
                 setas
+
+                LDY #0
+                LDA #$5A                            ; Fill the buffer with a pattern we can recognize
+clr_loop        STA [BIOS_BUFF_PTR],Y               ; To make errors loading obvious
+                INY
+                CPY #512
+                BNE clr_loop
+
+
                 LDA BIOS_DEV                        ; Check the device number
                 CMP #BIOS_DEV_SD                    ; Is it for the SDC?
                 BEQ sd_getblock                     ; Yes: go to the SDC GETBLOCK routine
@@ -225,6 +235,7 @@ ret_failure     setas
                 PLP
                 PLB
                 PLD
+                PLY
                 SEC                                 ; Return failure
                 RTL
 
@@ -245,6 +256,7 @@ ret_success     setas
                 PLP
                 PLB
                 PLD
+                PLY
                 SEC                                 ; Return success
                 RTL
                 .pend

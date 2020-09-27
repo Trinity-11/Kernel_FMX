@@ -51,8 +51,8 @@ IBOOT           ; boot the system
 
                 LDX #<>BOOT       ; Copy the kernel jump table to bank 0
                 LDY #<>BOOT       ; Ordinarily, this is done by GAVIN, but
-                LDA #$0100        ; this is ensures it can be reloaded in case of errors
-                MVN `BOOT,$00     ; Or during soft loading of the kernel from the debug port
+                LDA #$2000        ; this is ensures it can be reloaded in case of errors
+                MVN $38,$00       ; Or during soft loading of the kernel from the debug port
 
                 setdp 0
                 setas
@@ -259,6 +259,8 @@ BOOT_DIP        LDA @lDIP_BOOTMODE    ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], 
                 
                 CMP #DIP_BOOT_FLOPPY  ; DIP set for floppy?
                 BEQ BOOTFLOPPY        ; Yes: try to boot from the floppy
+
+IRESTORE        ; For the moment, have RESTART just bring up BASIC
 
 BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 
@@ -2931,7 +2933,6 @@ credit_loop     LDA @lCREDITS_TEXT,X            ; Copy a byte of text
 ;
 ;Not-implemented routines
 ;
-IRESTORE        BRK ; Warm boot routine
 ISCINIT         BRK ;
 IIOINIT         BRK ;
 ISETLFS         BRK ; Obsolete (done in OPEN)
@@ -2952,9 +2953,14 @@ IPUSHKEY        BRK ;
 IPUSHKEYS       BRK ;
 ISCRREADLINE    BRK ; Loads the MCMDADDR/BCMDADDR variable with the address of the current line on the screen. This is called when the RETURN key is pressed and is the first step in processing an immediate mode command.
 ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
-ITIMER0INTSUB   RTL;
-ITIMER1INTSUB   RTL;
-ITIMER2INTSUB   RTL;
+
+
+;
+; Stub for an interrupt handler... just return from subroutine
+;
+; This will be the default address for the interrupt vector table jumps
+;
+IRQHANDLESTUB   RTL
 
 .include "OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
 .include "sdcard_controller_def.asm"

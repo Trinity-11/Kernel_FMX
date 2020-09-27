@@ -75,3 +75,13 @@ F_MOUNT          = %ADDR% ; Mount the designated block device
 F_COPY           = %ADDR% ; Copy a file
 F_ALLOCFD        = %ADDR% ; Allocate a file descriptor
 F_FREEFD         = %ADDR% ; Free a file descriptor
+
+;
+; Interrupt Vector Table
+;
+
+VEC_INT00_SOF   = %ADDR% ; Interrupt routine for Start Of Frame interrupt
+VEC_INT01_SOL   = %ADDR% ; Interrupt routine for Start Of Line interrupt
+VEC_INT02_TMR0  = %ADDR% ; Interrupt routine for Timer0
+VEC_INT03_TMR1  = %ADDR% ; Interrupt routine for Timer1
+VEC_INT04_TMR2  = %ADDR% ; Interrupt routine for Timer2

@@ -1953,6 +1953,54 @@ ret_success         JSL FDC_Motor_Off
                     RTL
                     .pend
 
+;
+; Interrupt handler for the SOF interrupt to update the FDC timeout counter
+;
+FDC_TIME_HANDLE     .proc
+                    PHP
+
+                    ; TODO: seeing odd behavior with the timer
+
+                    setas                           ; Switching to 8 bit counting... for now.
+                    LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
+                    BNE dec_motor                   ; If not zero: decrement the timer
+                    LDA @l FDC_MOTOR_TIMER+1        ; Check the high byte
+                    BEQ sof_timeout                 ; If zero: move on to the next timer
+
+dec_motor           LDA @l FDC_MOTOR_TIMER          ; Decrement the low byte
+                    DEC A
+                    STA @l FDC_MOTOR_TIMER
+                    CMP #$FF                        ; Did it roll over?
+                    BNE chk_motor_end               ; No: check to see if we're a the end
+
+                    LDA @l FDC_MOTOR_TIMER+1        ; Decrement the high byte
+                    DEC A
+                    STA @l FDC_MOTOR_TIMER+1
+                    BRA sof_timeout                 ; And move on to the next timer
+
+chk_motor_end       LDA @l FDC_MOTOR_TIMER          ; Check timer
+                    BNE sof_timeout                 ; if it's <>0, move on to the next timer
+                    LDA @l FDC_MOTOR_TIMER+1
+                    BNE sof_timeout
+
+                    JSL FDC_Motor_Off               ; Otherwise, turn off the motor
+
+sof_timeout         setas
+                    LDA @l BIOS_TIMER               ; Check the BIOS_TIMER
+                    BEQ sof_int_done                ; If it's 0, we don't do anything
+
+                    DEC A                           ; Count down one tick
+                    STA @l BIOS_TIMER
+                    BNE sof_int_done                ; If not 0, we're done
+
+                    LDA @l BIOS_FLAGS               ; Otherwise: flag a time out event
+                    ORA #BIOS_TIMEOUT
+                    STA @l BIOS_FLAGS
+
+sof_int_done        PLP
+                    RTL
+                    .pend
+
 FDC_BOOT_START = 62                         ; Entry point to the boot code
 FDC_VBR_PATH = 64                           ; Offset to the path in the VBR
 FDC_VBR_BEGIN       .block

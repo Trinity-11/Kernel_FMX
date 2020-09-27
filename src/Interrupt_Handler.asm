@@ -19,16 +19,25 @@ IRQ_HANDLER
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 CMP #FNX0_INT00_SOF
-                BNE SERVICE_NEXT_IRQ2
+                BNE SERVICE_NEXT_IRQ1
                 STA @lINT_PENDING_REG0
                 ; Start of Frame Interrupt
                 JSR SOF_INTERRUPT
 
-                ;IRQ1 - Not Implemented Yet
                 ;IRQ3 - Not Implemented Yet
                 ;IRQ5 - Not Tested Yet
                 ;IRQ6
                 setas
+
+SERVICE_NEXT_IRQ1
+                ; SOL Interrupt
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT01_SOL
+                CMP #FNX0_INT01_SOL
+                BNE SERVICE_NEXT_IRQ2
+                STA @lINT_PENDING_REG0
+                ; Timer 0
+                JSR SOL_INTERRUPT
 
 SERVICE_NEXT_IRQ2
                 ; Timer0 Interrupt
@@ -157,52 +166,31 @@ EXIT_IRQ_HANDLE
 ; ///
 ; ///////////////////////////////////////////////////////////////////
 SOF_INTERRUPT
-                PHP
-
                 setas
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 STA @lINT_PENDING_REG0
 
-                ; TODO: seeing odd behavior with the timer
+                JSL VEC_INT00_SOF
 
-                setas                           ; Switching to 8 bit counting... for now.
-                LDA @l FDC_MOTOR_TIMER          ; Check the FDC motor count-down timer
-                BNE dec_motor                   ; If not zero: decrement the timer
-                LDA @l FDC_MOTOR_TIMER+1        ; Check the high byte
-                BEQ sof_timeout                 ; If zero: move on to the next timer
+                RTS
 
-dec_motor       LDA @l FDC_MOTOR_TIMER          ; Decrement the low byte
-                DEC A
-                STA @l FDC_MOTOR_TIMER
-                CMP #$FF                        ; Did it roll over?
-                BNE chk_motor_end               ; No: check to see if we're a the end
+;
+; ///////////////////////////////////////////////////////////////////
+; ///
+; /// Start of Line Interrupt
+; /// 60Hz, 16ms Cyclical Interrupt
+; ///
+; ///////////////////////////////////////////////////////////////////
+SOL_INTERRUPT
+                
+                setas
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT01_SOL
+                STA @lINT_PENDING_REG0
 
-                LDA @l FDC_MOTOR_TIMER+1        ; Decrement the high byte
-                DEC A
-                STA @l FDC_MOTOR_TIMER+1
-                BRA sof_timeout                 ; And move on to the next timer
+                JSL VEC_INT01_SOL
 
-chk_motor_end   LDA @l FDC_MOTOR_TIMER          ; Check timer
-                BNE sof_timeout                 ; if it's <>0, move on to the next timer
-                LDA @l FDC_MOTOR_TIMER+1
-                BNE sof_timeout
-
-                JSL FDC_Motor_Off               ; Otherwise, turn off the motor
-
-sof_timeout     setas
-                LDA @l BIOS_TIMER               ; Check the BIOS_TIMER
-                BEQ sof_int_done                ; If it's 0, we don't do anything
-
-                DEC A                           ; Count down one tick
-                STA @l BIOS_TIMER
-                BNE sof_int_done                ; If not 0, we're done
-
-                LDA @l BIOS_FLAGS               ; Otherwise: flag a time out event
-                ORA #BIOS_TIMEOUT
-                STA @l BIOS_FLAGS
-
-sof_int_done    PLP
                 RTS
 
 ; ///////////////////////////////////////////////////////////////////
@@ -217,7 +205,7 @@ TIMER0_INTERRUPT
                 ORA #TIMER0TRIGGER
                 STA @l TIMERFLAGS
                 
-                JSL TIMER0INTSUB
+                JSL VEC_INT02_TMR0
 
                 RTS
 
@@ -233,7 +221,7 @@ TIMER1_INTERRUPT
                 ORA #TIMER1TRIGGER
                 STA @l TIMERFLAGS
                 
-                JSL TIMER1INTSUB
+                JSL VEC_INT03_TMR1
 
                 RTS
                 
@@ -249,7 +237,7 @@ TIMER2_INTERRUPT
                 ORA #TIMER2TRIGGER
                 STA @l TIMERFLAGS
 
-                JSL TIMER2INTSUB
+                JSL VEC_INT04_TMR2
                 
                 RTS
 

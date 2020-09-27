@@ -10,7 +10,7 @@ with open("kernel.lbl", "r") as label_file:
     binding = 1
     while binding:
         binding = label_file.readline()
-        m = re.search("^(\w+)\s*=\s*\$38(\w+)", binding)
+        m = re.search("^(\w+)\s*=\s*\$00(\w+)", binding)
         if m:
             label = m.group(1)
             value = m.group(2)

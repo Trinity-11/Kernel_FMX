@@ -3,21 +3,24 @@
 ; This includes all of the externally callable routines and forwards those to their internal
 ; addresses in the Foenix ROM.
 ;
-; As new routines are added, please add a reference here. The correct procedure is to
-; update the memory map spreadsheet, then copy and paste the ;Kernel.asm columns here
-; and ;Kernel_INC.asm column to that file.
+; The kernel vector table exists in three locations:
+; 1. $F0:1xxx -- This is the master copy in the flash memory
+; 2. $38:1xxx -- GABE copies the flash memory into RAM, starting at bank $38 on the FMX.
+;                Note: other systems may use different locations for this copy in RAM.
+; 3. $00:1xxx -- GABE also copies the first bank of flash to the first bank of RAM, this puts
+;                a copy of the kernel vector table to $00:1xxx. This copy will be in the same
+;                location for all versions of the C256, and is the copy that should be used by
+;                all programs.
 ;
-; Naming convention:
-; Common kernel I/O routines do NOT get a prefix
-; BASIC routines start with B
-; MONITOR routines start with M
-; The actual routine in ROM should have I in front.
+; To add new vectors:
+; 1. Add the vector between the .logical and .here directives
+; 2. Compile the kernel.
+; 3. Add an entry for the vector to kernel_inc.txt, using "%ADDR%" as a substitution variable
+;    for its actual jump point.
+; 4. Run the Python script genjumptable.py to generate the kernel_inc.asm file for programs to use.
 ;
-; So the BASIC PRINT routine would be labeled "BPRINT" on the jump table and "IBPRINT" in the BASIC.ASM
-; source file.
-;
-* = $381000
-
+* = $381000                         ; This table will be set up to load initially into bank $38 on the FMX...
+.logical $001000                    ; But it will copied to bank $00 on startup for all systems
 BOOT            JML IBOOT
 RESTORE         JML IRESTORE
 BREAK           JML IBREAK
@@ -99,18 +102,24 @@ F_MOUNT         JML DOS_MOUNT       ; Mount the designated block device
 
 SETSIZES        JML ISETSIZES
 
-
-
-
-
 F_COPY          JML IF_COPY         ; Copy a file
 F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
 F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
-
-TIMER0INTSUB    JML ITIMER0INTSUB
-TIMER1INTSUB    JML ITIMER1INTSUB
-TIMER2INTSUB    JML ITIMER2INTSUB
+.here
 
 ;
-; End of jump table
+; Interrupt Vector Table... after a small gap to leave some room to expand for the kernel
+;
+
+* = $381700
+.logical $001700
+VEC_INT00_SOF   JML FDC_TIME_HANDLE ; IRQ 0, 0 --- Start Of Frame interrupt 
+VEC_INT01_SOL   JML IRQHANDLESTUB   ; IRQ 0, 1 --- Start Of Line interrupt
+VEC_INT02_TMR0  JML IRQHANDLESTUB   ; IRQ 0, 2 --- Timer 0 interrupt
+VEC_INT03_TMR1  JML IRQHANDLESTUB   ; IRQ 0, 3 --- Timer 1 interrupt
+VEC_INT04_TMR2  JML IRQHANDLESTUB   ; IRQ 0, 4 --- Timer 2 interrupt
+.here
+
+;
+; End of jump tables
 ;
