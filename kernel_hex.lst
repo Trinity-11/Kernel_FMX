@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 --long-address --flat --intel-hex -o kernel.hex --list kernel_hex.lst --labels=kernel_hex.lbl src\kernel.asm
-; Sun Sep 27 16:09:14 2020
+; Wed Sep 30 14:48:20 2020
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -327,7 +327,7 @@
 .ff44		48		pha		                PHA
 .ff45		da		phx		                PHX
 .ff46		5a		phy		                PHY
-.ff47		22 d2 18 38	jsl $3818d2	                JSL NMI_HANDLER
+.ff47		22 d5 18 38	jsl $3818d5	                JSL NMI_HANDLER
 .ff4b		7a		ply		                PLY
 .ff4c		fa		plx		                PLX
 .ff4d		68		pla		                PLA
@@ -1840,7 +1840,7 @@
 .381724		c9 01		cmp #$01	                CMP #FNX0_INT00_SOF
 .381726		d0 09		bne $381731	                BNE SERVICE_NEXT_IRQ1
 .381728		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.38172c		20 05 18	jsr $381805	                JSR SOF_INTERRUPT
+.38172c		20 09 18	jsr $381809	                JSR SOF_INTERRUPT
 .38172f		e2 20		sep #$20	                SEP #$20        ; set A short
 .381731						SERVICE_NEXT_IRQ1
 .381731		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
@@ -1848,28 +1848,28 @@
 .381737		c9 02		cmp #$02	                CMP #FNX0_INT01_SOL
 .381739		d0 07		bne $381742	                BNE SERVICE_NEXT_IRQ2
 .38173b		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.38173f		20 16 18	jsr $381816	                JSR SOL_INTERRUPT
+.38173f		20 1a 18	jsr $38181a	                JSR SOL_INTERRUPT
 .381742						SERVICE_NEXT_IRQ2
 .381742		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
 .381746		29 04		and #$04	                AND #FNX0_INT02_TMR0
 .381748		c9 04		cmp #$04	                CMP #FNX0_INT02_TMR0
 .38174a		d0 07		bne $381753	                BNE SERVICE_NEXT_IRQ3
 .38174c		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381750		20 27 18	jsr $381827	                JSR TIMER0_INTERRUPT
+.381750		20 2b 18	jsr $38182b	                JSR TIMER0_INTERRUPT
 .381753						SERVICE_NEXT_IRQ3
 .381753		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
 .381757		29 08		and #$08	                AND #FNX0_INT03_TMR1
 .381759		c9 08		cmp #$08	                CMP #FNX0_INT03_TMR1
 .38175b		d0 07		bne $381764	                BNE SERVICE_NEXT_IRQ4
 .38175d		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381761		20 38 18	jsr $381838	                JSR TIMER1_INTERRUPT
+.381761		20 3c 18	jsr $38183c	                JSR TIMER1_INTERRUPT
 .381764						SERVICE_NEXT_IRQ4
 .381764		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
 .381768		29 10		and #$10	                AND #FNX0_INT04_TMR2
 .38176a		c9 10		cmp #$10	                CMP #FNX0_INT04_TMR2
 .38176c		d0 09		bne $381777	                BNE SERVICE_NEXT_IRQ6
 .38176e		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381772		20 49 18	jsr $381849	                JSR TIMER2_INTERRUPT
+.381772		20 4d 18	jsr $38184d	                JSR TIMER2_INTERRUPT
 .381775		e2 20		sep #$20	                SEP #$20        ; set A short
 .381777						SERVICE_NEXT_IRQ6
 .381777		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
@@ -1877,7 +1877,7 @@
 .38177d		c9 40		cmp #$40	                CMP #FNX0_INT06_FDC
 .38177f		d0 09		bne $38178a	                BNE SERVICE_NEXT_IRQ7
 .381781		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381785		20 9b 18	jsr $38189b	                JSR FDC_INTERRUPT
+.381785		20 9e 18	jsr $38189e	                JSR FDC_INTERRUPT
 .381788		e2 20		sep #$20	                SEP #$20        ; set A short
 .38178a						SERVICE_NEXT_IRQ7
 .38178a		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
@@ -1885,395 +1885,396 @@
 .381790		c9 80		cmp #$80	                CMP #FNX0_INT07_MOUSE
 .381792		d0 07		bne $38179b	                BNE CHECK_PENDING_REG1
 .381794		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381798		20 5a 18	jsr $38185a	                JSR MOUSE_INTERRUPT
+.381798		20 5e 18	jsr $38185e	                JSR MOUSE_INTERRUPT
 .38179b						CHECK_PENDING_REG1
 .38179b		e2 20		sep #$20	                SEP #$20        ; set A short
 .38179d		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
 .3817a1		c9 00		cmp #$00	                CMP #$00
-.3817a3		f0 5d		beq $381802	                BEQ EXIT_IRQ_HANDLE
+.3817a3		f0 61		beq $381806	                BEQ EXIT_IRQ_HANDLE
 .3817a5						SERVICE_NEXT_IRQ8
 .3817a5		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
 .3817a9		29 01		and #$01	                AND #FNX1_INT00_KBD
 .3817ab		c9 01		cmp #$01	                CMP #FNX1_INT00_KBD
-.3817ad		d0 09		bne $3817b8	                BNE SERVICE_NEXT_IRQ11
+.3817ad		d0 0d		bne $3817bc	                BNE SERVICE_NEXT_IRQ11
 .3817af		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3817b3		20 d3 18	jsr $3818d3	                JSR KEYBOARD_INTERRUPT
-.3817b6		e2 20		sep #$20	                SEP #$20        ; set A short
-.3817b8						SERVICE_NEXT_IRQ11
-.3817b8		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3817bc		29 08		and #$08	                AND #FNX1_INT03_COM2
-.3817be		c9 08		cmp #$08	                CMP #FNX1_INT03_COM2
-.3817c0		d0 09		bne $3817cb	                BNE SERVICE_NEXT_IRQ12
-.3817c2		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3817c6		20 a6 18	jsr $3818a6	                JSR COM2_INTERRUPT
-.3817c9		e2 20		sep #$20	                SEP #$20        ; set A short
-.3817cb						SERVICE_NEXT_IRQ12
-.3817cb		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3817cf		29 10		and #$10	                AND #FNX1_INT04_COM1
-.3817d1		c9 10		cmp #$10	                CMP #FNX1_INT04_COM1
-.3817d3		d0 09		bne $3817de	                BNE SERVICE_NEXT_IRQ13
-.3817d5		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3817d9		20 b1 18	jsr $3818b1	                JSR COM1_INTERRUPT
-.3817dc		e2 20		sep #$20	                SEP #$20        ; set A short
-.3817de						SERVICE_NEXT_IRQ13
-.3817de		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3817e2		29 20		and #$20	                AND #FNX1_INT05_MPU401
-.3817e4		c9 20		cmp #$20	                CMP #FNX1_INT05_MPU401
-.3817e6		d0 09		bne $3817f1	                BNE SERVICE_NEXT_IRQ14
-.3817e8		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3817ec		20 bc 18	jsr $3818bc	                JSR MPU401_INTERRUPT
-.3817ef		e2 20		sep #$20	                SEP #$20        ; set A short
-.3817f1						SERVICE_NEXT_IRQ14
-.3817f1		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3817f5		29 40		and #$40	                AND #FNX1_INT06_LPT
-.3817f7		c9 40		cmp #$40	                CMP #FNX1_INT06_LPT
-.3817f9		d0 07		bne $381802	                BNE EXIT_IRQ_HANDLE
-.3817fb		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3817ff		20 c7 18	jsr $3818c7	                JSR LPT1_INTERRUPT
-.381802						EXIT_IRQ_HANDLE
-.381802		c2 30		rep #$30	                REP #$30        ; set A&X long
-.381804		6b		rtl		                RTL
-.381805						SOF_INTERRUPT
-.381805		e2 20		sep #$20	                SEP #$20        ; set A short
-.381807		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
-.38180b		29 01		and #$01	                AND #FNX0_INT00_SOF
-.38180d		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381811		22 00 17 00	jsl $001700	                JSL VEC_INT00_SOF
-.381815		60		rts		                RTS
-.381816						SOL_INTERRUPT
-.381816		e2 20		sep #$20	                SEP #$20        ; set A short
-.381818		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
-.38181c		29 02		and #$02	                AND #FNX0_INT01_SOL
-.38181e		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381822		22 04 17 00	jsl $001704	                JSL VEC_INT01_SOL
-.381826		60		rts		                RTS
-.381827						TIMER0_INTERRUPT
-.381827		e2 20		sep #$20	                SEP #$20        ; set A short
-.381829		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-.38182d		09 80		ora #$80	                ORA #TIMER0TRIGGER
-.38182f		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
-.381833		22 08 17 00	jsl $001708	                JSL VEC_INT02_TMR0
-.381837		60		rts		                RTS
-.381838						TIMER1_INTERRUPT
-.381838		e2 20		sep #$20	                SEP #$20        ; set A short
-.38183a		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-.38183e		09 40		ora #$40	                ORA #TIMER1TRIGGER
-.381840		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
-.381844		22 0c 17 00	jsl $00170c	                JSL VEC_INT03_TMR1
-.381848		60		rts		                RTS
-.381849						TIMER2_INTERRUPT
-.381849		e2 20		sep #$20	                SEP #$20        ; set A short
-.38184b		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-.38184f		09 20		ora #$20	                ORA #TIMER2TRIGGER
-.381851		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
-.381855		22 10 17 00	jsl $001710	                JSL VEC_INT04_TMR2
-.381859		60		rts		                RTS
-.38185a						MOUSE_INTERRUPT
-.38185a		e2 20		sep #$20	                SEP #$20        ; set A short
-.38185c		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
-.381860		29 80		and #$80	                AND #FNX0_INT07_MOUSE
-.381862		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.381866		af 60 10 af	lda $af1060	                LDA KBD_INPT_BUF
-.38186a		a2 00 00	ldx #$0000	                LDX #$0000
-.38186d		e2 10		sep #$10	                SEP #$10        ; set X short
-.38186f		a6 e0		ldx $e0		                LDX MOUSE_PTR
-.381871		9f 06 07 af	sta $af0706,x	                STA @lMOUSE_PTR_BYTE0, X
-.381875		e8		inx		                INX
-.381876		e0 03		cpx #$03	                CPX #$03
-.381878		d0 1c		bne $381896	                BNE EXIT_FOR_NEXT_VALUE
-.38187a		af 02 07 af	lda $af0702	                LDA @lMOUSE_PTR_X_POS_L
-.38187e		85 e1		sta $e1		                STA MOUSE_POS_X_LO
-.381880		af 03 07 af	lda $af0703	                LDA @lMOUSE_PTR_X_POS_H
-.381884		85 e2		sta $e2		                STA MOUSE_POS_X_HI
-.381886		af 04 07 af	lda $af0704	                LDA @lMOUSE_PTR_Y_POS_L
-.38188a		85 e3		sta $e3		                STA MOUSE_POS_Y_LO
-.38188c		af 05 07 af	lda $af0705	                LDA @lMOUSE_PTR_Y_POS_H
-.381890		85 e4		sta $e4		                STA MOUSE_POS_Y_HI
+.3817b3		8b		phb		                PHB
+.3817b4		0b		phd		                PHD
+.3817b5		20 d6 18	jsr $3818d6	                JSR KEYBOARD_INTERRUPT
+.3817b8		2b		pld		                PLD
+.3817b9		ab		plb		                PLB
+.3817ba		e2 20		sep #$20	                SEP #$20        ; set A short
+.3817bc						SERVICE_NEXT_IRQ11
+.3817bc		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3817c0		29 08		and #$08	                AND #FNX1_INT03_COM2
+.3817c2		c9 08		cmp #$08	                CMP #FNX1_INT03_COM2
+.3817c4		d0 09		bne $3817cf	                BNE SERVICE_NEXT_IRQ12
+.3817c6		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3817ca		20 a9 18	jsr $3818a9	                JSR COM2_INTERRUPT
+.3817cd		e2 20		sep #$20	                SEP #$20        ; set A short
+.3817cf						SERVICE_NEXT_IRQ12
+.3817cf		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3817d3		29 10		and #$10	                AND #FNX1_INT04_COM1
+.3817d5		c9 10		cmp #$10	                CMP #FNX1_INT04_COM1
+.3817d7		d0 09		bne $3817e2	                BNE SERVICE_NEXT_IRQ13
+.3817d9		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3817dd		20 b4 18	jsr $3818b4	                JSR COM1_INTERRUPT
+.3817e0		e2 20		sep #$20	                SEP #$20        ; set A short
+.3817e2						SERVICE_NEXT_IRQ13
+.3817e2		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3817e6		29 20		and #$20	                AND #FNX1_INT05_MPU401
+.3817e8		c9 20		cmp #$20	                CMP #FNX1_INT05_MPU401
+.3817ea		d0 09		bne $3817f5	                BNE SERVICE_NEXT_IRQ14
+.3817ec		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3817f0		20 bf 18	jsr $3818bf	                JSR MPU401_INTERRUPT
+.3817f3		e2 20		sep #$20	                SEP #$20        ; set A short
+.3817f5						SERVICE_NEXT_IRQ14
+.3817f5		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3817f9		29 40		and #$40	                AND #FNX1_INT06_LPT
+.3817fb		c9 40		cmp #$40	                CMP #FNX1_INT06_LPT
+.3817fd		d0 07		bne $381806	                BNE EXIT_IRQ_HANDLE
+.3817ff		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.381803		20 ca 18	jsr $3818ca	                JSR LPT1_INTERRUPT
+.381806						EXIT_IRQ_HANDLE
+.381806		c2 30		rep #$30	                REP #$30        ; set A&X long
+.381808		6b		rtl		                RTL
+.381809						SOF_INTERRUPT
+.381809		e2 20		sep #$20	                SEP #$20        ; set A short
+.38180b		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
+.38180f		29 01		and #$01	                AND #FNX0_INT00_SOF
+.381811		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
+.381815		22 00 17 00	jsl $001700	                JSL VEC_INT00_SOF
+.381819		60		rts		                RTS
+.38181a						SOL_INTERRUPT
+.38181a		e2 20		sep #$20	                SEP #$20        ; set A short
+.38181c		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
+.381820		29 02		and #$02	                AND #FNX0_INT01_SOL
+.381822		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
+.381826		22 04 17 00	jsl $001704	                JSL VEC_INT01_SOL
+.38182a		60		rts		                RTS
+.38182b						TIMER0_INTERRUPT
+.38182b		e2 20		sep #$20	                SEP #$20        ; set A short
+.38182d		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+.381831		09 80		ora #$80	                ORA #TIMER0TRIGGER
+.381833		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
+.381837		22 08 17 00	jsl $001708	                JSL VEC_INT02_TMR0
+.38183b		60		rts		                RTS
+.38183c						TIMER1_INTERRUPT
+.38183c		e2 20		sep #$20	                SEP #$20        ; set A short
+.38183e		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+.381842		09 40		ora #$40	                ORA #TIMER1TRIGGER
+.381844		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
+.381848		22 0c 17 00	jsl $00170c	                JSL VEC_INT03_TMR1
+.38184c		60		rts		                RTS
+.38184d						TIMER2_INTERRUPT
+.38184d		e2 20		sep #$20	                SEP #$20        ; set A short
+.38184f		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+.381853		09 20		ora #$20	                ORA #TIMER2TRIGGER
+.381855		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
+.381859		22 10 17 00	jsl $001710	                JSL VEC_INT04_TMR2
+.38185d		60		rts		                RTS
+.38185e						MOUSE_INTERRUPT
+.38185e		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.381860		af e0 00 00	lda $0000e0	                LDA @l MOUSE_PTR
+.381864		aa		tax		                TAX
+.381865		af 60 10 af	lda $af1060	                LDA @l KBD_INPT_BUF
+.381869		9f 06 07 af	sta $af0706,x	                STA @lMOUSE_PTR_BYTE0, X
+.38186d		e8		inx		                INX
+.38186e		e0 03		cpx #$03	                CPX #$03
+.381870		d0 24		bne $381896	                BNE EXIT_FOR_NEXT_VALUE
+.381872		af 02 07 af	lda $af0702	                LDA @l MOUSE_PTR_X_POS_L
+.381876		8f e1 00 00	sta $0000e1	                STA @l MOUSE_POS_X_LO
+.38187a		af 03 07 af	lda $af0703	                LDA @l MOUSE_PTR_X_POS_H
+.38187e		8f e2 00 00	sta $0000e2	                STA @l MOUSE_POS_X_HI
+.381882		af 04 07 af	lda $af0704	                LDA @l MOUSE_PTR_Y_POS_L
+.381886		8f e3 00 00	sta $0000e3	                STA @l MOUSE_POS_Y_LO
+.38188a		af 05 07 af	lda $af0705	                LDA @l MOUSE_PTR_Y_POS_H
+.38188e		8f e4 00 00	sta $0000e4	                STA @l MOUSE_POS_Y_HI
 .381892		e2 20		sep #$20	                SEP #$20        ; set A short
 .381894		a2 00		ldx #$00	                LDX #$00
 .381896						EXIT_FOR_NEXT_VALUE
-.381896		86 e0		stx $e0		                STX MOUSE_PTR
-.381898		c2 10		rep #$10	                REP #$10        ; set X long
-.38189a		60		rts		                RTS
-.38189b						FDC_INTERRUPT
-.38189b		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
-.38189f		29 40		and #$40	                AND #FNX0_INT06_FDC
-.3818a1		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
-.3818a5		60		rts		                RTS
-.3818a6						COM2_INTERRUPT
-.3818a6		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3818aa		29 08		and #$08	                AND #FNX1_INT03_COM2
-.3818ac		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3818b0		60		rts		                RTS
-.3818b1						COM1_INTERRUPT
-.3818b1		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3818b5		29 10		and #$10	                AND #FNX1_INT04_COM1
-.3818b7		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3818bb		60		rts		                RTS
-.3818bc						MPU401_INTERRUPT
-.3818bc		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3818c0		29 20		and #$20	                AND #FNX1_INT05_MPU401
-.3818c2		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3818c6		60		rts		                RTS
-.3818c7						LPT1_INTERRUPT
-.3818c7		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3818cb		29 40		and #$40	                AND #FNX1_INT06_LPT
-.3818cd		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3818d1		60		rts		                RTS
-.3818d2						NMI_HANDLER
-.3818d2		6b		rtl		                RTL
+.381896		8a		txa		                TXA
+.381897		8f e0 00 00	sta $0000e0	                STA @l MOUSE_PTR
+.38189b		c2 10		rep #$10	                REP #$10        ; set X long
+.38189d		60		rts		                RTS
+.38189e						FDC_INTERRUPT
+.38189e		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0
+.3818a2		29 40		and #$40	                AND #FNX0_INT06_FDC
+.3818a4		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0
+.3818a8		60		rts		                RTS
+.3818a9						COM2_INTERRUPT
+.3818a9		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3818ad		29 08		and #$08	                AND #FNX1_INT03_COM2
+.3818af		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3818b3		60		rts		                RTS
+.3818b4						COM1_INTERRUPT
+.3818b4		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3818b8		29 10		and #$10	                AND #FNX1_INT04_COM1
+.3818ba		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3818be		60		rts		                RTS
+.3818bf						MPU401_INTERRUPT
+.3818bf		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3818c3		29 20		and #$20	                AND #FNX1_INT05_MPU401
+.3818c5		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3818c9		60		rts		                RTS
+.3818ca						LPT1_INTERRUPT
+.3818ca		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3818ce		29 40		and #$40	                AND #FNX1_INT06_LPT
+.3818d0		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3818d4		60		rts		                RTS
+.3818d5						NMI_HANDLER
+.3818d5		6b		rtl		                RTL
 
 ;******  Return to file: src\kernel.asm
 
 
 ;******  Processing file: src\keyboard.asm
 
-.3818d3						KEYBOARD_INTERRUPT
-.3818d3		48		pha		                PHA             ; begin setdp macro
-.3818d4		08		php		                PHP
-.3818d5		c2 20		rep #$20	                REP #$20        ; set A long
-.3818d7		a9 00 0f	lda #$0f00	                LDA #KEY_BUFFER         ; set DP to page 0
-.3818da		5b		tcd		                TCD
-.3818db		28		plp		                PLP
-.3818dc		68		pla		                PLA             ; end setdp macro
-.3818dd		a2 00 00	ldx #$0000	                ldx #$0000
-.3818e0		e2 10		sep #$10	                SEP #$10        ; set X short
-.3818e2		e2 20		sep #$20	                SEP #$20        ; set A short
-.3818e4		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
-.3818e8		29 01		and #$01	                AND #FNX1_INT00_KBD
-.3818ea		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
-.3818ee						IRQ_HANDLER_FETCH
-.3818ee		af 60 10 af	lda $af1060	                LDA @lKBD_INPT_BUF      ; Get Scan Code from KeyBoard
-.3818f2		85 88		sta $0f88	                STA KEYBOARD_SC_TMP     ; Save Code Immediately
-.3818f4		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the Prefix was picked up before
-.3818f6		29 80		and #$80	                AND #$80
-.3818f8		c9 80		cmp #$80	                CMP #$80
-.3818fa		d0 10		bne $38190c	                BNE CHK_LSHIFT          ; No: do normal scan-code checks
-.3818fc		a5 87		lda $0f87	PREFIX_ON       LDA KEYBOARD_SC_FLG     ; Otherwise: clear prefix
-.3818fe		29 7f		and #$7f	                AND #$7F
-.381900		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.381902		a5 88		lda $0f88	                LDA KEYBOARD_SC_TMP     ; Get the prefixed scan-code's character
-.381904		aa		tax		                TAX
-.381905		bf 80 75 39	lda $397580,x	                LDA @lScanCode_Prefix_Set1, x
-.381909		4c af 19	jmp $3819af	                JMP KB_WR_2_SCREEN      ; And save it
-.38190c		a5 88		lda $0f88	CHK_LSHIFT      LDA KEYBOARD_SC_TMP
-.38190e		c9 2a		cmp #$2a	                CMP #$2A                ; Left Shift Pressed
-.381910		d0 03		bne $381915	                BNE NOT_KB_SET_LSHIFT
-.381912		82 ad 00	brl $3819c2	                BRL KB_SET_SHIFT
-.381915						NOT_KB_SET_LSHIFT
-.381915		c9 aa		cmp #$aa	                CMP #$AA                ; Left Shift Unpressed
-.381917		d0 03		bne $38191c	                BNE NOT_KB_CLR_LSHIFT
-.381919		82 af 00	brl $3819cb	                BRL KB_CLR_SHIFT
-.38191c						NOT_KB_CLR_LSHIFT
-.38191c		c9 36		cmp #$36	                CMP #$36                ; Right Shift Pressed
-.38191e		d0 03		bne $381923	                BNE NOT_KB_SET_RSHIFT
-.381920		82 9f 00	brl $3819c2	                BRL KB_SET_SHIFT
-.381923						NOT_KB_SET_RSHIFT
-.381923		c9 b6		cmp #$b6	                CMP #$B6                ; Right Shift Unpressed
-.381925		d0 03		bne $38192a	                BNE NOT_KB_CLR_RSHIFT
-.381927		82 a1 00	brl $3819cb	                BRL KB_CLR_SHIFT
-.38192a						NOT_KB_CLR_RSHIFT
-.38192a		c9 1d		cmp #$1d	                CMP #$1D                ; Left CTRL pressed
-.38192c		d0 03		bne $381931	                BNE NOT_KB_SET_CTRL
-.38192e		82 a3 00	brl $3819d4	                BRL KB_SET_CTRL
-.381931						NOT_KB_SET_CTRL
-.381931		c9 9d		cmp #$9d	                CMP #$9D                ; Left CTRL Unpressed
-.381933		d0 03		bne $381938	                BNE NOT_KB_CLR_CTRL
-.381935		82 a5 00	brl $3819dd	                BRL KB_CLR_CTRL
-.381938						NOT_KB_CLR_CTRL
-.381938		c9 38		cmp #$38	                CMP #$38                ; Left ALT Pressed
-.38193a		d0 03		bne $38193f	                BNE NOT_KB_SET_ALT
-.38193c		82 a7 00	brl $3819e6	                BRL KB_SET_ALT
-.38193f						NOT_KB_SET_ALT
-.38193f		c9 b8		cmp #$b8	                CMP #$B8                ; Left ALT Unpressed
-.381941		d0 03		bne $381946	                BNE NOT_KB_CLR_ALT
-.381943		82 a9 00	brl $3819ef	                BRL KB_CLR_ALT
-.381946		c9 e0		cmp #$e0	NOT_KB_CLR_ALT  CMP #$E0                ; Prefixed scan code
-.381948		d0 03		bne $38194d	                BNE NOT_PREFIXED
-.38194a		82 ab 00	brl $3819f8	                BRL KB_SET_PREFIX
-.38194d		c9 45		cmp #$45	NOT_PREFIXED    CMP #$45                ; Numlock Pressed
-.38194f		d0 03		bne $381954	                BNE NOT_KB_SET_NUM
-.381951		82 b6 00	brl $381a0a	                BRL KB_TOG_NUMLOCK
-.381954		c9 46		cmp #$46	NOT_KB_SET_NUM  CMP #$46                ; Scroll Lock Pressed
-.381956		d0 03		bne $38195b	                BNE NOT_KB_SET_SCR
-.381958		82 a6 00	brl $381a01	                BRL KB_TOG_SCRLOCK
-.38195b		c9 3a		cmp #$3a	NOT_KB_SET_SCR  CMP #$3A                ; Caps Lock Pressed
-.38195d		d0 03		bne $381962	                BNE NOT_KB_CAPSLOCK
-.38195f		82 bc 00	brl $381a1e	                BRL KB_TOG_CAPLOCK
-.381962		c9 58		cmp #$58	NOT_KB_CAPSLOCK CMP #$58                ; F12 Pressed
-.381964		d0 09		bne $38196f	                BNE KB_UNPRESSED
-.381966		a9 60		lda #$60	                LDA #KB_CREDITS         ; Yes: flag that the CREDITS key has been pressed
-.381968		8f 8a 0f 00	sta $000f8a	                STA @lKEYFLAG
-.38196c		82 b5 00	brl $381a24	                BRL KB_CHECK_B_DONE
-.38196f		29 80		and #$80	KB_UNPRESSED    AND #$80                ; See if the Scan Code is press or Depressed
-.381971		c9 80		cmp #$80	                CMP #$80                ; Depress Status - We will not do anything at this point
-.381973		d0 03		bne $381978	                BNE KB_NORM_SC
-.381975		82 ac 00	brl $381a24	                BRL KB_CHECK_B_DONE
-.381978		a5 88		lda $0f88	KB_NORM_SC      LDA KEYBOARD_SC_TMP       ;
-.38197a		aa		tax		                TAX
-.38197b		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the SHIFT Key is being Pushed
-.38197d		29 10		and #$10	                AND #$10
-.38197f		c9 10		cmp #$10	                CMP #$10
-.381981		f0 17		beq $38199a	                BEQ SHIFT_KEY_ON
-.381983		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the CTRL Key is being Pushed
-.381985		29 20		and #$20	                AND #$20
-.381987		c9 20		cmp #$20	                CMP #$20
-.381989		f0 16		beq $3819a1	                BEQ CTRL_KEY_ON
-.38198b		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the ALT Key is being Pushed
-.38198d		29 40		and #$40	                AND #$40
-.38198f		c9 40		cmp #$40	                CMP #$40
-.381991		f0 15		beq $3819a8	                BEQ ALT_KEY_ON
-.381993		bf 00 73 39	lda $397300,x	                LDA @lScanCode_Press_Set1, x
-.381997		82 15 00	brl $3819af	                BRL KB_WR_2_SCREEN
-.38199a		bf 80 73 39	lda $397380,x	SHIFT_KEY_ON    LDA @lScanCode_Shift_Set1, x
-.38199e		82 0e 00	brl $3819af	                BRL KB_WR_2_SCREEN
-.3819a1		bf 00 74 39	lda $397400,x	CTRL_KEY_ON     LDA @lScanCode_Ctrl_Set1, x
-.3819a5		82 07 00	brl $3819af	                BRL KB_WR_2_SCREEN
-.3819a8		bf 80 74 39	lda $397480,x	ALT_KEY_ON      LDA @lScanCode_Alt_Set1, x
-.3819ac		82 00 00	brl $3819af	                BRL KB_WR_2_SCREEN
-.3819af		c9 18		cmp #$18	KB_WR_2_SCREEN  CMP #$18                ; Is it SysRq?
-.3819b1		d0 03		bne $3819b6	                BNE savechar
-.3819b3		4c 34 1a	jmp $381a34	                JMP programmerKey       ; Yes: trigger the programmer key
-.3819b6		48		pha		savechar        PHA
-.3819b7		c2 10		rep #$10	                REP #$10        ; set X long
-.3819b9		20 40 1a	jsr $381a40	                JSR SAVEKEY
-.3819bc		e2 20		sep #$20	                SEP #$20        ; set A short
-.3819be		68		pla		                PLA
-.3819bf		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819c2		a5 87		lda $0f87	KB_SET_SHIFT    LDA KEYBOARD_SC_FLG
-.3819c4		09 10		ora #$10	                ORA #$10
-.3819c6		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819c8		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819cb		a5 87		lda $0f87	KB_CLR_SHIFT    LDA KEYBOARD_SC_FLG
-.3819cd		29 ef		and #$ef	                AND #$EF
-.3819cf		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819d1		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819d4		a5 87		lda $0f87	KB_SET_CTRL     LDA KEYBOARD_SC_FLG
-.3819d6		09 20		ora #$20	                ORA #$20
-.3819d8		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819da		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819dd		a5 87		lda $0f87	KB_CLR_CTRL     LDA KEYBOARD_SC_FLG
-.3819df		29 df		and #$df	                AND #$DF
-.3819e1		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819e3		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819e6		a5 87		lda $0f87	KB_SET_ALT      LDA KEYBOARD_SC_FLG
-.3819e8		09 40		ora #$40	                ORA #$40
-.3819ea		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819ec		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819ef		a5 87		lda $0f87	KB_CLR_ALT      LDA KEYBOARD_SC_FLG
-.3819f1		29 bf		and #$bf	                AND #$BF
-.3819f3		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819f5		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.3819f8		a5 87		lda $0f87	KB_SET_PREFIX   LDA KEYBOARD_SC_FLG
-.3819fa		09 80		ora #$80	                ORA #$80
-.3819fc		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
-.3819fe		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.381a01		a5 89		lda $0f89	KB_TOG_SCRLOCK  LDA KEYBOARD_LOCKS
-.381a03		49 01		eor #$01	                EOR #KB_SCROLL_LOCK         ; toggle the Scroll Lock flag
-.381a05		85 89		sta $0f89	                STA KEYBOARD_LOCKS
-.381a07		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.381a0a		a5 87		lda $0f87	KB_TOG_NUMLOCK  LDA KEYBOARD_SC_FLG         ; Check flags...
-.381a0c		29 60		and #$60	                AND #$60                    ; ... is control-alt pressed?
-.381a0e		c9 60		cmp #$60	                CMP #$60
-.381a10		d0 03		bne $381a15	                BNE KB_TOG_NUMLOC2
-.381a12		82 63 ff	brl $381978	                BRL KB_NORM_SC              ; No: treat as a BREAK key
-.381a15		a5 89		lda $0f89	KB_TOG_NUMLOC2  LDA KEYBOARD_LOCKS
-.381a17		49 02		eor #$02	                EOR #KB_NUM_LOCK            ; toggle the Num Lock flag
-.381a19		85 89		sta $0f89	                STA KEYBOARD_LOCKS
-.381a1b		4c 24 1a	jmp $381a24	                JMP KB_CHECK_B_DONE
-.381a1e		a5 89		lda $0f89	KB_TOG_CAPLOCK  LDA KEYBOARD_LOCKS
-.381a20		49 04		eor #$04	                EOR #KB_CAPS_LOCK           ; toggle the Caps Lock flag
-.381a22		85 89		sta $0f89	                STA KEYBOARD_LOCKS
-.381a24						KB_CHECK_B_DONE
-.381a24		af 64 10 af	lda $af1064	                LDA STATUS_PORT
-.381a28		29 01		and #$01	                AND #OUT_BUF_FULL           ; Test bit $01 (if 1, Full)
-.381a2a		c9 01		cmp #$01	                CMP #OUT_BUF_FULL           ; if Still Byte in the Buffer, fetch it out
-.381a2c		d0 03		bne $381a31	                BNE SET_LED
-.381a2e		4c ee 18	jmp $3818ee	                JMP IRQ_HANDLER_FETCH
-.381a31						SET_LED
-.381a31						KB_DONE
-.381a31		c2 30		rep #$30	                REP #$30        ; set A&X long
-.381a33		60		rts		                RTS
-.381a34						programmerKey
+.3818d6						KEYBOARD_INTERRUPT
+.3818d6		48		pha		                PHA             ; begin setdp macro
+.3818d7		08		php		                PHP
+.3818d8		c2 20		rep #$20	                REP #$20        ; set A long
+.3818da		a9 00 0f	lda #$0f00	                LDA #KEY_BUFFER         ; set DP to page 0
+.3818dd		5b		tcd		                TCD
+.3818de		28		plp		                PLP
+.3818df		68		pla		                PLA             ; end setdp macro
+.3818e0		a2 00 00	ldx #$0000	                ldx #$0000
+.3818e3		e2 10		sep #$10	                SEP #$10        ; set X short
+.3818e5		e2 20		sep #$20	                SEP #$20        ; set A short
+.3818e7		af 41 01 00	lda $000141	                LDA @lINT_PENDING_REG1
+.3818eb		29 01		and #$01	                AND #FNX1_INT00_KBD
+.3818ed		8f 41 01 00	sta $000141	                STA @lINT_PENDING_REG1
+.3818f1						IRQ_HANDLER_FETCH
+.3818f1		af 60 10 af	lda $af1060	                LDA @lKBD_INPT_BUF      ; Get Scan Code from KeyBoard
+.3818f5		85 88		sta $0f88	                STA KEYBOARD_SC_TMP     ; Save Code Immediately
+.3818f7		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the Prefix was picked up before
+.3818f9		29 80		and #$80	                AND #$80
+.3818fb		c9 80		cmp #$80	                CMP #$80
+.3818fd		d0 10		bne $38190f	                BNE CHK_LSHIFT          ; No: do normal scan-code checks
+.3818ff		a5 87		lda $0f87	PREFIX_ON       LDA KEYBOARD_SC_FLG     ; Otherwise: clear prefix
+.381901		29 7f		and #$7f	                AND #$7F
+.381903		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.381905		a5 88		lda $0f88	                LDA KEYBOARD_SC_TMP     ; Get the prefixed scan-code's character
+.381907		aa		tax		                TAX
+.381908		bf 80 75 39	lda $397580,x	                LDA @lScanCode_Prefix_Set1, x
+.38190c		4c b2 19	jmp $3819b2	                JMP KB_WR_2_SCREEN      ; And save it
+.38190f		a5 88		lda $0f88	CHK_LSHIFT      LDA KEYBOARD_SC_TMP
+.381911		c9 2a		cmp #$2a	                CMP #$2A                ; Left Shift Pressed
+.381913		d0 03		bne $381918	                BNE NOT_KB_SET_LSHIFT
+.381915		82 ad 00	brl $3819c5	                BRL KB_SET_SHIFT
+.381918						NOT_KB_SET_LSHIFT
+.381918		c9 aa		cmp #$aa	                CMP #$AA                ; Left Shift Unpressed
+.38191a		d0 03		bne $38191f	                BNE NOT_KB_CLR_LSHIFT
+.38191c		82 af 00	brl $3819ce	                BRL KB_CLR_SHIFT
+.38191f						NOT_KB_CLR_LSHIFT
+.38191f		c9 36		cmp #$36	                CMP #$36                ; Right Shift Pressed
+.381921		d0 03		bne $381926	                BNE NOT_KB_SET_RSHIFT
+.381923		82 9f 00	brl $3819c5	                BRL KB_SET_SHIFT
+.381926						NOT_KB_SET_RSHIFT
+.381926		c9 b6		cmp #$b6	                CMP #$B6                ; Right Shift Unpressed
+.381928		d0 03		bne $38192d	                BNE NOT_KB_CLR_RSHIFT
+.38192a		82 a1 00	brl $3819ce	                BRL KB_CLR_SHIFT
+.38192d						NOT_KB_CLR_RSHIFT
+.38192d		c9 1d		cmp #$1d	                CMP #$1D                ; Left CTRL pressed
+.38192f		d0 03		bne $381934	                BNE NOT_KB_SET_CTRL
+.381931		82 a3 00	brl $3819d7	                BRL KB_SET_CTRL
+.381934						NOT_KB_SET_CTRL
+.381934		c9 9d		cmp #$9d	                CMP #$9D                ; Left CTRL Unpressed
+.381936		d0 03		bne $38193b	                BNE NOT_KB_CLR_CTRL
+.381938		82 a5 00	brl $3819e0	                BRL KB_CLR_CTRL
+.38193b						NOT_KB_CLR_CTRL
+.38193b		c9 38		cmp #$38	                CMP #$38                ; Left ALT Pressed
+.38193d		d0 03		bne $381942	                BNE NOT_KB_SET_ALT
+.38193f		82 a7 00	brl $3819e9	                BRL KB_SET_ALT
+.381942						NOT_KB_SET_ALT
+.381942		c9 b8		cmp #$b8	                CMP #$B8                ; Left ALT Unpressed
+.381944		d0 03		bne $381949	                BNE NOT_KB_CLR_ALT
+.381946		82 a9 00	brl $3819f2	                BRL KB_CLR_ALT
+.381949		c9 e0		cmp #$e0	NOT_KB_CLR_ALT  CMP #$E0                ; Prefixed scan code
+.38194b		d0 03		bne $381950	                BNE NOT_PREFIXED
+.38194d		82 ab 00	brl $3819fb	                BRL KB_SET_PREFIX
+.381950		c9 45		cmp #$45	NOT_PREFIXED    CMP #$45                ; Numlock Pressed
+.381952		d0 03		bne $381957	                BNE NOT_KB_SET_NUM
+.381954		82 b6 00	brl $381a0d	                BRL KB_TOG_NUMLOCK
+.381957		c9 46		cmp #$46	NOT_KB_SET_NUM  CMP #$46                ; Scroll Lock Pressed
+.381959		d0 03		bne $38195e	                BNE NOT_KB_SET_SCR
+.38195b		82 a6 00	brl $381a04	                BRL KB_TOG_SCRLOCK
+.38195e		c9 3a		cmp #$3a	NOT_KB_SET_SCR  CMP #$3A                ; Caps Lock Pressed
+.381960		d0 03		bne $381965	                BNE NOT_KB_CAPSLOCK
+.381962		82 bc 00	brl $381a21	                BRL KB_TOG_CAPLOCK
+.381965		c9 58		cmp #$58	NOT_KB_CAPSLOCK CMP #$58                ; F12 Pressed
+.381967		d0 09		bne $381972	                BNE KB_UNPRESSED
+.381969		a9 60		lda #$60	                LDA #KB_CREDITS         ; Yes: flag that the CREDITS key has been pressed
+.38196b		8f 8a 0f 00	sta $000f8a	                STA @lKEYFLAG
+.38196f		82 b5 00	brl $381a27	                BRL KB_CHECK_B_DONE
+.381972		29 80		and #$80	KB_UNPRESSED    AND #$80                ; See if the Scan Code is press or Depressed
+.381974		c9 80		cmp #$80	                CMP #$80                ; Depress Status - We will not do anything at this point
+.381976		d0 03		bne $38197b	                BNE KB_NORM_SC
+.381978		82 ac 00	brl $381a27	                BRL KB_CHECK_B_DONE
+.38197b		a5 88		lda $0f88	KB_NORM_SC      LDA KEYBOARD_SC_TMP       ;
+.38197d		aa		tax		                TAX
+.38197e		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the SHIFT Key is being Pushed
+.381980		29 10		and #$10	                AND #$10
+.381982		c9 10		cmp #$10	                CMP #$10
+.381984		f0 17		beq $38199d	                BEQ SHIFT_KEY_ON
+.381986		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the CTRL Key is being Pushed
+.381988		29 20		and #$20	                AND #$20
+.38198a		c9 20		cmp #$20	                CMP #$20
+.38198c		f0 16		beq $3819a4	                BEQ CTRL_KEY_ON
+.38198e		a5 87		lda $0f87	                LDA KEYBOARD_SC_FLG     ; Check to See if the ALT Key is being Pushed
+.381990		29 40		and #$40	                AND #$40
+.381992		c9 40		cmp #$40	                CMP #$40
+.381994		f0 15		beq $3819ab	                BEQ ALT_KEY_ON
+.381996		bf 00 73 39	lda $397300,x	                LDA @lScanCode_Press_Set1, x
+.38199a		82 15 00	brl $3819b2	                BRL KB_WR_2_SCREEN
+.38199d		bf 80 73 39	lda $397380,x	SHIFT_KEY_ON    LDA @lScanCode_Shift_Set1, x
+.3819a1		82 0e 00	brl $3819b2	                BRL KB_WR_2_SCREEN
+.3819a4		bf 00 74 39	lda $397400,x	CTRL_KEY_ON     LDA @lScanCode_Ctrl_Set1, x
+.3819a8		82 07 00	brl $3819b2	                BRL KB_WR_2_SCREEN
+.3819ab		bf 80 74 39	lda $397480,x	ALT_KEY_ON      LDA @lScanCode_Alt_Set1, x
+.3819af		82 00 00	brl $3819b2	                BRL KB_WR_2_SCREEN
+.3819b2		c9 18		cmp #$18	KB_WR_2_SCREEN  CMP #$18                ; Is it SysRq?
+.3819b4		d0 03		bne $3819b9	                BNE savechar
+.3819b6		4c 37 1a	jmp $381a37	                JMP programmerKey       ; Yes: trigger the programmer key
+.3819b9		48		pha		savechar        PHA
+.3819ba		c2 10		rep #$10	                REP #$10        ; set X long
+.3819bc		20 43 1a	jsr $381a43	                JSR SAVEKEY
+.3819bf		e2 20		sep #$20	                SEP #$20        ; set A short
+.3819c1		68		pla		                PLA
+.3819c2		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819c5		a5 87		lda $0f87	KB_SET_SHIFT    LDA KEYBOARD_SC_FLG
+.3819c7		09 10		ora #$10	                ORA #$10
+.3819c9		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819cb		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819ce		a5 87		lda $0f87	KB_CLR_SHIFT    LDA KEYBOARD_SC_FLG
+.3819d0		29 ef		and #$ef	                AND #$EF
+.3819d2		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819d4		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819d7		a5 87		lda $0f87	KB_SET_CTRL     LDA KEYBOARD_SC_FLG
+.3819d9		09 20		ora #$20	                ORA #$20
+.3819db		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819dd		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819e0		a5 87		lda $0f87	KB_CLR_CTRL     LDA KEYBOARD_SC_FLG
+.3819e2		29 df		and #$df	                AND #$DF
+.3819e4		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819e6		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819e9		a5 87		lda $0f87	KB_SET_ALT      LDA KEYBOARD_SC_FLG
+.3819eb		09 40		ora #$40	                ORA #$40
+.3819ed		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819ef		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819f2		a5 87		lda $0f87	KB_CLR_ALT      LDA KEYBOARD_SC_FLG
+.3819f4		29 bf		and #$bf	                AND #$BF
+.3819f6		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.3819f8		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.3819fb		a5 87		lda $0f87	KB_SET_PREFIX   LDA KEYBOARD_SC_FLG
+.3819fd		09 80		ora #$80	                ORA #$80
+.3819ff		85 87		sta $0f87	                STA KEYBOARD_SC_FLG
+.381a01		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.381a04		a5 89		lda $0f89	KB_TOG_SCRLOCK  LDA KEYBOARD_LOCKS
+.381a06		49 01		eor #$01	                EOR #KB_SCROLL_LOCK         ; toggle the Scroll Lock flag
+.381a08		85 89		sta $0f89	                STA KEYBOARD_LOCKS
+.381a0a		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.381a0d		a5 87		lda $0f87	KB_TOG_NUMLOCK  LDA KEYBOARD_SC_FLG         ; Check flags...
+.381a0f		29 60		and #$60	                AND #$60                    ; ... is control-alt pressed?
+.381a11		c9 60		cmp #$60	                CMP #$60
+.381a13		d0 03		bne $381a18	                BNE KB_TOG_NUMLOC2
+.381a15		82 63 ff	brl $38197b	                BRL KB_NORM_SC              ; No: treat as a BREAK key
+.381a18		a5 89		lda $0f89	KB_TOG_NUMLOC2  LDA KEYBOARD_LOCKS
+.381a1a		49 02		eor #$02	                EOR #KB_NUM_LOCK            ; toggle the Num Lock flag
+.381a1c		85 89		sta $0f89	                STA KEYBOARD_LOCKS
+.381a1e		4c 27 1a	jmp $381a27	                JMP KB_CHECK_B_DONE
+.381a21		a5 89		lda $0f89	KB_TOG_CAPLOCK  LDA KEYBOARD_LOCKS
+.381a23		49 04		eor #$04	                EOR #KB_CAPS_LOCK           ; toggle the Caps Lock flag
+.381a25		85 89		sta $0f89	                STA KEYBOARD_LOCKS
+.381a27						KB_CHECK_B_DONE
+.381a27		af 64 10 af	lda $af1064	                LDA STATUS_PORT
+.381a2b		29 01		and #$01	                AND #OUT_BUF_FULL           ; Test bit $01 (if 1, Full)
+.381a2d		c9 01		cmp #$01	                CMP #OUT_BUF_FULL           ; if Still Byte in the Buffer, fetch it out
+.381a2f		d0 03		bne $381a34	                BNE SET_LED
+.381a31		4c f1 18	jmp $3818f1	                JMP IRQ_HANDLER_FETCH
+.381a34						SET_LED
+.381a34						KB_DONE
 .381a34		c2 30		rep #$30	                REP #$30        ; set A&X long
-.381a36		68		pla		                PLA                     ; Get and throw-away the return address to the interrupt handler
-.381a37		2b		pld		                PLD                     ; Restore the registers that were present when the handler was invoked
-.381a38		ab		plb		                PLB
-.381a39		7a		ply		                PLY
-.381a3a		fa		plx		                PLX
-.381a3b		68		pla		                PLA
-.381a3c		5c 08 10 00	jmp $001008	                JML BREAK               ; And go to the BRK handler directly to open the monitor
-.381a40						SAVEKEY
-.381a40		e2 20		sep #$20	                SEP #$20        ; set A short
-.381a42		48		pha		                PHA                     ; Save the character
-.381a43		a5 89		lda $0f89	                LDA KEYBOARD_LOCKS      ; Check the keyboard lock flags
-.381a45		29 04		and #$04	                AND #KB_CAPS_LOCK       ; Is CAPS lock on?
-.381a47		f0 0d		beq $381a56	                BEQ no_caps             ; No... just use the character as-is
-.381a49		68		pla		                PLA                     ; Get the character back
-.381a4a		c9 61		cmp #$61	                CMP #'a'                ; Is it < 'a'
-.381a4c		90 09		bcc $381a57	                BLT check_break         ; Yes: just use as-is
-.381a4e		c9 7b		cmp #$7b	                CMP #'z'+1              ; Is it > 'z'
-.381a50		b0 05		bcs $381a57	                BGE check_break         ; Yes: just us as-is
-.381a52		29 df		and #$df	                AND #%11011111          ; Conver to upper case
-.381a54		80 01		bra $381a57	                BRA check_break
-.381a56		68		pla		no_caps         PLA                     ; Restore the character
-.381a57		c9 00		cmp #$00	check_break     CMP #0
-.381a59		f0 18		beq $381a73	                BEQ done
-.381a5b		c9 03		cmp #$03	                CMP #CHAR_CTRL_C        ; Is it CTRL-C?
-.381a5d		f0 15		beq $381a74	                BEQ flag_break          ; Yes: flag a break
-.381a5f		a6 8d		ldx $0f8d	no_break        LDX KEY_BUFFER_WPOS     ; So the Receive Character is saved in the Buffer
-.381a61		e0 80 00	cpx #$0080	                CPX #KEY_BUFFER_SIZE    ; Make sure we haven't been overboard.
-.381a64		b0 0d		bcs $381a73	                BCS done                ; Stop storing - An error should ensue here...
-.381a66		9f 00 0f 00	sta $000f00,x	                STA @lKEY_BUFFER,X
-.381a6a		e8		inx		                INX
-.381a6b		86 8d		stx $0f8d	                STX KEY_BUFFER_WPOS
-.381a6d		a9 00		lda #$00	                LDA #$00
-.381a6f		9f 00 0f 00	sta $000f00,x	                STA @lKEY_BUFFER, X       ; Store a EOL in the following location for good measure
-.381a73		60		rts		done            RTS
-.381a74						flag_break
-.381a74		e2 20		sep #$20	                SEP #$20        ; set A short
-.381a76		a9 80		lda #$80	                LDA #KB_CTRL_C          ; Flag that an interrupt key has been pressed
-.381a78		85 8a		sta $0f8a	                STA KEYFLAG             ; The interpreter should see this soon and throw a BREAK
-.381a7a		60		rts		                RTS
-.381a7b						KBD_GETC
-.381a7b		da		phx		                PHX
-.381a7c		0b		phd		                PHD
-.381a7d		08		php		                PHP
-.381a7e		48		pha		                PHA             ; begin setdp macro
-.381a7f		08		php		                PHP
-.381a80		c2 20		rep #$20	                REP #$20        ; set A long
-.381a82		a9 00 0f	lda #$0f00	                LDA #KEY_BUFFER         ; set DP to page 0
-.381a85		5b		tcd		                TCD
-.381a86		28		plp		                PLP
-.381a87		68		pla		                PLA             ; end setdp macro
-.381a88		e2 20		sep #$20	                SEP #$20        ; set A short
-.381a8a		c2 10		rep #$10	                REP #$10        ; set X long
-.381a8c		58		cli		                CLI                     ; Make sure interrupts can happen
-.381a8d		af 8a 0f 00	lda $000f8a	get_wait        LDA @lKEYFLAG           ; Check the keyboard control flag
-.381a91		29 60		and #$60	                AND #KB_CREDITS         ; Are the credits flagged?
-.381a93		c9 60		cmp #$60	                CMP #KB_CREDITS
-.381a95		d0 0a		bne $381aa1	                BNE check_buffer        ; No: check the key buffer
-.381a97		a9 00		lda #$00	                LDA #0                  ; Yes: clear the flags
-.381a99		8f 8a 0f 00	sta $000f8a	                STA @lKEYFLAG
-.381a9d		22 8b 16 39	jsl $39168b	                JSL SHOW_CREDITS        ; Then show the credits screen and wait for a key press
-.381aa1		a6 8b		ldx $0f8b	check_buffer    LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
-.381aa3		e4 8d		cpx $0f8d	                CPX KEY_BUFFER_WPOS
-.381aa5		90 02		bcc $381aa9	                BCC read_buff           ; Yes: a key is present, read it
-.381aa7		80 e4		bra $381a8d	                BRA get_wait            ; Otherwise, keep waiting
-.381aa9		78		sei		read_buff       SEI                     ; Don't interrupt me!
-.381aaa		b5 00		lda $0f00,x	                LDA KEY_BUFFER,X        ; Get the key
-.381aac		e8		inx		                INX                     ; And move to the next key
-.381aad		e4 8d		cpx $0f8d	                CPX KEY_BUFFER_WPOS     ; Did we just read the last key?
-.381aaf		f0 07		beq $381ab8	                BEQ reset_indexes       ; Yes: return to 0 position
-.381ab1		86 8b		stx $0f8b	                STX KEY_BUFFER_RPOS     ; Otherwise: Update the read index
-.381ab3		58		cli		                CLI
-.381ab4		28		plp		done            PLP                     ; Restore status and interrupts
-.381ab5		2b		pld		                PLD
-.381ab6		fa		plx		                PLX
-.381ab7		6b		rtl		                RTL
-.381ab8		64 8b		stz $0f8b	reset_indexes   STZ KEY_BUFFER_RPOS     ; Reset read index to the beginning
-.381aba		64 8d		stz $0f8d	                STZ KEY_BUFFER_WPOS     ; Reset the write index to the beginning
-.381abc		80 f6		bra $381ab4	                BRA done
+.381a36		60		rts		                RTS
+.381a37						programmerKey
+.381a37		c2 30		rep #$30	                REP #$30        ; set A&X long
+.381a39		68		pla		                PLA                     ; Get and throw-away the return address to the interrupt handler
+.381a3a		2b		pld		                PLD                     ; Restore the registers that were present when the handler was invoked
+.381a3b		ab		plb		                PLB
+.381a3c		7a		ply		                PLY
+.381a3d		fa		plx		                PLX
+.381a3e		68		pla		                PLA
+.381a3f		5c 08 10 00	jmp $001008	                JML BREAK               ; And go to the BRK handler directly to open the monitor
+.381a43						SAVEKEY
+.381a43		e2 20		sep #$20	                SEP #$20        ; set A short
+.381a45		48		pha		                PHA                     ; Save the character
+.381a46		a5 89		lda $0f89	                LDA KEYBOARD_LOCKS      ; Check the keyboard lock flags
+.381a48		29 04		and #$04	                AND #KB_CAPS_LOCK       ; Is CAPS lock on?
+.381a4a		f0 0d		beq $381a59	                BEQ no_caps             ; No... just use the character as-is
+.381a4c		68		pla		                PLA                     ; Get the character back
+.381a4d		c9 61		cmp #$61	                CMP #'a'                ; Is it < 'a'
+.381a4f		90 09		bcc $381a5a	                BLT check_break         ; Yes: just use as-is
+.381a51		c9 7b		cmp #$7b	                CMP #'z'+1              ; Is it > 'z'
+.381a53		b0 05		bcs $381a5a	                BGE check_break         ; Yes: just us as-is
+.381a55		29 df		and #$df	                AND #%11011111          ; Conver to upper case
+.381a57		80 01		bra $381a5a	                BRA check_break
+.381a59		68		pla		no_caps         PLA                     ; Restore the character
+.381a5a		c9 00		cmp #$00	check_break     CMP #0
+.381a5c		f0 18		beq $381a76	                BEQ done
+.381a5e		c9 03		cmp #$03	                CMP #CHAR_CTRL_C        ; Is it CTRL-C?
+.381a60		f0 15		beq $381a77	                BEQ flag_break          ; Yes: flag a break
+.381a62		a6 8d		ldx $0f8d	no_break        LDX KEY_BUFFER_WPOS     ; So the Receive Character is saved in the Buffer
+.381a64		e0 80 00	cpx #$0080	                CPX #KEY_BUFFER_SIZE    ; Make sure we haven't been overboard.
+.381a67		b0 0d		bcs $381a76	                BCS done                ; Stop storing - An error should ensue here...
+.381a69		9f 00 0f 00	sta $000f00,x	                STA @lKEY_BUFFER,X
+.381a6d		e8		inx		                INX
+.381a6e		86 8d		stx $0f8d	                STX KEY_BUFFER_WPOS
+.381a70		a9 00		lda #$00	                LDA #$00
+.381a72		9f 00 0f 00	sta $000f00,x	                STA @lKEY_BUFFER, X       ; Store a EOL in the following location for good measure
+.381a76		60		rts		done            RTS
+.381a77						flag_break
+.381a77		e2 20		sep #$20	                SEP #$20        ; set A short
+.381a79		a9 80		lda #$80	                LDA #KB_CTRL_C          ; Flag that an interrupt key has been pressed
+.381a7b		85 8a		sta $0f8a	                STA KEYFLAG             ; The interpreter should see this soon and throw a BREAK
+.381a7d		60		rts		                RTS
+.381a7e						KBD_GETC
+.381a7e		da		phx		                PHX
+.381a7f		0b		phd		                PHD
+.381a80		08		php		                PHP
+.381a81		48		pha		                PHA             ; begin setdp macro
+.381a82		08		php		                PHP
+.381a83		c2 20		rep #$20	                REP #$20        ; set A long
+.381a85		a9 00 0f	lda #$0f00	                LDA #KEY_BUFFER         ; set DP to page 0
+.381a88		5b		tcd		                TCD
+.381a89		28		plp		                PLP
+.381a8a		68		pla		                PLA             ; end setdp macro
+.381a8b		e2 20		sep #$20	                SEP #$20        ; set A short
+.381a8d		c2 10		rep #$10	                REP #$10        ; set X long
+.381a8f		58		cli		                CLI                     ; Make sure interrupts can happen
+.381a90		af 8a 0f 00	lda $000f8a	get_wait        LDA @lKEYFLAG           ; Check the keyboard control flag
+.381a94		29 60		and #$60	                AND #KB_CREDITS         ; Are the credits flagged?
+.381a96		c9 60		cmp #$60	                CMP #KB_CREDITS
+.381a98		d0 0a		bne $381aa4	                BNE check_buffer        ; No: check the key buffer
+.381a9a		a9 00		lda #$00	                LDA #0                  ; Yes: clear the flags
+.381a9c		8f 8a 0f 00	sta $000f8a	                STA @lKEYFLAG
+.381aa0		22 8b 16 39	jsl $39168b	                JSL SHOW_CREDITS        ; Then show the credits screen and wait for a key press
+.381aa4		a6 8b		ldx $0f8b	check_buffer    LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
+.381aa6		e4 8d		cpx $0f8d	                CPX KEY_BUFFER_WPOS
+.381aa8		90 02		bcc $381aac	                BCC read_buff           ; Yes: a key is present, read it
+.381aaa		80 e4		bra $381a90	                BRA get_wait            ; Otherwise, keep waiting
+.381aac		78		sei		read_buff       SEI                     ; Don't interrupt me!
+.381aad		b5 00		lda $0f00,x	                LDA KEY_BUFFER,X        ; Get the key
+.381aaf		e8		inx		                INX                     ; And move to the next key
+.381ab0		e4 8d		cpx $0f8d	                CPX KEY_BUFFER_WPOS     ; Did we just read the last key?
+.381ab2		f0 07		beq $381abb	                BEQ reset_indexes       ; Yes: return to 0 position
+.381ab4		86 8b		stx $0f8b	                STX KEY_BUFFER_RPOS     ; Otherwise: Update the read index
+.381ab6		58		cli		                CLI
+.381ab7		28		plp		done            PLP                     ; Restore status and interrupts
+.381ab8		2b		pld		                PLD
+.381ab9		fa		plx		                PLX
+.381aba		6b		rtl		                RTL
+.381abb		64 8b		stz $0f8b	reset_indexes   STZ KEY_BUFFER_RPOS     ; Reset read index to the beginning
+.381abd		64 8d		stz $0f8d	                STZ KEY_BUFFER_WPOS     ; Reset the write index to the beginning
+.381abf		80 f6		bra $381ab7	                BRA done
 
 ;******  Return to file: src\kernel.asm
 
@@ -2615,7 +2616,7 @@
 .390737		22 cd 5b 39	jsl $395bcd	getc_uart       JSL UART_SELECT     ; Select the correct COM port
 .39073b		22 81 5c 39	jsl $395c81	                JSL UART_GETC       ; Get the charater from the COM port
 .39073f		80 04		bra $390745	                BRA done
-.390741		22 7b 1a 38	jsl $381a7b	getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
+.390741		22 7e 1a 38	jsl $381a7e	getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
 .390745		28		plp		done            PLP
 .390746		18		clc		                CLC                 ; Return carry clear for valid data
 .390747		6b		rtl		                RTL
@@ -13548,9 +13549,9 @@
 
 ;******  Processing file: src\version.asm
 
->396f33		76 30 2e 31 2e 30 2d 61		.text "v0.1.0-alpha+1002 (2020-09-27)"
->396f3b		6c 70 68 61 2b 31 30 30 32 20 28 32 30 32 30 2d
->396f4b		30 39 2d 32 37 29
+>396f33		76 30 2e 31 2e 30 2d 61		.text "v0.1.0-alpha+1010 (2020-09-30)"
+>396f3b		6c 70 68 61 2b 31 30 31 30 20 28 32 30 32 30 2d
+>396f4b		30 39 2d 33 30 29
 
 ;******  Return to file: src\kernel.asm
 

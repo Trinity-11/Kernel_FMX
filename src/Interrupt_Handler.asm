@@ -107,8 +107,13 @@ SERVICE_NEXT_IRQ8 ; Keyboard Interrupt
                 BNE SERVICE_NEXT_IRQ11
                 STA @lINT_PENDING_REG1
                 ; Keyboard Interrupt
+
+                PHB
+                PHD
                 JSR KEYBOARD_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
+                PLD
+                PLB
+
                 ;IRQ9 - Not Implemented Yet
                 ;IRQ10 - Not Implemented Yet
                 ;IRQ11
@@ -249,33 +254,32 @@ TIMER2_INTERRUPT
 ; ///       Vicky does the rest
 ; ///////////////////////////////////////////////////////////////////
 MOUSE_INTERRUPT .as
-                setas
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT07_MOUSE
-                STA @lINT_PENDING_REG0
-                LDA KBD_INPT_BUF
-                LDX #$0000
-                setxs
-                LDX MOUSE_PTR
+                setaxs
+
+                LDA @l MOUSE_PTR
+                TAX
+
+                LDA @l KBD_INPT_BUF
                 STA @lMOUSE_PTR_BYTE0, X
                 INX
                 CPX #$03
                 BNE EXIT_FOR_NEXT_VALUE
                 ; Create Absolute Count from Relative Input
-                LDA @lMOUSE_PTR_X_POS_L
-                STA MOUSE_POS_X_LO
-                LDA @lMOUSE_PTR_X_POS_H
-                STA MOUSE_POS_X_HI
+                LDA @l MOUSE_PTR_X_POS_L
+                STA @l MOUSE_POS_X_LO
+                LDA @l MOUSE_PTR_X_POS_H
+                STA @l MOUSE_POS_X_HI
 
-                LDA @lMOUSE_PTR_Y_POS_L
-                STA MOUSE_POS_Y_LO
-                LDA @lMOUSE_PTR_Y_POS_H
-                STA MOUSE_POS_Y_HI
+                LDA @l MOUSE_PTR_Y_POS_L
+                STA @l MOUSE_POS_Y_LO
+                LDA @l MOUSE_PTR_Y_POS_H
+                STA @l MOUSE_POS_Y_HI
 
                 setas
                 LDX #$00
 EXIT_FOR_NEXT_VALUE
-                STX MOUSE_PTR
+                TXA
+                STA @l MOUSE_PTR
 
                 setxl
                 RTS

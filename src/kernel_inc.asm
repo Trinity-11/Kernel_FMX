@@ -77,7 +77,7 @@ F_ALLOCFD        = $001134 ; Allocate a file descriptor
 F_FREEFD         = $001138 ; Free a file descriptor
 
 ;
-; Interrupt Vector Table
+; Interrupt Jump Table
 ;
 
 VEC_INT00_SOF   = $001700 ; Interrupt routine for Start Of Frame interrupt

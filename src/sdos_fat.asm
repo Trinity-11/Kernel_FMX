@@ -317,7 +317,6 @@ fd_buff_loop    LDY #FILEDESC.BUFFER    ; Set the file descriptor's buffer point
 ;
 ; Inputs:
 ;   BIOS_DEV = the number of the device to mount
-;   VOLUME = the volume table describing the layout of the mounted drive
 ;
 ; Outputs:
 ;   C set on success, clear on failure
