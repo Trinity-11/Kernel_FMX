@@ -9,6 +9,8 @@ BM_LUT5               = $0A ;
 BM_LUT6               = $0C ;
 BM_LUT7               = $0E ;
 
+BM_Collision_On       = $40 ; 
+
 ; First BitMap Plane
 BM0_CONTROL_REG     = $AF0100
 BM0_START_ADDY_L    = $AF0101
