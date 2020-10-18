@@ -2,12 +2,12 @@ SPRITE_Enable             = $01
 
 SPRITE_LUT0               = $00 ; This is the LUT that the Sprite will use
 SPRITE_LUT1               = $02
-SPRITE_LUT2               = $04 ; Only 4 LUT for Now, So this bit is not used.
-SPRITE_LUT3               = $06 ; Only 4 LUT for Now, So this bit is not used.
-SPRITE_LUT4               = $08 ; Only 4 LUT for Now, So this bit is not used.
-SPRITE_LUT5               = $0A ; Only 4 LUT for Now, So this bit is not used.
-SPRITE_LUT6               = $0C ; Only 4 LUT for Now, So this bit is not used.
-SPRITE_LUT7               = $0E ; Only 4 LUT for Now, So this bit is not used.
+SPRITE_LUT2               = $04
+SPRITE_LUT3               = $06
+SPRITE_LUT4               = $08
+SPRITE_LUT5               = $0A
+SPRITE_LUT6               = $0C
+SPRITE_LUT7               = $0E
 
 SPRITE_DEPTH0             = $00
 SPRITE_DEPTH1             = $10
@@ -17,6 +17,7 @@ SPRITE_DEPTH4             = $40
 SPRITE_DEPTH5             = $50
 SPRITE_DEPTH6             = $60
 
+SPRITE_Collision_On       = $80 ; Enable the Collision Detection
 
 ; Sprite 0 (Highest Priority)
 SP00_CONTROL_REG        = $AF0C00
