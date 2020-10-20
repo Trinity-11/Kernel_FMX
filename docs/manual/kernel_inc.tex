@@ -1,0 +1,71 @@
+BOOT             & 0x001000 & Cold boot routine \\ \hline
+RESTORE          & 0x001004 & Warm boot routine \\ \hline
+BREAK            & 0x001008 & End program and return to command prompt \\ \hline
+READY            & 0x00100C & Print prompt and wait for keyboard input \\ \hline
+SCINIT           & 0x001010 & \\ \hline
+IOINIT           & 0x001014 & \\ \hline
+PUTC             & 0x001018 & Print a character to the currently selected channel \\ \hline
+PUTS             & 0x00101C & Print a string to the currently selected channel \\ \hline
+PUTB             & 0x001020 & Output a byte to the currently selected channel \\ \hline
+PUTBLOCK         & 0x001024 & Ouput a binary block to the currently selected channel \\ \hline
+SETLFS           & 0x001028 & Obsolete (done in OPEN) \\ \hline
+SETNAM           & 0x00102C & Obsolete (done in OPEN) \\ \hline
+OPEN             & 0x001030 & Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first. \\ \hline
+CLOSE            & 0x001034 & Close a channel \\ \hline
+SETIN            & 0x001038 & Set the current input channel \\ \hline
+SETOUT           & 0x00103C & Set the current output channel \\ \hline
+GETB             & 0x001040 & Get a byte from input channel. Return 0 if no input. Carry is set if no input. \\ \hline
+GETBLOCK         & 0x001044 & Get a X byes from input channel. If Carry is set, wait. If Carry is clear, do not wait. \\ \hline
+GETCH            & 0x001048 & Get a character from the input channel. A=0 and Carry=1 if no data is wating \\ \hline
+GETCHW           & 0x00104C & Get a character from the input channel. Waits until data received. A=0 and Carry=1 if no data is wating \\ \hline
+GETCHE           & 0x001050 & Get a character from the input channel and echo to the screen. Wait if data is not ready. \\ \hline
+GETS             & 0x001054 & Get a string from the input channel. NULL terminates \\ \hline
+GETLINE          & 0x001058 & Get a line of text from input channel. CR or NULL terminates. \\ \hline
+GETFIELD         & 0x00105C & Get a field from the input channel. Value in A, CR, or NULL terminates \\ \hline
+TRIM             & 0x001060 & Removes spaces at beginning and end of string. \\ \hline
+PRINTC           & 0x001064 & Print character to screen. Handles terminal commands \\ \hline
+PRINTS           & 0x001068 & Print string to screen. Handles terminal commands \\ \hline
+PRINTCR          & 0x00106C & Print Carriage Return \\ \hline
+PRINTF           & 0x001070 & Print a float value \\ \hline
+PRINTI           & 0x001074 & Prints integer value in TEMP \\ \hline
+PRINTH           & 0x001078 & Print Hex value in DP variable \\ \hline
+PRINTAI          & 0x00107C & Prints integer value in A \\ \hline
+PRINTAH          & 0x001080 & Prints hex value in A. Printed value is 2 wide if M flag is 1, 4 wide if M is 0 \\ \hline
+LOCATE           & 0x001084 & \\ \hline
+PUSHKEY          & 0x001088 & \\ \hline
+PUSHKEYS         & 0x00108C & \\ \hline
+CSRRIGHT         & 0x001090 & \\ \hline
+CSRLEFT          & 0x001094 & \\ \hline
+CSRUP            & 0x001098 & \\ \hline
+CSRDOWN          & 0x00109C & \\ \hline
+CSRHOME          & 0x0010A0 & \\ \hline
+SCROLLUP         & 0x0010A4 & Scroll the screen up one line. Creates an empty line at the bottom. \\ \hline
+CLRSCREEN        & 0x0010A8 & Clear the screen \\ \hline
+INITCHLUT        & 0x0010AC & Init character look-up table \\ \hline
+INITSUPERIO      & 0x0010B0 & Init Super-IO chip \\ \hline
+INITKEYBOARD     & 0x0010B4 & Init keyboard \\ \hline
+INITCURSOR       & 0x0010BC & Init the Cursors registers \\ \hline
+INITFONTSET      & 0x0010C0 & Init the Internal FONT Memory \\ \hline
+INITGAMMATABLE   & 0x0010C4 & Init the RGB GAMMA Look Up Table \\ \hline
+INITALLLUT       & 0x0010C8 & Init the Graphic Engine (Bitmap/Tile/Sprites) LUT \\ \hline
+INITVKYTXTMODE   & 0x0010CC & Init the Text Mode @ Reset Time \\ \hline
+INITVKYGRPMODE   & 0x0010D0 & Init the Basic Registers for the Graphic Mode \\ \hline
+SETSIZES         & 0x00112C & Set the text screen size variables based on the border and screen resolution. \\ \hline
+FOPEN           & 0x0010F0 & open a file for reading/writing/creating \\ \hline
+FCREATE         & 0x0010F4 & create a new file \\ \hline
+FCLOSE          & 0x0010F8 & close a file (make sure last cluster is written) \\ \hline
+FWRITE          & 0x0010FC & write the current cluster to the file \\ \hline
+FREAD           & 0x001100 & read the next cluster from the file \\ \hline
+FDELETE         & 0x001104 & delete a file / directory \\ \hline
+FDIROPEN        & 0x001108 & open a directory and seek the first directory entry \\ \hline
+FDIRNEXT        & 0x00110C & seek to the next directory of an open directory \\ \hline
+FDIRREAD        & 0x001110 & Read the directory entry for the specified file \\ \hline
+FDIRWRITE       & 0x001114 & Write any changes in the current directory cluster back to the drive \\ \hline
+FLOAD           & 0x001118 & load a binary file into memory, supports multiple file formats \\ \hline
+FSAVE           & 0x00111C & Save memory to a binary file \\ \hline
+CMDBLOCK         & 0x001120 & Send a command to a block device \\ \hline
+FRUN            & 0x001124 & Load and run an executable binary file \\ \hline
+FMOUNT          & 0x001128 & Mount the designated block device \\ \hline
+FCOPY           & 0x001130 & Copy a file \\ \hline
+FALLOCFD        & 0x001134 & Allocate a file descriptor \\ \hline
+FFREEFD         & 0x001138 & Free a file descriptor \\ \hline

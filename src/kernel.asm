@@ -484,6 +484,10 @@ IGETCHE         JSL IGETCHW
 ; Carry: 1 if no valid data
 ;
 IGETCHW         .proc
+                PHX
+                PHY
+                PHB
+                PHD
                 PHP
 
                 setas
@@ -500,15 +504,23 @@ IGETCHW         .proc
                 LDA #0              ; Return 0 if no valid device
                 PLP
                 SEC                 ; And return carry set
+                PLD
+                PLB
+                PLY
+                PLX
                 RTL
 
 getc_uart       JSL UART_SELECT     ; Select the correct COM port
                 JSL UART_GETC       ; Get the charater from the COM port
                 BRA done            
 
-getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
+getc_keyboard   JSL KBD_GETCW       ; Get the character from the keyboard
 done            PLP
                 CLC                 ; Return carry clear for valid data
+                PLD
+                PLB
+                PLY
+                PLX
                 RTL
                 .pend
 
@@ -529,29 +541,33 @@ IGETCH          .proc
                 PHD
                 PHP
 
-                setdbr 0
-
                 setas
-                LDA @w CHAN_IN          ; Check the channel
-                CMP #CHAN_CONSOLE       ; Is it the console
-                BEQ getch_console       ; Yes: dispatch on the console
+                LDA @lCHAN_IN       ; Get the current input channel
+                BEQ getc_keyboard   ; If it's keyboard, read from the key buffer
 
-                ; TODO: handle the UART
+                CMP #CHAN_COM1      ; Check to see if it's the COM1 port
+                BEQ getc_uart       ; Yes: handle reading from the UART
+                CMP #CHAN_COM2      ; Check to see if it's the COM2 port
+                BEQ getc_uart       ; Yes: handle reading from the UART                
 
-                BRL ret_nothing         ; Unhandled device: return 0
+                ; TODO: handle other devices
 
-getch_console   setal
-                LDA @w KEY_BUFFER_RPOS  ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
-                CMP @w KEY_BUFFER_WPOS
-                BCS ret_nothing         ; No: there's nothing ready yet... return 0
+                LDA #0              ; Return 0 if no valid device
+                PLP
+                SEC                 ; And return carry set
+                PLD
+                PLB
+                PLY
+                PLX
+                RTL
 
-                JSL GETCHW              ; Otherwise: retrieve the character
-                BRA done                ; And return it
+getc_uart       JSL UART_SELECT     ; Select the correct COM port
+                JSL UART_GETC       ; Get the charater from the COM port
+                BRA done            
 
-ret_nothing     setal
-                LDA #0                  ; Return 0 for no key
-
+getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
 done            PLP
+                CLC                 ; Return carry clear for valid data
                 PLD
                 PLB
                 PLY

@@ -270,13 +270,13 @@ flag_break      setas
                 .pend
 
 ;
-; GETKEYW
+; KBD_GETCW
 ; Waits until a key is available in the KEY_BUFFER and returns the key
 ;
 ; Outputs:
 ;   A = the ASCII code of the key pressed
 ;
-KBD_GETC        .proc
+KBD_GETCW       .proc
                 PHX
                 PHD
                 PHP
@@ -302,6 +302,55 @@ check_buffer    LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
                 CPX KEY_BUFFER_WPOS
                 BCC read_buff           ; Yes: a key is present, read it
                 BRA get_wait            ; Otherwise, keep waiting
+
+read_buff       SEI                     ; Don't interrupt me!
+
+                LDA KEY_BUFFER,X        ; Get the key
+
+                INX                     ; And move to the next key
+                CPX KEY_BUFFER_WPOS     ; Did we just read the last key?
+                BEQ reset_indexes       ; Yes: return to 0 position
+
+                STX KEY_BUFFER_RPOS     ; Otherwise: Update the read index
+
+                CLI
+
+done            PLP                     ; Restore status and interrupts
+                PLD
+                PLX
+                RTL
+
+reset_indexes   STZ KEY_BUFFER_RPOS     ; Reset read index to the beginning
+                STZ KEY_BUFFER_WPOS     ; Reset the write index to the beginning
+                BRA done
+                .pend
+
+;
+; KBD_GETCW
+; Returns a key from the KEY_BUFFER buffer if there is one. No waiting.
+;
+; Outputs:
+;   A = the ASCII code of the key pressed
+;
+KBD_GETC        .proc 
+                PHX
+                PHD
+                PHP
+
+                setdp KEY_BUFFER
+
+                setas
+                setxl
+
+                CLI                     ; Make sure interrupts can happen
+
+check_buffer    LDX KEY_BUFFER_RPOS     ; Is KEY_BUFFER_RPOS < KEY_BUFFER_WPOS
+                CPX KEY_BUFFER_WPOS
+                BCC read_buff           ; Yes: a key is present, read it
+
+                LDA #0                  ; If no key, return zero and set carry bit
+                SEC
+                BRA done
 
 read_buff       SEI                     ; Don't interrupt me!
 
