@@ -1139,7 +1139,9 @@ IF_SUCCESS      setas
                 RTL  
 
 ;
-; Load and run an executable binary file
+; Load and run an executable binary file.
+; Pushes the 24-bit pointer to the path and parameters string (ASCIIZ)
+; to the stack prior to executing a JSL instruction to the binary.
 ;
 ; Inputs:
 ;   DOS_RUN_PARAMS = pointer to the path an parameters to execute
@@ -1208,11 +1210,24 @@ chk_execute     setal
                 LDA #DOS_ERR_NOEXEC                     ; If not: return an error that it's not executable
                 BRL IF_FAILURE
 
-try_execute     setas
+try_execute     setas                                   ; Push the path and parameters string to the stack
+                LDA DOS_RUN_PARAM+2
+                PHA
+                LDA DOS_RUN_PARAM+1
+                PHA
+                LDA DOS_RUN_PARAM
+                PHA
+
                 LDA #$5C                                ; Write a JML opcode
                 STA DOS_RUN_PTR-1
 
                 JSL DOS_RUN_PTR-1                       ; And call to it
+
+                setas
+                PLA                                     ; Remove the path and parameters string from the stack
+                PLA
+                PLA
+
                 BRL IF_SUCCESS                          ; Return success
                 .pend
 
