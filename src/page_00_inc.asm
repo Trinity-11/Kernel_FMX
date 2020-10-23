@@ -282,6 +282,7 @@ VECTOR_EIRQ      = $00FFFE ;2 Bytes Emulation mode interrupt handler
 VECTORS_END      = $010000 ;*End of vector space
 
 .elsif TARGET = TARGET_FLASH
+    .if TARGET_SYS = SYS_C256_FMX
 ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
 HRESET           = $38FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
 HCOP             = $38FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
@@ -307,6 +308,33 @@ VECTOR_ENMI      = $38FFFA ;2 Bytes Emulation mode interrupt handler
 VECTOR_ERESET    = $38FFFC ;2 Bytes Emulation mode interrupt handler
 VECTOR_EIRQ      = $38FFFE ;2 Bytes Emulation mode interrupt handler
 VECTORS_END      = $400000 ;*End of vector space
+    .else
+ISR_BEGIN        = $18FF00 ; Byte  Beginning of CPU vectors in Direct page
+HRESET           = $18FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
+HCOP             = $18FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS
+HBRK             = $18FF20 ;16 Bytes Handle the BRK instruction. Returns to BASIC Ready prompt.
+HABORT           = $18FF30 ;16 Bytes Handle ABORT asserted. Return to Ready prompt with an error message.
+HNMI             = $18FF40 ;32 Bytes Handle NMI
+HIRQ             = $18FF60 ;32 Bytes Handle IRQ
+Unused_FF80      = $18FF80 ;End of direct page Interrrupt handlers
+
+VECTORS_BEGIN    = $18FFE0 ;0 Byte  Interrupt vectors
+JMP_READY        = $18FFE0 ;4 Bytes Jumps to ROM READY routine. Modified whenever alternate command interpreter is loaded.
+VECTOR_COP       = $18FFE4 ;2 Bytes Native COP Interrupt vector
+VECTOR_BRK       = $18FFE6 ;2 Bytes Native BRK Interrupt vector
+VECTOR_ABORT     = $18FFE8 ;2 Bytes Native ABORT Interrupt vector
+VECTOR_NMI       = $18FFEA ;2 Bytes Native NMI Interrupt vector
+VECTOR_RESET     = $18FFEC ;2 Bytes Unused (Native RESET vector)
+VECTOR_IRQ       = $18FFEE ;2 Bytes Native IRQ Vector
+RETURN           = $18FFF0 ;4 Bytes RETURN key handler. Points to BASIC or MONITOR subroutine to execute when RETURN is pressed.
+VECTOR_ECOP      = $18FFF4 ;2 Bytes Emulation mode interrupt handler
+VECTOR_EBRK      = $18FFF6 ;2 Bytes Emulation mode interrupt handler
+VECTOR_EABORT    = $18FFF8 ;2 Bytes Emulation mode interrupt handler
+VECTOR_ENMI      = $18FFFA ;2 Bytes Emulation mode interrupt handler
+VECTOR_ERESET    = $18FFFC ;2 Bytes Emulation mode interrupt handler
+VECTOR_EIRQ      = $18FFFE ;2 Bytes Emulation mode interrupt handler
+VECTORS_END      = $200000 ;*End of vector space
+    .endif
 .endif
 
 BANK0_END        = $00FFFF ;End of Bank 00 and Direct page

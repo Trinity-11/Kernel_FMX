@@ -1,7 +1,46 @@
 .cpu "65816"
 
-TARGET_FLASH = 1              ; The code is being assembled for Flash
-TARGET_RAM = 2                ; The code is being assembled for RAM
+;
+; Target system assembly directive IDs.
+; These will be used by the assemble.bat command to specify what target is intended
+;
+
+; TARGET_SYS values. These will allow the kernel to be assembled properly for the
+; Foenix FMX and Foenix User, which have different devices and memory layouts.
+SYS_C256_FMX = 1                            ; The target system is the C256 Foenix FMX
+SYS_C256_U = 2                              ; The target system is the C256 Foenix U
+
+; TARGET values. These allow assemble.bat to generate either a BIN or a HEX file and
+; set the location of some bank 0 data correctly.
+TARGET_FLASH = 1                            ; The code is being assembled for Flash
+TARGET_RAM = 2                              ; The code is being assembled for RAM
+
+START_OF_FLASH := 0
+START_OF_KERNEL := 0
+START_OF_BASIC := 0
+START_OF_CREDITS := 0
+START_OF_FONT := 0
+
+.if TARGET_SYS == SYS_C256_FMX
+; Key memory areas for the Foenix FMX
+START_OF_FLASH := $380000                   ; The Foenix FMX Flash starts at $380000
+START_OF_KERNEL := $390400                  ; The kernel itself starts at $390400
+START_OF_BASIC := $3A0000                   ; The BASIC flash code starts at $3A0000
+START_OF_CREDITS := $3B0000                 ; The credits screen starts at $3B0000
+START_OF_FONT := $3F0000                    ; The font starts at $3F0000
+
+.else
+; Key memory areas for the Foenix User
+START_OF_FLASH := $180000                   ; The Foenix U Flash starts at $180000
+START_OF_KERNEL := $190400                  ; The kernel itself starts at $190400
+START_OF_BASIC := $1A0000                   ; The BASIC flash code starts at $1A0000
+START_OF_CREDITS := $1B0000                 ; The credits screen starts at $1B0000
+START_OF_FONT := $1F0000                    ; The font starts at $3F0000
+.endif
+
+;
+; Includes
+;
 
 .include "macros_inc.asm"
 .include "characters.asm"                   ; Definition of special ASCII control codes
@@ -28,16 +67,14 @@ TARGET_RAM = 2                ; The code is being assembled for RAM
 
 ; C256 Foenix Kernel
 ; The Kernel is located in flash @ F8:0000 but not accessible by CPU
-; Kernel Transfered by GAVIN @ Cold Reset to $18:0000 - $1F:FFFF
-
-; Loads to $38:0000
+; Kernel Transfered by GAVIN @ Cold Reset to $18:0000 - $1F:FFFF on the User version, $38:0000 - $3F:FFFF on the FMX
 
 .include "kernel_jumptable.asm"
 
-.include "Interrupt_Handler.asm"          ; Interrupt Handler Routines
-.include "keyboard.asm"                   ; Include the keyboard reading code
+.include "Interrupt_Handler.asm"            ; Interrupt Handler Routines
+.include "keyboard.asm"                     ; Include the keyboard reading code
 
-* = $390400
+* = START_OF_KERNEL
 
 IBOOT           ; boot the system
                 CLC               ; clear the carry flag
@@ -3210,23 +3247,18 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
                       .text $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 
 
-            
+;
+; Include the BASIC binary
+;
 
-* = $3FF000
-FONT_4_BANK0
-;.binary "FONT/AppleLikeFont.bin", 0, 2048
-;.binary "FONT/MSX_8x8.bin", 0, 2048
-;.binary "FONT/CBM-ASCII_new_8x8.bin", 0, 2048
-.binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
-FONT_4_BANK1
-.binary "FONT/CBM-ASCII_8x8.bin", 0, 2048
-
-* = $3A0000
+* = START_OF_BASIC
 .binary "binaries/basic816.bin"
 
-* = $3B0000
+* = START_OF_CREDITS
 
+;
 ; Credits screen
+;
 
 TXTLINE         .macro txt
                 .text \txt
@@ -3242,3 +3274,16 @@ CREDITS_TEXT    TXTLINE "This is the credits screen!"
 
 .align 256
 CREDITS_COLOR   .fill 128 * 64, $F3
+
+;
+; The default font and end of flash memory
+;
+
+* = START_OF_FONT
+FONT_4_BANK0
+.binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
+FONT_4_BANK1
+.binary "FONT/CBM-ASCII_8x8.bin", 0, 2048
+
+* = START_OF_FONT + $00FFFF
+                .byte $FF               ; Last byte of flash data

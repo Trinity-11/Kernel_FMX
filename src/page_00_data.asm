@@ -2,7 +2,7 @@
 ; Initialization Code
 ;
 
-* = $380000
+* = START_OF_FLASH
 ;                .fill 12,0          ; unused_0000, 12 bytes, unused
 ;* = SCREENBEGIN
                 .long $AFA000       ; SCREENBEGIN, 3 bytes, Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.

@@ -19,7 +19,7 @@
 ;    for its actual jump point.
 ; 4. Run the Python script genjumptable.py to generate the kernel_inc.asm file for programs to use.
 ;
-* = $381000                         ; This table will be set up to load initially into bank $38 on the FMX...
+* = START_OF_FLASH + $001000        ; This table will be set up to load initially into bank $38 on the FMX, and $18 on the U
 .logical $001000                    ; But it will copied to bank $00 on startup for all systems
 BOOT            JML IBOOT
 RESTORE         JML IRESTORE
@@ -111,7 +111,7 @@ F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 ; Interrupt Vector Table... after a small gap to leave some room to expand for the kernel
 ;
 
-* = $381700
+* = START_OF_FLASH + $001700
 .logical $001700
 VEC_INT00_SOF   JML FDC_TIME_HANDLE ; IRQ 0, 0 --- Start Of Frame interrupt 
 VEC_INT01_SOL   JML IRQHANDLESTUB   ; IRQ 0, 1 --- Start Of Line interrupt
