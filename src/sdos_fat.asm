@@ -1148,6 +1148,9 @@ pass_failure    PLP                             ; If failure, just pass the fail
                 RTL
 
 mount           JSL DOS_MOUNT
+                BCS get_directory
+                BRL ret_failure
+                
 
 get_directory   setal
                 JSL DOS_DIROPEN                 ; Get the directory
