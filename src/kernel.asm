@@ -822,9 +822,10 @@ eol_right       JSL ICSRRIGHT       ; No: move right one column
 ;
 ; Modifies: none
 ;
-SCRSHIFTLL      PHX
-                PHY
+SCRSHIFTLL      .proc
                 PHA
+                PHX
+                PHY
                 PHD
                 PHP
 
@@ -840,14 +841,43 @@ SCRSHIFTLL      PHX
                 LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
-                MVN $AF, $AF        ; And move the block
+                ;
+                ; Note: this section used to be an MVN... MVP at least seems to have caused some issues with the latest FPGA
+                ; build. For the moment, we'll do a hand-coded loop here.
+                ;
+                ; MVN $AF, $AF        ; And move the block
+                ;
+
+                setas               ; We're never shifting more than 255 characters
+                STA TMPPTR1         ; Save the count in TMPPTR1
+
+                PHB
+                setas
+                LDA #$AF            ; Set the databank to $AF
+                PHA
+                PLB
+
+loop            LDA TMPPTR1
+                CMP #0              ; Check if the count is 0
+                BEQ stop_loop       ; If so, we're done
+
+                LDA #0,B,X          ; Get the byte to copy
+                STA #0,B,Y          ; And copy it
+
+                DEC TMPPTR1         ; Decrement the count
+                INX                 ; Move to the next source byte
+                INY                 ; Move to the next destination byte
+                BRA loop            ; And repeat
+
+stop_loop       PLB
 
                 PLP
                 PLD
-                PLA
                 PLY
                 PLX
+                PLA
                 RTL
+                .pend
 
 ;
 ; SCRSHIFTLR
@@ -857,8 +887,10 @@ SCRSHIFTLL      PHX
 ;
 ; Modifies: none
 ;
-SCRSHIFTLR      PHX
+SCRSHIFTLR      .proc
                 PHA
+                PHX
+                PHY
                 PHD
                 PHP
 
@@ -885,17 +917,46 @@ SCRSHIFTLR      PHX
                 LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
-                MVP $AF, $AF        ; And move the block
+                ;
+                ; Note: this section used to be an MVP... this seems to have caused some issues with the latest FPGA
+                ; build. For the moment, we'll do a hand-coded loop here.
+                ;
+                ; MVP $AF, $AF        ; And move the block
+                ;
 
+                setas               ; We're never shifting more than 255 characters
+                STA TMPPTR1         ; Save the count in TMPPTR1
+
+                PHB
                 setas
+                LDA #$AF            ; Set the databank to $AF
+                PHA
+                PLB
+
+loop            LDA TMPPTR1
+                CMP #0              ; Check if the count is 0
+                BEQ stop_loop       ; If so, we're done
+
+                LDA #0,B,X          ; Get the byte to copy
+                STA #0,B,Y          ; And copy it
+
+                DEC TMPPTR1         ; Decrement the count
+                DEX                 ; Move to the next source byte
+                DEY                 ; Move to the next destination byte
+                BRA loop            ; And repeat
+
+stop_loop       PLB
+
                 LDA #CHAR_SP        ; Put a blank space at the cursor position
                 STA [CURSORPOS]
 
 done            PLP
                 PLD
-                PLA
+                PLY
                 PLX
+                PLA
                 RTL
+                .pend
 
 ;
 ;IPUTB
@@ -2483,14 +2544,22 @@ ITESTSID
 ; Inputs:
 ; None
 IINITCODEC      PHA
+                PHP
                 setal
+                LDA #%0001101000000000     ;R10 - Programming the DAC 
+                STA CODEC_DATA_LO
+                LDA #$0001
+                STA CODEC_WR_CTRL             ; Execute the Write
+                JSR CODEC_TRF_FINISHED				
+				
+				
                 LDA #%0001101000000000     ;R13 - Turn On Headphones
                 STA CODEC_DATA_LO
                 LDA #$0001
                 STA CODEC_WR_CTRL             ; Execute the Write
                 JSR CODEC_TRF_FINISHED
                 ;
-                LDA #%0010101000001111       ;R21 - Enable All the Analog In
+                LDA #%0010101000011111       ;R21 - Enable All the Analog In
                 STA CODEC_DATA_LO
                 LDA #$0001
                 STA CODEC_WR_CTRL             ; Execute the Write
@@ -2521,11 +2590,12 @@ IINITCODEC      PHA
                 STA CODEC_WR_CTRL             ; Execute the Write
                 JSR CODEC_TRF_FINISHED
                 ; Master Control
-                LDA #%0001100111010101      ;R12 - Master Mode Control
+                LDA #%0001100_001000101      ;R12 - Master Mode Control
                 STA CODEC_DATA_LO
                 LDA #$0001
                 STA CODEC_WR_CTRL             ; Execute the Write
                 JSR CODEC_TRF_FINISHED
+                PLP 
                 PLA
                 RTL
 
