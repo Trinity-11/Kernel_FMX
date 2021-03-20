@@ -18,8 +18,13 @@
 ;;; NOTE: this code is currently polled I/O only.
 
 ; UARTs
-UART1_BASE = $AF13F8        ; Base address for UART 1 (COM1)
-UART2_BASE = $AF12F8        ; Base address for UART 2 (COM2)
+.if TARGET_SYS == SYS_C256_FMX  
+    UART1_BASE = $AF13F8        ; Base address for UART 1 (COM1)
+    UART2_BASE = $AF12F8        ; Base address for UART 2 (COM2)
+.else
+    UART1_BASE = $AF18F8        ; Base address for UART 1 (COM1) in the C256 Foenix U (only 1 Serial port)
+    UART2_BASE = $AF18F8    
+.endif
 
 ; Register Offsets
 UART_TRHB = $00             ; Transmit/Receive Hold Buffer

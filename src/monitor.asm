@@ -22,7 +22,11 @@
 
 ;Monitor.asm
 ;Jump Table
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
 * = $398000
+.else 
+* = $198000
+.endif
 MONITOR         JML IMONITOR
 MSTATUS         JML IMSTATUS
 MREADY          JML IMREADY
@@ -110,42 +114,42 @@ IMSTATUS        ; Print the MONITOR prompt (registers header)
                 JSL IPRINTH
 
                 ; print A register
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #2
                 LDX #CPUA+1
                 JSL IPRINTH
 
                 ; print X register
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #2
                 LDX #CPUX+1
                 JSL IPRINTH
 
                 ; print Y register
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #2
                 LDX #CPUY+1
                 JSL IPRINTH
 
                 ; print Stack Pointer
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #2
                 LDX #CPUSTACK+1
                 JSL IPRINTH
 
                 ; print DBR
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #1
                 LDX #CPUDBR
                 JSL IPRINTH
 
                 ; print Direct Page
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 JSL IPUTC
                 LDY #2
@@ -153,7 +157,7 @@ IMSTATUS        ; Print the MONITOR prompt (registers header)
                 JSL IPRINTH
 
                 ; print Flags
-                LDA ' '
+                LDA #' '
                 JSL IPUTC
                 LDY #1
                 LDX #CPUFLAGS

@@ -1,9 +1,9 @@
 .cpu "65816"
-.include "page_00_inc.asm"
-.include "page_00.asm"
-.include "dram_inc.asm"
-.include "macros_inc.asm"
-.include "simulator_inc.asm"
+.include "Includes/page_00_inc.asm"
+.include "Includes/page_00.asm"
+.include "Includes/dram_inc.asm"
+.include "Includes/macros_inc.asm"
+.include "Includes/simulator_inc.asm"
 
 
 ; C256 Foenix / Nu64 TEST CODE

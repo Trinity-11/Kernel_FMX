@@ -175,9 +175,7 @@ SOF_INTERRUPT
                 LDA @lINT_PENDING_REG0
                 AND #FNX0_INT00_SOF
                 STA @lINT_PENDING_REG0
-
                 JSL VEC_INT00_SOF
-
                 RTS
 
 ;

@@ -1,14 +1,14 @@
 .cpu "65816"
 
+TEST_KEYBOARD = 0 ; This is to enable the ScreenOutput
 ;
 ; Target system assembly directive IDs.
 ; These will be used by the assemble.bat command to specify what target is intended
-;
-
 ; TARGET_SYS values. These will allow the kernel to be assembled properly for the
 ; Foenix FMX and Foenix User, which have different devices and memory layouts.
 SYS_C256_FMX = 1                            ; The target system is the C256 Foenix FMX
-SYS_C256_U = 2                              ; The target system is the C256 Foenix U
+SYS_C256_U = 2                              ; The target system is the C256 Foenix U With 2Megs of Code Memory
+SYS_C256_U_PLUS = 3                         ; The target system is the C256 Foenix U With 4Megs of Code Memory
 
 ; TARGET values. These allow assemble.bat to generate either a BIN or a HEX file and
 ; set the location of some bank 0 data correctly.
@@ -19,60 +19,73 @@ START_OF_FLASH := 0
 START_OF_KERNEL := 0
 START_OF_BASIC := 0
 START_OF_CREDITS := 0
+START_OF_SPLASH := 0
 START_OF_FONT := 0
 
-.if TARGET_SYS == SYS_C256_FMX
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
 ; Key memory areas for the Foenix FMX
-START_OF_FLASH := $380000                   ; The Foenix FMX Flash starts at $380000
-START_OF_KERNEL := $390400                  ; The kernel itself starts at $390400
-START_OF_BASIC := $3A0000                   ; The BASIC flash code starts at $3A0000
-START_OF_CREDITS := $3B0000                 ; The credits screen starts at $3B0000
-START_OF_FONT := $3F0000                    ; The font starts at $3F0000
-
+  START_OF_FLASH := $380000                   ; The Foenix FMX Flash starts at $380000
+  START_OF_KERNEL := $390400                  ; The kernel itself starts at $390400
+  START_OF_BASIC := $3A0000                   ; The BASIC flash code starts at $3A0000
+  START_OF_CREDITS := $3B0000                 ; The credits screen starts at $3B0000
+  START_OF_SPLASH := $3E0000                  ; SplashScreen Code and Data $3E0000
+  START_OF_FONT := $3F0000                    ; The font starts at $3F0000
 .else
 ; Key memory areas for the Foenix User
-START_OF_FLASH := $180000                   ; The Foenix U Flash starts at $180000
-START_OF_KERNEL := $190400                  ; The kernel itself starts at $190400
-START_OF_BASIC := $1A0000                   ; The BASIC flash code starts at $1A0000
-START_OF_CREDITS := $1B0000                 ; The credits screen starts at $1B0000
-START_OF_FONT := $1F0000                    ; The font starts at $3F0000
+  START_OF_FLASH := $180000                   ; The Foenix U Flash starts at $180000
+  START_OF_KERNEL := $190400                  ; The kernel itself starts at $190400
+  START_OF_BASIC := $1A0000                   ; The BASIC flash code starts at $1A0000
+  START_OF_CREDITS := $1B0000                 ; The credits screen starts at $1B0000
+  START_OF_SPLASH := $1E0000                  ; SplashScreen Code and Data $3E0000  
+  START_OF_FONT := $1F0000                    ; The font starts at $3F0000
 .endif
-
 ;
 ; Includes
 ;
-
-.include "macros_inc.asm"
-.include "characters.asm"                   ; Definition of special ASCII control codes
-.include "simulator_inc.asm"
-.include "page_00_inc.asm"
-.include "page_00_data.asm"
-.include "page_00_code.asm"
-.include "Math_def.asm"                     ; Math Co_processor Definition
-.include "interrupt_def.asm"                ; Interrupr Controller Registers Definitions
-.include "dram_inc.asm"                     ; old Definition file that was supposed to be a Memory map
-.include "vicky_ii_def.asm"                 ; VICKY II's registers Definitions
-.include "super_io_def.asm"                 ; SuperIO Registers Definitions
-.include "keyboard_def.asm"                 ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
-.include "SID_def.asm"                      ; SID, but not the latest - Deprecated for now.
-.include "RTC_def.asm"                      ; Real-Time Clock Register Definition (BQ4802)
-.include "io_def.asm"                       ; CODEC, SDCard Controller Registers
-.include "Trinity_CFP9301_def.asm"          ; Definitions for Trinity chip: Joystick, DipSwitch
-.include "Unity_CFP9307_def.asm"            ; Definitions for Unity chip (IDE)
-.include "GABE_Control_Registers_def.asm"   ; Definitions for GABE registers
-.include "fdc_inc.asm"                      ; Definitions for the floppy drive controller
-.include "timer_def.asm"                    ; Definitions for the timers
-
-.include "basic_inc.asm"                    ; Pointers into BASIC and the machine language monitor
+.include "Includes/macros_inc.asm"
+.include "Includes/characters.asm"                   ; Definition of special ASCII control codes
+.include "Includes/simulator_inc.asm"
+.include "Includes/page_00_inc.asm"
+.include "Includes/page_00_data.asm"
+.include "Includes/page_00_code.asm"
+.include "Includes/dram_inc.asm"                     ; old Definition file that was supposed to be a Memory map
+.include "Includes/fdc_inc.asm"                      ; Definitions for the floppy drive controller
+.include "Includes/basic_inc.asm"                    ; Pointers into BASIC and the machine language monitor
+;
+; Others
+;
+.include "kernel_jumptable.asm"
+.include "Interrupt_Handler.asm"            ; Interrupt Handler Routines
+.include "keyboard.asm"                     ; Include the keyboard reading code
+;
+; Defines
+;
+.include "Defines/Math_def.asm"                     ; Math Co_processor Definition
+.include "Defines/timer_def.asm"                     ; Timer Block
+.include "Defines/interrupt_def.asm"                ; Interrupr Controller Registers Definitions
+.include "Defines/super_io_def.asm"                 ; SuperIO Registers Definitions
+.include "Defines/keyboard_def.asm"                 ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
+.include "Defines/RTC_def.asm"                      ; Real-Time Clock Register Definition (BQ4802)
+.include "Defines/io_def.asm"                       ; CODEC, SDCard Controller Registers
+.include "Defines/Trinity_CFP9301_def.asm"          ; Definitions for Trinity chip: Joystick, DipSwitch
+.include "Defines/Unity_CFP9307_def.asm"            ; Definitions for Unity chip (IDE)
+.include "Defines/GABE_Control_Registers_def.asm"   ; Definitions for GABE registers
+.include "Defines/SID_def.asm"
+.include "Defines/VKYII_CFP9553_GENERAL_def.asm"    ; VICKY's registers Definitions
+.include "Defines/VKYII_CFP9553_SDMA_def.asm"       ; SDMA
+.include "Defines/VKYII_CFP9553_VDMA_def.asm"       ; VDMA
+.include "Defines/VKYII_CFP9553_BITMAP_def.asm"     ; Bitmap
+.include "Defines/VKYII_CFP9553_TILEMAP_def.asm"    ; Tiles
+.include "Defines/VKYII_CFP9553_SPRITE_def.asm"     ; Sprite
+.include "Defines/VKYII_CFP9553_COLLISION_def.asm"  ; Collision
+.include "Defines/EXP_C100_ESID_def.asm"            ; EXP Ethernet/SID Combo
+.include "Defines/EXP_C200_EVID_def.asm"            ; EXP Ethernet/Video Combo
 
 ; C256 Foenix Kernel
 ; The Kernel is located in flash @ F8:0000 but not accessible by CPU
 ; Kernel Transfered by GAVIN @ Cold Reset to $18:0000 - $1F:FFFF on the User version, $38:0000 - $3F:FFFF on the FMX
 
-.include "kernel_jumptable.asm"
 
-.include "Interrupt_Handler.asm"            ; Interrupt Handler Routines
-.include "keyboard.asm"                     ; Include the keyboard reading code
 
 * = START_OF_KERNEL
 
@@ -89,8 +102,12 @@ IBOOT           ; boot the system
                 LDX #<>BOOT       ; Copy the kernel jump table to bank 0
                 LDY #<>BOOT       ; Ordinarily, this is done by GAVIN, but
                 LDA #$2000        ; this is ensures it can be reloaded in case of errors
-                MVN $38,$00       ; Or during soft loading of the kernel from the debug port
 
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+                MVN $38,$00       ; Or during soft loading of the kernel from the debug port
+.else
+                MVN $18,$00       ; Or during soft loading of the kernel from the debug port
+.endif
                 setdp 0
                 setas
                 LDX #$0000
@@ -116,12 +133,43 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG3
 
                 JSL INITRTC               ; Initialize the RTC
+                setas
+                ; Here we check for Expansion Card and Init them soon in the process
+                LDA @L GABE_SYS_STAT      ; Let's check the Presence of an Expansion Card here
+                AND #GABE_SYS_STAT_EXP    ; When there is a Card the Value is 1
+                CMP #GABE_SYS_STAT_EXP
+                BNE SkipInitExpC100C200
+                setal 
+                LDA @L ESID_ID_CARD_ID_Lo    ; Load the Card ID and check for C100 or C200
+                CMP #$0064
+                BEQ InitC100ESID
+                CMP #$00C8
+                BNE SkipInitExpC100C200
+                ; Let's Init the Ethernet First, it is short and Sweet
+                ; This is just enabling the LEDs for when there is a cable Connected, we will see the
+                ; EVID Here
+                JSL SIMPLE_INIT_ETHERNET_CTRL
+                JSL INIT_EVID_VID_MODE
+                BRA SkipInitExpC100C200
+                ; ESID INIT HERE
+InitC100ESID:
+                JSL SIMPLE_INIT_ETHERNET_CTRL
+                ; There is nothing else to Init in the ESID 
 
+SkipInitExpC100C200:
                 setaxl
+                LDX #72                   ; Set these by default, but they will be changed later by Init Vicky Text Mode
+                STX COLS_VISIBLE
+                LDY #52
+                STY LINES_VISIBLE
+                LDX #128
+                STX COLS_PER_LINE
+                LDY #64
+                STY LINES_MAX
+
                 LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
                 STA SCREENBEGIN
                 STA CURSORPOS
-
                 LDA #<>CS_COLOR_MEM_PTR   ; Set the initial COLOR cursor position
                 STA COLORPOS
 
@@ -133,7 +181,6 @@ CLEAR_MEM_LOOP
                 LDA #`CS_COLOR_MEM_PTR    ; Set the initial COLOR cursor position
                 STA COLORPOS+2
                 
-                setas
                 LDA #$00
                 STA KEYBOARD_SC_FLG     ; Clear the Keyboard Flag
                 ; Shutdown the SN76489 before the CODEC enables all the channels
@@ -145,79 +192,63 @@ CLEAR_MEM_LOOP
                 STA $AFF100
                 LDA #$FF ; Channel Two - No Atteniation
                 STA $AFF100
-
                 ;LDA #$04                ; This is to make sure the RTC will keep working after unit is turn-off
                 ;STA @lRTC_CTRL
-                ; Set screen dimensions. There more columns in memory than
-                ; are visible. A virtual line is 128 bytes, but 80 columns will be
-                ; visible on screen.
-                setaxl
-                LDX #72
-                STX COLS_VISIBLE
-                LDY #52
-                STY LINES_VISIBLE
-                LDX #128
-                STX COLS_PER_LINE
-                LDY #64
-                STY LINES_MAX
-
                 LDA #$ED                  ; Set the default text color to light gray on dark gray 
-                STA CURCOLOR
-
-                ; Init CODEC
+                STA CURCOLOR              
+                ; This is to force the DotClock Frequency to 25.175Mhz no matter what it is when it is reseted.
+                LDA @l MASTER_CTRL_REG_H
+                AND #$01
+                CMP #$01
+                BNE Alreadyin640480Mode
+                ; Otherwise, we need to flip the bit once to get the PLL to go back to Zero
+                LDA @L MASTER_CTRL_REG_H
+                AND #$FC
+                STA @L MASTER_CTRL_REG_H
+                LDA @L MASTER_CTRL_REG_H
+                ORA #$01
+                STA @L MASTER_CTRL_REG_H
+Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
+                LDA @L MASTER_CTRL_REG_H
+                AND #$FC
+                STA @L MASTER_CTRL_REG_H ; Set it to 640x480 for real
+                ;Init CODEC
                 JSL INITCODEC
                 ; Init Suprt IO (Keyboard/Floppy/Etc...)
+.if TARGET_SYS == SYS_C256_FMX     
+                setaxl                
                 JSL INITSUPERIO
+.endif 
                 ; Init GAMMA Table
                 JSL INITGAMMATABLE
                 ; Init All the Graphic Mode Look-up Table (by default they are all Zero)
                 JSL INITALLLUT
                 ; Initialize the Character Color Foreground/Background LUT First
                 JSL INITCHLUT
-
-                JSL INITMOUSEPOINTER
+                ; Initialize the Mouse Pointer Graphic
+                JSL INITMOUSEPOINTER  
                 ; Go Enable and Setup the Cursor's Position
                 JSL INITCURSOR
-                ; Init the Vicky Text MODE
-                JSL INITVKYTXTMODE
-                ; Load The FONT Memory with local FONT in Flash (or RAM)
-                JSL IINITFONTSET
-                ; Now, clear the screen and Setup Foreground/Background Bytes, so we can see the Text on screen
-                JSL ICLRSCREEN  ; Clear Screen and Set a standard color in Color Memory
-                ; Init Globacl Look-up Table
 
-                ; Initialize the UARTs
+.if TARGET_SYS == SYS_C256_FMX
+                ; Initialize the UARTs (SuperIO UART)
                 LDA #CHAN_COM1    ; Initialize COM1
                 JSL UART_SELECT
                 JSL UART_INIT
                 LDA #CHAN_COM2    ; Initialize COM2
                 JSL UART_SELECT
                 JSL UART_INIT
-
+.endif
                 ; Set the default I/O devices to the screen and keyboard
                 LDA #0
                 JSL SETIN
                 JSL SETOUT
 
                 setal
-
-                LDX #0
-                LDY #0
-                JSL ILOCATE
-
-                setaxl
-                ; Write the Greeting Message Here, after Screen Cleared and Colored
-greet           setdbr `greet_msg       ;Set data bank to ROM
-                LDX #<>greet_msg
-                JSL IPRINT       ; print the first line
-
-                ; Go set the Color Text Memory so we can have color for the LOGO
-                JSL ICOLORFLAG  ; This is to set the Color Memory for the Logo
-
                 setdp 0
-                ; Init the Keyboard
+                ; Init the Keyboard used by the SuperIO
                 JSL INITKEYBOARD ;
-
+                JSL INITMOUSE;  // I Seperated them
                 setas
                 setxl
                 LDA #$9F ; Channel Two - No Atteniation
@@ -235,41 +266,51 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 LDA #$90 ; Channel One - No Atteniation
                 STA $AFF100
                 LDX #16384      ; 400ms
-          		 	JSL ILOOP_MS
+                JSL ILOOP_MS
                 LDA #$9F ; Channel Two - No Atteniation
                 STA $AFF100
-
-                ; ;setaxl
-                ; JSL YM2151_test
-                ; ;JSL YM2151_test_2_from_Chibisound
-                ; JSL YM2612_test_piano
-                ; JSL YM2612_test_piano
-
-                ; ;JSL OPL2_TONE_TEST
-                ; ;JSL OPL2_INIT_PLAYER
-
                 CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
-
                 setas
                 setxl
                 setdbr `greet_msg     ;set data bank to 39 (Kernel Variables)
 
                 ; Copy the jump table from the "pristine" copy that came from flahs
                 ; down to the working copy in bank 0.
-
                 LDX #0
 jmpcopy         LDA @l BOOT,X
                 STA @l $001000,X
                 INX
                 CPX #$1000
                 BNE jmpcopy
+retry_boot
+                JSL DOS_INIT          ; Initialize the "disc operating system"
 
-retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
-
-                JSL BOOT_MENU         ; Show the splash screen / boot menu and wait for key presses
+                JSL BOOT_MENU           ; Show the splash screen / boot menu and wait for key presses
+                                        ; Coming back from the Splash Screen the Value of the Keyboard has been pushed in the stack
+                                        ; This is the balance of House Keeping that needs to be done to put it back the way it was
+                                     
+                ; Now, clear the screen and Setup Foreground/Background Bytes, so we can see the Text on screen
+                JSL ICLRSCREEN  ; Clear Screen and Set a standard color in Color Memory
+                setaxl
+                LDX #0
+                LDY #0
+                JSL ILOCATE                
+greet           setdbr `greet_msg       ;Set data bank to ROM
+                LDX #<>greet_msg
+                JSL IPRINT       ; print the first line           
+                JSL ICOLORFLAG  ; This is to set the Color Memory for the TExt Logo                    
+                setaxl 
+                LDA #STACK_END    ; We are the root, let's make sure from now on, that we start clean
+                TAS     
+                ; Init Globacl Look-up Table
+                ; Moved the DOS Init after the FLashing Moniker Display
+           
+                setas
+                setxl
+                LDA @l KRNL_BOOT_MENU_K ; Get the Value of the Keyboard Boot Choice
                 CMP #CHAR_SP          ; Did the user press SPACE?
                 BEQ BOOT_DIP          ; Yes: boot via the DIP switches
-                
+
                 CMP #CHAR_CR          ; Did the user press RETURN?
                 BEQ BOOTBASIC         ; Yes: go straight to BASIC
 
@@ -285,7 +326,6 @@ retry_boot      JSL DOS_INIT          ; Initialize the "disc operating system"
                 ;
                 ; Determine the boot mode on the DIP switches and complete booting as specified
                 ;
-
 BOOT_DIP        LDA @lDIP_BOOTMODE    ; {HD_INSTALLED, 5'b0_0000, BOOT_MODE[1], BOOT_MODE[0]}
                 AND #%00000011        ; Look at the mode bits
                 CMP #DIP_BOOT_IDE     ; DIP set for IDE?
@@ -304,7 +344,9 @@ BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or 
 CREDIT_LOCK     NOP
                 BRA CREDIT_LOCK
 
-BOOTSDC         setas
+BOOTSDC         LDX #<>sdc_boot
+                JSL IPRINT
+                setas
                 LDA #BIOS_DEV_SD
                 STA @l BIOS_DEV
                 JSL DOS_MOUNT         ; Mount the SDC
@@ -315,7 +357,10 @@ BOOTSDC         setas
 sdc_error       LDX #<>sdc_err_boot   ; Print a message saying SD card booting is not implemented
                 BRA PR_BOOT_ERROR
 
-BOOTIDE         setas
+BOOTIDE         LDX #<>ide_boot
+                JSL IPRINT
+                
+                setas
                 LDA #BIOS_DEV_HD0
                 STA @l BIOS_DEV
                 JSL DOS_MOUNT         ; Mount the IDE drive
@@ -353,9 +398,13 @@ chk_r_lc        CMP #'r'
                 BRL retry_boot
 
 chk_b_lc        CMP #'b'              ; Was "B" pressed?
-                BEQ BOOTBASIC         ; Yes: try going to BASIC
+                BNE chk_b_lc_not         ; Yes: try going to BASIC
+                BRL BOOTBASIC
+chk_b_lc_not:                
                 CMP #'B'
-                BEQ BOOTBASIC
+                BNE chk_b_lc_not0
+                BRL BOOTBASIC
+chk_b_lc_not0:                
                 BRA boot_wait_key     ; No: keep waiting
 
 ;
@@ -368,6 +417,9 @@ chk_b_lc        CMP #'b'              ; Was "B" pressed?
 ;       F2 for boot to SDC
 ;       F3 for boot to IDE
 ;
+; February 6th Changes, this is depracated till somebody decides that they don't like the SplashScreen Code ;)
+; I will keep this in case
+.comment
 BOOT_MENU       .proc
                 PHB
                 PHP
@@ -386,7 +438,7 @@ BOOT_MENU       .proc
                 LDY #1000               ; Number of cycles we'll wait... total wait time is about 30s (ish)
 
                 setas
-wait_key        LDX #1000
+wait_key        LDX #100
                 JSL ILOOP_MS            ; Wait ...
                 DEY                     ; Count down the tenths of seconds
                 BEQ timeout             ; If we've got to 0, we're done
@@ -411,9 +463,14 @@ timeout         LDA #0                  ; Return 0 for a timeout / SPACE
 return          PLP
                 PLB
                 RTL
-bootmenu        .null "F1=FDC, F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
-                .pend
 
+.if TARGET_SYS == SYS_C256_FMX                
+  bootmenu        .null "F1=FDC, F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
+.else
+  bootmenu        .null "F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
+.endif
+                .pend
+.endc
 
 ;
 ; IBREAK
@@ -822,10 +879,9 @@ eol_right       JSL ICSRRIGHT       ; No: move right one column
 ;
 ; Modifies: none
 ;
-SCRSHIFTLL      .proc
-                PHA
-                PHX
+SCRSHIFTLL      PHX
                 PHY
+                PHA
                 PHD
                 PHP
 
@@ -841,43 +897,14 @@ SCRSHIFTLL      .proc
                 LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
-                ;
-                ; Note: this section used to be an MVN... MVP at least seems to have caused some issues with the latest FPGA
-                ; build. For the moment, we'll do a hand-coded loop here.
-                ;
-                ; MVN $AF, $AF        ; And move the block
-                ;
-
-                setas               ; We're never shifting more than 255 characters
-                STA TMPPTR1         ; Save the count in TMPPTR1
-
-                PHB
-                setas
-                LDA #$AF            ; Set the databank to $AF
-                PHA
-                PLB
-
-loop            LDA TMPPTR1
-                CMP #0              ; Check if the count is 0
-                BEQ stop_loop       ; If so, we're done
-
-                LDA #0,B,X          ; Get the byte to copy
-                STA #0,B,Y          ; And copy it
-
-                DEC TMPPTR1         ; Decrement the count
-                INX                 ; Move to the next source byte
-                INY                 ; Move to the next destination byte
-                BRA loop            ; And repeat
-
-stop_loop       PLB
+                MVN $AF, $AF        ; And move the block
 
                 PLP
                 PLD
+                PLA
                 PLY
                 PLX
-                PLA
                 RTL
-                .pend
 
 ;
 ; SCRSHIFTLR
@@ -887,10 +914,8 @@ stop_loop       PLB
 ;
 ; Modifies: none
 ;
-SCRSHIFTLR      .proc
+SCRSHIFTLR      PHX
                 PHA
-                PHX
-                PHY
                 PHD
                 PHP
 
@@ -917,46 +942,17 @@ SCRSHIFTLR      .proc
                 LDA COLS_VISIBLE    ; as columns visible - X
                 SBC CURSORX
 
-                ;
-                ; Note: this section used to be an MVP... this seems to have caused some issues with the latest FPGA
-                ; build. For the moment, we'll do a hand-coded loop here.
-                ;
-                ; MVP $AF, $AF        ; And move the block
-                ;
+                MVP $AF, $AF        ; And move the block
 
-                setas               ; We're never shifting more than 255 characters
-                STA TMPPTR1         ; Save the count in TMPPTR1
-
-                PHB
                 setas
-                LDA #$AF            ; Set the databank to $AF
-                PHA
-                PLB
-
-loop            LDA TMPPTR1
-                CMP #0              ; Check if the count is 0
-                BEQ stop_loop       ; If so, we're done
-
-                LDA #0,B,X          ; Get the byte to copy
-                STA #0,B,Y          ; And copy it
-
-                DEC TMPPTR1         ; Decrement the count
-                DEX                 ; Move to the next source byte
-                DEY                 ; Move to the next destination byte
-                BRA loop            ; And repeat
-
-stop_loop       PLB
-
                 LDA #CHAR_SP        ; Put a blank space at the cursor position
                 STA [CURSORPOS]
 
 done            PLP
                 PLD
-                PLY
-                PLX
                 PLA
+                PLX
                 RTL
-                .pend
 
 ;
 ;IPUTB
@@ -1419,7 +1415,7 @@ ICLRSCREEN	    PHA
 
                 LDX #$0000		          ; Only Use One Pointer
                 LDA #$20		            ; Fill the Entire Screen with Space
-iclearloop0	    STA CS_TEXT_MEM_PTR, x	;
+iclearloop0	STA CS_TEXT_MEM_PTR, x	;
                 inx
                 cpx #$2000
                 bne iclearloop0
@@ -1427,7 +1423,7 @@ iclearloop0	    STA CS_TEXT_MEM_PTR, x	;
                 ; Now Set the Colors so we can see the text
                 LDX	#$0000		          ; Only Use One Pointer
                 LDA @lCURCOLOR          ; Fill the Color Memory with the current color
-iclearloop1	    STA CS_COLOR_MEM_PTR, x	;
+iclearloop1     STA CS_COLOR_MEM_PTR, x	;
                 inx
                 cpx #$2000
                 bne iclearloop1
@@ -1564,7 +1560,7 @@ IINITCHLUT		  PHD
                 setxs 					; Set 8bits
 				        ; Setup Foreground LUT First
 				        LDX	#$00
-lutinitloop0	  LDA @lfg_color_lut,x		; get Local Data
+lutinitloop0	LDA @lfg_color_lut,x		; get Local Data
                 STA FG_CHAR_LUT_PTR,x	; Write in LUT Memory
                 inx
                 cpx #$40
@@ -1684,7 +1680,13 @@ iinit_lut_exit
                 PLX
                 PLA
                 RTL
-
+; Author: Stefany
+; Init the Text Mode ByPass, this is to force 640x480 when booting so Splash can be always in 800x600
+INITVKYTXTMODE_BYPASS_DPSW
+                PHA 
+                PHP 
+                BRA WeNeed640480Here
+                
 ; IINITVKYTXTMODE
 ; Author: Stefany
 ;Init the Text Mode
@@ -1692,11 +1694,28 @@ iinit_lut_exit
 ;   None
 ; Affects:
 ;  Vicky's Internal Registers
-IINITVKYTXTMODE PHA
+IINITVKYTXTMODE 
+                PHA
                 PHP
-
+                setas
+                LDA @l GAMMA_CTRL_REG   ; Go Read the Hi-Res DIP Switch Value
+                AND #HIRES_DP_SW_VAL    ; Isolate the Hi-Res Bit ($10) when 1 = 640x480, 0 = 800x600
+                CMP #HIRES_DP_SW_VAL    ; When the Switch is off, the Returned value is 1 (The Pullup is there)
+                BEQ WeNeed640480Here
+                ; Now Here - We need 800x600 Text Mode (100x75)
+                ; What mode are we in right now
+                LDA @l MASTER_CTRL_REG_H
+                AND #Mstr_Ctrl_Video_Mode0
+                CMP #Mstr_Ctrl_Video_Mode0
+                BEQ INITVICKYMODEHIRES       ; if we are already in 800x600 Skip to the rest of the Init
+                ; Otherwise set Rodeo for 100x75 Text Mode
+                LDA @L MASTER_CTRL_REG_H
+                ORA #Mstr_Ctrl_Video_Mode0
+                STA @L MASTER_CTRL_REG_H
+                BRA INITVICKYMODEHIRES
                 ; Make sure we're in 640x480 mode, this process is a bit of a work-around for a VICKY II quirk
-
+                ; What follows is a piece of code to get the PLL in the FPGA to toggle the input channel to its original state
+WeNeed640480Here:
                 setas
                 LDA @l MASTER_CTRL_REG_H
                 AND #$01
@@ -1720,17 +1739,29 @@ IINITVKYTXTMODE PHA
 
 INITVICKYMODE
                 LDA #$00
-                STA @L MASTER_CTRL_REG_H
-                LDA #Mstr_Ctrl_Text_Mode_En       ; Set it to 640x480 for real
+                STA @L MASTER_CTRL_REG_H ; Set it to 640x480 for real
+
+INITVICKYMODEHIRES     
+                LDA #Mstr_Ctrl_Text_Mode_En
                 STA @L MASTER_CTRL_REG_L
-                
+
+           
                 ; Set the Border Color
                 setas
+.if TARGET_SYS == SYS_C256_FMX                
                 LDA #$20
                 STA BORDER_COLOR_B
                 STA BORDER_COLOR_R
                 LDA #$00
                 STA BORDER_COLOR_G
+.else
+                LDA #$00
+                STA BORDER_COLOR_R
+                LDA #$54
+                STA BORDER_COLOR_G
+                LDA #$54
+                STA BORDER_COLOR_B
+.endif
 
                 LDA #Border_Ctrl_Enable           ; Enable the Border
                 STA BORDER_CTRL_REG
@@ -1870,7 +1901,7 @@ cols_by_res     .word 80,100,40,50
 lines_by_res    .word 60,75,30,37
                 .pend
 
-; IINITVKYTXTMODE
+; IINITVKYGRPMODE
 ; Author: Stefany
 ;Init the Text Mode
 ; Inputs:
@@ -1910,102 +1941,8 @@ IINITTILEMODE
 
                 RTL
 
-IINITSPRITE     PHA
-                setas
-                LDA #$03    ; Enable 17 Sprites
-                STA SP00_CONTROL_REG
-                STA SP01_CONTROL_REG
-                STA SP02_CONTROL_REG
-                STA SP03_CONTROL_REG
-                STA SP04_CONTROL_REG
-                STA SP05_CONTROL_REG
-                STA SP06_CONTROL_REG
-                STA SP07_CONTROL_REG
-                STA SP08_CONTROL_REG
-                STA SP09_CONTROL_REG
-                STA SP10_CONTROL_REG
-                STA SP11_CONTROL_REG
-                STA SP12_CONTROL_REG
-                STA SP13_CONTROL_REG
-                STA SP14_CONTROL_REG
-                STA SP15_CONTROL_REG
-                STA SP16_CONTROL_REG
-                ; Set the Pointer for the Graphic
-                LDA #$09
-                STA SP00_ADDY_PTR_H
-                STA SP01_ADDY_PTR_H
-                STA SP02_ADDY_PTR_H
-                STA SP03_ADDY_PTR_H
-                STA SP04_ADDY_PTR_H
-                STA SP05_ADDY_PTR_H
-                STA SP06_ADDY_PTR_H
-                STA SP07_ADDY_PTR_H
-                STA SP08_ADDY_PTR_H
-                STA SP09_ADDY_PTR_H
-                STA SP10_ADDY_PTR_H
-                STA SP11_ADDY_PTR_H
-                STA SP12_ADDY_PTR_H
-                STA SP13_ADDY_PTR_H
-                STA SP14_ADDY_PTR_H
-                STA SP15_ADDY_PTR_H
-                STA SP16_ADDY_PTR_H
 
-                LDA #$00
-                STA SP00_ADDY_PTR_M
-                LDA #$04
-                STA SP01_ADDY_PTR_M
-                LDA #$08
-                STA SP02_ADDY_PTR_M
-                LDA #$0C
-                STA SP03_ADDY_PTR_M
-                LDA #$10
-                STA SP04_ADDY_PTR_M
-                LDA #$14
-                STA SP05_ADDY_PTR_M
-                LDA #$18
-                STA SP06_ADDY_PTR_M
-                LDA #$1C
-                STA SP07_ADDY_PTR_M
-                LDA #$20
-                STA SP08_ADDY_PTR_M
-                LDA #$24
-                STA SP09_ADDY_PTR_M
-                LDA #$28
-                STA SP10_ADDY_PTR_M
-                LDA #$2C
-                STA SP11_ADDY_PTR_M
-                LDA #$30
-                STA SP12_ADDY_PTR_M
-                LDA #$34
-                STA SP13_ADDY_PTR_M
-                LDA #$38
-                STA SP14_ADDY_PTR_M
-                LDA #$3C
-                STA SP15_ADDY_PTR_M
-                LDA #$40
-                STA SP16_ADDY_PTR_M
-
-                LDA #$00
-                STA SP00_ADDY_PTR_L
-                STA SP01_ADDY_PTR_L
-                STA SP02_ADDY_PTR_L
-                STA SP03_ADDY_PTR_L
-                STA SP04_ADDY_PTR_L
-                STA SP05_ADDY_PTR_L
-                STA SP06_ADDY_PTR_L
-                STA SP07_ADDY_PTR_L
-                STA SP08_ADDY_PTR_L
-                STA SP09_ADDY_PTR_L
-                STA SP10_ADDY_PTR_L
-                STA SP11_ADDY_PTR_L
-                STA SP12_ADDY_PTR_L
-                STA SP13_ADDY_PTR_L
-                STA SP14_ADDY_PTR_L
-                STA SP15_ADDY_PTR_L
-                STA SP16_ADDY_PTR_L
-                PLA
-                RTL
-
+INOP            RTL  
 
 ; IINITFONTSET
 ; Author: Stefany
@@ -2016,7 +1953,7 @@ IINITSPRITE     PHA
 ;  Vicky's Internal FONT Memory
 IINITFONTSET    .proc
                 PHA
-                PHX
+                PHX 
                 PHY
                 PHB
                 PHP
@@ -2034,8 +1971,6 @@ IINITFONTSET    .proc
                 PLA
                 RTL
                 .pend
-
-;
 ;
 ;INITMOUSEPOINTER
 INITMOUSEPOINTER
@@ -2054,10 +1989,6 @@ FILL_MOUSE_MARKER
                 STA @lMOUSE_PTR_CTRL_REG_L  ; Enable Mouse, Mouse Pointer Graphic Bank 0
                 setaxl
                 RTL
-
-
-
-
 ;
 ; IINITCURSOR
 ; Author: Stefany
@@ -2067,7 +1998,7 @@ FILL_MOUSE_MARKER
 ; None
 ; Affects:
 ;  Vicky's Internal Cursor's Registers
-IINITCURSOR     PHA
+IINITCURSOR 
                 setas
                 LDA #$B1      ;The Cursor Character will be a Fully Filled Block
                 STA VKY_TXT_CURSOR_CHAR_REG
@@ -2078,7 +2009,6 @@ IINITCURSOR     PHA
                 STA VKY_TXT_CURSOR_X_REG_L; // Set the X to Position 1
                 LDA #$0006;
                 STA VKY_TXT_CURSOR_Y_REG_L; // Set the Y to Position 6 (Below)
-                PLA
                 RTL
 
 ;
@@ -2102,98 +2032,98 @@ IINITSUPERIO	  PHD
                 STA GP11_REG
                 LDA #$01		;Default Value - C256 Doesn't use this IO Pin
                 STA GP12_REG
-        				LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-        				STA GP13_REG
-        				LDA #$05		;(C256 - POT A Analog BX) Bit[0] = 1, Bit[2] = 1
-        				STA GP14_REG
-        				LDA #$05		;(C256 - POT A Analog BY) Bit[0] = 1, Bit[2] = 1
-        				STA GP15_REG
-        				LDA #$05		;(C256 - POT B Analog BX) Bit[0] = 1, Bit[2] = 1
-        				STA GP16_REG
-        				LDA #$05		;(C256 - POT B Analog BY) Bit[0] = 1, Bit[2] = 1
-        				STA GP17_REG
-        				LDA #$00		;(C256 - HEADPHONE MUTE) - Output GPIO - Push-Pull (1 - Headphone On, 0 - HeadPhone Off)
-        				STA GP20_REG
+        	LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+        	STA GP13_REG
+        	LDA #$05		;(C256 - POT A Analog BX) Bit[0] = 1, Bit[2] = 1
+        	STA GP14_REG
+        	LDA #$05		;(C256 - POT A Analog BY) Bit[0] = 1, Bit[2] = 1
+        	STA GP15_REG
+        	LDA #$05		;(C256 - POT B Analog BX) Bit[0] = 1, Bit[2] = 1
+        	STA GP16_REG
+        	LDA #$05		;(C256 - POT B Analog BY) Bit[0] = 1, Bit[2] = 1
+        	STA GP17_REG
+        	LDA #$00		;(C256 - HEADPHONE MUTE) - Output GPIO - Push-Pull (1 - Headphone On, 0 - HeadPhone Off)
+        	STA GP20_REG
 
                 ;LDA #$00		;(C256 - FLOPPY - DS1) - TBD Later, Floppy Stuff (JIM DREW)
-				        ;STA GP21_REG
-				        ;LDA #$00		;(C256 - FLOPPY - DMTR1) - TBD Later, Floppy Stuff (JIM DREW)
-				        ;STA GP22_REG
+                ;STA GP21_REG
+                ;LDA #$00		;(C256 - FLOPPY - DMTR1) - TBD Later, Floppy Stuff (JIM DREW)
+                ;STA GP22_REG
 
-				        LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-				        STA GP24_REG
-				        LDA #$05		;(C256 - MIDI IN) Bit[0] = 1, Bit[2] = 1 (Page 132 Manual)
-				        STA GP25_REG
-			        	LDA #$84		;(C256 - MIDI OUT) Bit[2] = 1, Bit[7] = 1 (Open Drain - To be Checked)
-				        STA GP26_REG
+		LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+		STA GP24_REG
+		LDA #$05		;(C256 - MIDI IN) Bit[0] = 1, Bit[2] = 1 (Page 132 Manual)
+		STA GP25_REG
+		LDA #$84		;(C256 - MIDI OUT) Bit[2] = 1, Bit[7] = 1 (Open Drain - To be Checked)
+		STA GP26_REG
 
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 1) Setup as GPIO Input for now
-				        STA GP30_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 4) Setup as GPIO Input for now
-				        STA GP31_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 3) Setup as GPIO Input for now
-				        STA GP32_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 6) Setup as GPIO Input for now
-				        STA GP33_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 5) Setup as GPIO Input for now
-				        STA GP34_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 8) Setup as GPIO Input for now
-				        STA GP35_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 7) Setup as GPIO Input for now
-				        STA GP36_REG
-				        LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 10) Setup as GPIO Input for now
-				        STA GP37_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 1) Setup as GPIO Input for now
+		STA GP30_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 4) Setup as GPIO Input for now
+		STA GP31_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 3) Setup as GPIO Input for now
+		STA GP32_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 6) Setup as GPIO Input for now
+		STA GP33_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 5) Setup as GPIO Input for now
+		STA GP34_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 8) Setup as GPIO Input for now
+		STA GP35_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 7) Setup as GPIO Input for now
+		STA GP36_REG
+		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 10) Setup as GPIO Input for now
+		STA GP37_REG
 
-				        ;LDA #$01		;(C256 - FLOPPY - DRVDEN0) - TBD Later, Floppy Stuff (JIM DREW)
-				        ;STA GP40_REG
-				        ;LDA #$01		;(C256 - FLOPPY - DRVDEN1) - TBD Later, Floppy Stuff (JIM DREW)
-				        ;STA GP41_REG
-				        LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-				        STA GP42_REG
-			          LDA #$01		;(C256 - INPUT PLL CLK INTERRUPT) Default Value - Will keep it as an input for now, no real usage for now
-				        STA GP43_REG
-				        LDA #$05		;(C256 - UART2 - RI2) - Input - Set Secondary Function
-				        STA GP50_REG
-				        LDA #$05		;(C256 - UART2 - DCD2) - Input - Set Secondary Function
-				        STA GP51_REG
-				        LDA #$05		;(C256 - UART2 - RXD2) - Input - Set Secondary Function
-				        STA GP52_REG
-				        LDA #$04		;(C256 - UART2 - TXD2) - Output - Set Secondary Function
-				        STA GP53_REG
-				        LDA #$05		;(C256 - UART2 - DSR2) - Input - Set Secondary Function
-				        STA GP54_REG
-				        LDA #$04		;(C256 - UART2 - RTS2) - Output - Set Secondary Function
-				        STA GP55_REG
-				        LDA #$05		;(C256 - UART2 - CTS2) - Input - Set Secondary Function
-				        STA GP56_REG
-				        LDA #$04		;(C256 - UART2 - DTR2) - Output - Set Secondary Function
-				        STA GP57_REG
-				        LDA #$84		;(C256 - LED1) - Open Drain - Output
-				        STA GP60_REG
-				        LDA #$84		;(C256 - LED2) - Open Drain - Output
-				        STA GP61_REG
-			        	LDA #$00		;GPIO Data Register (GP10..GP17) - Not Used
-				        STA GP1_REG
-				        LDA #$01		;GPIO Data Register (GP20..GP27) - Bit[0] - Headphone Mute (Enabling it)
-				        STA GP2_REG
-				        LDA #$00		;GPIO Data Register (GP30..GP37) - Since it is in Output mode, nothing to write here.
-				        STA GP3_REG
-				        LDA #$00		;GPIO Data Register (GP40..GP47)  - Not Used
-				        STA GP4_REG
-				        LDA #$00		;GPIO Data Register (GP50..GP57)  - Not Used
-				        STA GP5_REG
-				        LDA #$00		;GPIO Data Register (GP60..GP61)  - Not Used
-				        STA GP6_REG
-
-				        LDA #$01		;LED1 Output - Already setup by Vicky Init Phase, for now, I will leave it alone
-				        STA LED1_REG
-				        LDA #$02		;LED2 Output - However, I will setup this one, to make sure the Code works (Full On, when Code was ran)
-				        STA LED2_REG
-				        setal
+		;LDA #$01		;(C256 - FLOPPY - DRVDEN0) - TBD Later, Floppy Stuff (JIM DREW)
+		 ;STA GP40_REG
+		;LDA #$01		;(C256 - FLOPPY - DRVDEN1) - TBD Later, Floppy Stuff (JIM DREW)
+		;STA GP41_REG
+		LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+		STA GP42_REG
+		LDA #$01		;(C256 - INPUT PLL CLK INTERRUPT) Default Value - Will keep it as an input for now, no real usage for now
+		STA GP43_REG
+		LDA #$05		;(C256 - UART2 - RI2) - Input - Set Secondary Function
+		STA GP50_REG
+                LDA #$05		;(C256 - UART2 - DCD2) - Input - Set Secondary Function
+                STA GP51_REG
+                LDA #$05		;(C256 - UART2 - RXD2) - Input - Set Secondary Function
+                STA GP52_REG
+                LDA #$04		;(C256 - UART2 - TXD2) - Output - Set Secondary Function
+                STA GP53_REG
+                LDA #$05		;(C256 - UART2 - DSR2) - Input - Set Secondary Function
+                STA GP54_REG
+                LDA #$04		;(C256 - UART2 - RTS2) - Output - Set Secondary Function
+                STA GP55_REG
+                LDA #$05		;(C256 - UART2 - CTS2) - Input - Set Secondary Function
+                STA GP56_REG
+                LDA #$04		;(C256 - UART2 - DTR2) - Output - Set Secondary Function
+                STA GP57_REG
+                LDA #$84		;(C256 - LED1) - Open Drain - Output
+                STA GP60_REG
+                LDA #$84		;(C256 - LED2) - Open Drain - Output
+                STA GP61_REG
+                LDA #$00		;GPIO Data Register (GP10..GP17) - Not Used
+                STA GP1_REG
+                LDA #$01		;GPIO Data Register (GP20..GP27) - Bit[0] - Headphone Mute (Enabling it)
+                STA GP2_REG
+                LDA #$00		;GPIO Data Register (GP30..GP37) - Since it is in Output mode, nothing to write here.
+                STA GP3_REG
+                LDA #$00		;GPIO Data Register (GP40..GP47)  - Not Used
+                STA GP4_REG
+                LDA #$00		;GPIO Data Register (GP50..GP57)  - Not Used
+                STA GP5_REG
+                LDA #$00		;GPIO Data Register (GP60..GP61)  - Not Used
+                STA GP6_REG             
+                LDA #$01		;LED1 Output - Already setup by Vicky Init Phase, for now, I will leave it alone
+                STA LED1_REG
+                LDA #$02		;LED2 Output - However, I will setup this one, to make sure the Code works (Full On, when Code was ran)
+                STA LED2_REG
+                setal
                 PLA
-				        PLP
-			        	PLD
+	        PLP
+		PLD
                 RTL
+
 ;
 ; IINITKEYBOARD
 ; Author: Stefany
@@ -2203,10 +2133,10 @@ IINITSUPERIO	  PHD
 ;   None
 ; Affects:
 ;   Carry (c)
-IINITKEYBOARD	  PHD
-				        PHP
-				        PHA
-				        PHX
+IINITKEYBOARD	PHD
+		PHP
+		PHA
+		PHX
 
                 setas				;just make sure we are in 8bit mode
                 setxl 					; Set 8bits
@@ -2216,48 +2146,54 @@ IINITKEYBOARD	  PHD
 
                 JSR Poll_Inbuf ;
 ;; Test AA
-				        LDA #$AA			;Send self test command
-				        STA KBD_CMD_BUF
+		LDA #$AA			;Send self test command
+		STA KBD_CMD_BUF
 								;; Sent Self-Test Code and Waiting for Return value, it ought to be 0x55.
                 JSR Poll_Outbuf ;
 
-				        LDA KBD_OUT_BUF		;Check self test result
-				        CMP #$55
-				        BEQ	passAAtest
+                LDA KBD_OUT_BUF		;Check self test result
+                CMP #$55
+                BEQ	passAAtest
 
                 BRL initkb_loop_out
 
-passAAtest      ;LDX #<>pass_tst0xAAmsg
-                ;JSL IPRINT      ; print Message
+passAAtest
+.if TEST_KEYBOARD
+  LDX #<>pass_tst0xAAmsg
+  JSL IPRINT      ; print Message
+.endif
 ;; Test AB
-				        LDA #$AB			;Send test Interface command
-				        STA KBD_CMD_BUF
-
+		LDA #$AB			;Send test Interface command
+                STA KBD_CMD_BUF
                 JSR Poll_Outbuf ;
-
-				        LDA KBD_OUT_BUF		;Display Interface test results
-				        CMP #$00			;Should be 00
-				        BEQ	passABtest
-
+		LDA KBD_OUT_BUF		;Display Interface test results
+		CMP #$00			;Should be 00
+		BEQ	passABtest
                 BRL initkb_loop_out
 
-passABtest      ;LDX #<>pass_tst0xABmsg
-;                JSL IPRINT       ; print Message
-
-                ;LDA #$A8        ; Enable Second PS2 Port
-                ;STA KBD_DATA_BUF
-                ;JSR Poll_Outbuf ;
+passABtest      
+.if TEST_KEYBOARD
+  LDX #<>pass_tst0xABmsg
+  JSL IPRINT       ; print Message
+.endif
 
 ;; Program the Keyboard & Enable Interrupt with Cmd 0x60
                 LDA #$60            ; Send Command 0x60 so to Enable Interrupt
                 STA KBD_CMD_BUF
                 JSR Poll_Inbuf ;
-                LDA #%01101001      ; Enable Interrupt
+;.if TARGET_SYS == SYS_C256_FMX
+                ;LDA #%01100001      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable
+                LDA #%01000011      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable                
+;.else
+                ;LDA #%00101001      ; Enable Interrupt
+;.endif
                 ;LDA #%01001011      ; Enable Interrupt for Mouse and Keyboard
                 STA KBD_DATA_BUF
                 JSR Poll_Inbuf ;
-                ;LDX #<>pass_cmd0x60msg
-                ;JSL IPRINT       ; print Message
+.if TEST_KEYBOARD                
+                LDX #<>pass_cmd0x60msg
+                JSL IPRINT       ; print Message
+.endif
 ; Reset Keyboard
                 LDA #$FF      ; Send Keyboard Reset command
                 STA KBD_DATA_BUF
@@ -2278,8 +2214,10 @@ DLY_LOOP1       DEX
 
                 LDA KBD_OUT_BUF   ; Read Output Buffer
 
-;                LDX #<>pass_cmd0xFFmsg
-;                JSL IPRINT       ; print Message
+.if TEST_KEYBOARD
+                LDX #<>pass_cmd0xFFmsg
+                JSL IPRINT       ; print Message
+.endif
 DO_CMD_F4_AGAIN
                 JSR Poll_Inbuf ;
 				        LDA #$F4			; Enable the Keyboard
@@ -2290,14 +2228,10 @@ DO_CMD_F4_AGAIN
                 CMP #$FA
                 BNE DO_CMD_F4_AGAIN
                 ; Till We Reach this point, the Keyboard is setup Properly
-                JSR INIT_MOUSE
+
 
                 ; Unmask the Keyboard interrupt
                 ; Clear Any Pending Interrupt
-                LDA @lINT_PENDING_REG0  ; Read the Pending Register &
-                AND #FNX0_INT07_MOUSE
-                STA @lINT_PENDING_REG0  ; Writing it back will clear the Active Bit
-
                 LDA @lINT_PENDING_REG1  ; Read the Pending Register &
                 AND #FNX1_INT00_KBD
                 STA @lINT_PENDING_REG1  ; Writing it back will clear the Active Bit
@@ -2306,17 +2240,12 @@ DO_CMD_F4_AGAIN
                 AND #~FNX1_INT00_KBD
                 STA @lINT_MASK_REG1
 
-                LDA @lINT_MASK_REG0
-                AND #~FNX0_INT07_MOUSE
-                STA @lINT_MASK_REG0
-
-
                 LDX #<>Success_kb_init
                 SEC
-                BCS InitSuccess
+                BCS InitKbSuccess
 
-initkb_loop_out LDX #<>Failed_kb_init
-InitSuccess     JSL IPRINT       ; print Message
+initkb_loop_out ;LDX #<>Failed_kb_init
+InitKbSuccess   JSL IPRINT       ; print Message
                 setal 					; Set 16bits
                 setxl 					; Set 16bits
 
@@ -2339,84 +2268,103 @@ Poll_Outbuf	    .as
                 CMP #OUT_BUF_FULL
                 BNE Poll_Outbuf
                 RTS
+;
+; IINIT_MOUSE
+; Author: Stefany
+; Note: We assume that A & X are 16Bits Wide when entering here.
+; Initialize the Keyboard Controler (8042) in the SuperIO.
+; Inputs:
+;   None
+; Affects:
+;   Carry (c)
+IINITMOUSE      PHD
+				        PHP
+				        PHA
+				        PHX
 
-INIT_MOUSE      .as
-
-                JSR Poll_Inbuf
-                LDA #$A8          ; Enable the second PS2 Channel
-                STA KBD_CMD_BUF
-
-;                LDX #$4000
-;DLY_MOUSE_LOOP  DEX
-                ;CPX #$0000
-                ;BNE DLY_MOUSE_LOOP
+                setas				;Set A 8Bits
+                setxl 			;Set XY 16Bits
+                CLC
+                LDX #$FFFF 
 DO_CMD_A9_AGAIN
                 JSR Poll_Inbuf
                 LDA #$A9          ; Tests second PS2 Channel
                 STA KBD_CMD_BUF
-                JSR Poll_Outbuf ;
+                JSR Poll_Outbuf_Mouse_TimeOut ;
+                
 				        LDA KBD_OUT_BUF		; Clear the Output buffer
                 CMP #$00
                 BNE DO_CMD_A9_AGAIN
-                ; IF we pass this point, the Channel is OKAY, Let's move on
-
-                JSR Poll_Inbuf
-                LDA #$20
-                STA KBD_CMD_BUF
-                JSR Poll_Outbuf ;
-
-                LDA KBD_OUT_BUF
-                ORA #$02
-                PHA
-                JSR Poll_Inbuf
-                LDA #$60
-                STA KBD_CMD_BUF
-                JSR Poll_Inbuf ;
-                PLA
-                STA KBD_DATA_BUF
-
+            
                 LDA #$F6        ;Tell the mouse to use default settings
                 JSR MOUSE_WRITE
-                JSR MOUSE_READ
-
+                JSR MOUSE_READ ;***
                 ; Set the Mouse Resolution 1 Clicks for 1mm - For a 640 x 480, it needs to be the slowest
                 LDA #$E8
                 JSR MOUSE_WRITE
-                JSR MOUSE_READ
+                JSR MOUSE_READ ;***
                 LDA #$00
                 JSR MOUSE_WRITE
-                JSR MOUSE_READ
-
-                ; Set the Refresh Rate to 60
-;                LDA #$F2
-;                JSR MOUSE_WRITE
-;                JSR MOUSE_READ
-;                LDA #60
-;                JSR MOUSE_WRITE
-;                JSR MOUSE_READ
-
+                JSR MOUSE_READ ;***
 
                 LDA #$F4        ; Enable the Mouse
                 JSR MOUSE_WRITE
-                JSR MOUSE_READ
+                JSR MOUSE_READ ;***
                 ; Let's Clear all the Variables Necessary to Computer the Absolute Position of the Mouse
                 LDA #$00
                 STA MOUSE_PTR
-                RTS
+
+                LDA @lINT_PENDING_REG0  ; Read the Pending Register &
+                AND #FNX0_INT07_MOUSE
+                STA @lINT_PENDING_REG0  ; Writing it back will clear the Active Bit
+                LDA @lINT_MASK_REG0
+                AND #~FNX0_INT07_MOUSE
+                STA @lINT_MASK_REG0
+                setxl 					; Set 16bits
+                LDX #<>Success_ms_init                 
+                BRA InitMsSuccess
+
+initms_loop_out LDX #<>Failed_ms_init
+InitMsSuccess   ;JSL IPRINT       ; print Message                   
+                setal 					; Set 16bits
+                PLX
+                PLA
+		PLP
+		PLD
+                RTL
 
 MOUSE_WRITE     .as
                 PHA
-                JSR Poll_Inbuf
+                JSR Poll_Inbuf    ; Test bit $01 (if 2, Full)
                 LDA #$D4
-                STA KBD_CMD_BUF
+                STA KBD_CMD_BUF   ; KBD_CMD_BUF		= $AF1064
                 JSR Poll_Inbuf
                 PLA
-                STA KBD_DATA_BUF
+                STA KBD_DATA_BUF  ; KBD_DATA_BUF	= $AF1060
                 RTS
 
 MOUSE_READ      .as
-                JSR Poll_Outbuf ;
-                LDA KBD_INPT_BUF
+                JSR Poll_Outbuf_Mouse   ; Test bit $01 (if 1, Full)
+                LDA KBD_INPT_BUF  ; KBD_INPT_BUF	= $AF1060
+                RTS
+
+Poll_Outbuf_Mouse	    .as
+                LDA STATUS_PORT
+                AND #OUT_BUF_FULL ; Test bit $01 (if 1, Full)
+                CMP #OUT_BUF_FULL
+                BNE Poll_Outbuf_Mouse
+                RTS
+
+Poll_Outbuf_Mouse_TimeOut .as
+                LDA STATUS_PORT
+                AND #OUT_BUF_FULL ; Test bit $01 (if 1, Full)
+                CMP #OUT_BUF_FULL
+                BEQ Poll_OutbufWeAreDone
+                DEX 
+                CPX #$0000
+                BNE Poll_Outbuf_Mouse_TimeOut
+                BRA initms_loop_out
+Poll_OutbufWeAreDone:
                 RTS
 
 
@@ -2444,99 +2392,7 @@ INITRTC         PHA
                 PLP
                 PLA
                 RTL
-;
-; ITESTSID
-; Author: Stefany
-; Note: We assume that A & X are 16Bits Wide when entering here.
-; Initialize the Real Time Clock
-; Inputs:
-; None
-ITESTSID
-                ; Set the Volume to Max
-                LDA #$0F
-                STA SID0_MODE_VOL
-                ; Left SID
-                ; Voice
-                LDA #$BE
-                STA SID0_V1_ATCK_DECY
-                LDA #$F8
-                STA SID0_V1_SSTN_RLSE
 
-                LDA #$11
-                STA SID0_V1_FREQ_HI
-                LDA #$25
-                STA SID0_V1_FREQ_LO
-
-                LDA #$11
-                STA SID0_V1_CTRL
-
-
-                LDA #$08
-                STA SID0_V1_PW_HI   ;G1
-                LDA #$00
-                STA SID0_V1_FREQ_HI
-
-                LDA #$C6
-                STA SID0_V1_SSTN_RLSE
-
-                LDA #$08
-                STA SID0_V2_PW_HI   ;G1
-                LDA #$00
-                STA SID0_V2_FREQ_HI
-                LDA #$08
-                STA SID0_V2_ATCK_DECY
-                LDA #$C6
-                STA SID0_V2_SSTN_RLSE
-
-                LDA #$08
-                STA SID0_V3_PW_HI   ;G1
-                LDA #$00
-                STA SID0_V3_FREQ_HI
-                LDA #$08
-                STA SID0_V3_ATCK_DECY
-                LDA #$C6
-                STA SID0_V3_SSTN_RLSE
-
-
-                LDA #$36              ;Left Side (Rev A of Board)
-                STA SID0_V1_FREQ_LO
-                LDA #$01
-                STA SID0_V1_FREQ_HI   ;G1
-                LDA #$00              ;Left Side (Rev A of Board)
-                STA SID0_V1_PW_LO
-                LDA #$08
-                STA SID0_V1_PW_HI   ;G1
-                LDA #$08
-                STA SID0_V1_CTRL    ; Reset
-                ; Voice 2
-                LDA #$0C
-                STA SID0_V2_FREQ_LO
-                LDA #$04
-                STA SID0_V2_FREQ_HI   ;B1
-                LDA #$00              ;Left Side (Rev A of Board)
-                STA SID0_V2_PW_LO
-                LDA #$08
-                STA SID0_V2_PW_HI   ;G1
-                LDA #$08
-                STA SID0_V2_CTRL    ; Reset
-                ; Voice 3
-                LDA #$00
-                STA SID0_V3_FREQ_LO
-                LDA #$08
-                STA SID0_V3_FREQ_HI   ;D
-                LDA #$00              ;Left Side (Rev A of Board)
-                STA SID0_V3_PW_LO
-                LDA #$08
-                STA SID0_V3_PW_HI   ;G1
-                LDA #$08
-                STA SID0_V3_CTRL    ; Reset
-
-                ; Enable each Voices with Triangle Wave
-                LDA #$10
-                STA SID0_V1_CTRL    ; Triangle
-                STA SID0_V2_CTRL    ; Triangle
-                STA SID0_V3_CTRL    ; Triangle
-                RTL
 ; IINITCODEC
 ; Author: Stefany
 ; Note: We assume that A & X are 16Bits Wide when entering here.
@@ -2559,7 +2415,7 @@ IINITCODEC      PHA
                 STA CODEC_WR_CTRL             ; Execute the Write
                 JSR CODEC_TRF_FINISHED
                 ;
-                LDA #%0010101000011111       ;R21 - Enable All the Analog In
+                LDA #%0010101000011110       ;R21 - Enable All the Analog In
                 STA CODEC_DATA_LO
                 LDA #$0001
                 STA CODEC_WR_CTRL             ; Execute the Write
@@ -3085,19 +2941,21 @@ ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a spac
 ;
 IRQHANDLESTUB   RTL
 
-.include "OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "sdcard_controller_def.asm"
+.include "Libraries/OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
+.include "Defines/sdcard_controller_def.asm"
 .include "sdos.asm"
-;.include "YM26XX.asm"
 .include "uart.asm"                       ; The code to handle the UART
 .include "joystick.asm"                   ; Code for the joysticks and gamepads
-.include "sdc_library.asm"                ; Library code for the SD card interface
-.include "fdc_library.asm"                ; Library code for the floppy drive controller
-.include "ide_library.asm"                ; Library code for the IDE interface
-
+.include "Libraries/sdc_library.asm"                ; Library code for the SD card interface
+.include "Libraries/fdc_library.asm"                ; Library code for the floppy drive controller
+.include "Libraries/ide_library.asm"                ; Library code for the IDE interface
+.include "Libraries/Ethernet_Init_library.asm"    ; This is a simple Init of the Controller, by Seting the MAC and enabling the RX and TX
+.include "Libraries/EXP-C200_EVID_Library.asm"
 ;
 ; Greeting message and other kernel boot data
 ;
+.if TARGET_SYS == SYS_C256_FMX
+; FMX
 KERNEL_DATA
 greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, " FFFFFFF MMMMMMMM XX    XXX " ,$0D
                 .text $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM   XX XXX   ",$0D
@@ -3105,29 +2963,50 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel version: "
+                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
                 .include "version.asm"
-                .text $0D,$00
+                .text $0D,$00                
+.endif
 
-old_pc_style_stat
-;                .text $D6, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C2
-;                .text      $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $B7, $0D
-;                .text $BA, " Main Processor     : 65C816      ",$B3," Base Memory Size     : 2048K     ",$BA, $0D
-;                .text $BA, " Numeric Processor  : CFP9519     ",$B3," Video Memory Size    : 4096K     ",$BA, $0D
-;                .text $BA, " Floppy Driver A:   : Yes         ",$B3," Hard Disk C: Type    : None      ",$BA, $0D
-;                .text $BA, " SDCard Card Reader : Yes         ",$B3," Serial Port(s)       : $AF:13F8, ",$BA, $0D
-;                .text $BA, " Display Type       : VGA         ",$B3,"                        $AF:12F8  ",$BA, $0D
-;                .text $BA, " Foenix Kernel Date : 081819      ",$B3," Parallel Ports(s)    : $AF:1378  ",$BA, $0D
-;                .text $BA, " Keyboard Type      : PS2         ",$B3," Sound Chip Installed : OPL2(2)   ",$BA, $0D
-;                .text $D3, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C1
-;                .text      $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $C4, $BD, $00
+.if TARGET_SYS == SYS_C256_U_PLUS
+; U+  
+    KERNEL_DATA
+    greet_msg   .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, " UU    UU   +" ,$0D
+                .text $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU   +",$0D
+                .text $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU +++++",$0D
+                .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU   +",$0D
+                .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UUUUUUUU   +",$0D
+                .text $0D, "C256 FOENIX U+ -- 3,670,016 Bytes Free", $0D
+                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
+                .include "version.asm"
+                .text $0D,$00  
+.endif 
 
-
-greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+.if TARGET_SYS == SYS_C256_U
+    KERNEL_DATA
+    greet_msg   .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, " UU    UU" ,$0D
+                .text $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU",$0D
+                .text $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU",$0D
+                .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU",$0D
+                .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UUUUUUUU",$0D
+                .text $0D, "C256 FOENIX U -- 1,572,864 Bytes Free", $0D
+                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
+                .include "version.asm"
+                .text $0D,$00  
+  .endif
+.if TARGET_SYS == SYS_C256_FMX
+  greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+.else 
+  greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+.endif
 
 fg_color_lut	  .text $00, $00, $00, $FF
                 .text $00, $00, $80, $FF
@@ -3169,7 +3048,10 @@ pass_cmd0x60msg .text "Cmd 0x60 Executed.", $0D, $00
 pass_cmd0xFFmsg .text "Cmd 0xFF (Reset) Done.", $0D, $00
 pass_cmd0xEEmsg .text "Cmd 0xEE Echo Test passed...", $0D, $00
 Success_kb_init .text "Keyboard Present", $0D, $00
+Success_ms_init .text "Mouse Present", $0D, $00
 Failed_kb_init  .text "No Keyboard Attached or Failed Init...", $0D, $00
+Failed_ms_init  .text "No Mouse Attached or Failed Init...", $0D, $00
+IamStuckHeremsg .text "I am stuck here...", $0D, $00
 bmp_parser_err0 .text "NO SIGNATURE FOUND.", $00
 bmp_parser_msg0 .text "BMP LOADED.", $00
 bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
@@ -3181,14 +3063,15 @@ sdc_err_boot    .null "Unable to read the SD card."
 ide_err_boot    .null "Unable to read from the IDE drive."
 fdc_err_boot    .null "Unable to read from the floppy drive."
 fdc_boot        .null "Booting from floppy..."
+sdc_boot        .null "Booting from SDCard..."
+ide_boot        .null "Booting from Hard Drive..."
 
 ready_msg       .null $0D,"READY."
-
 
 error_01        .null "ABORT ERROR"
 hex_digits      .text "0123456789ABCDEF",0
 
-; Keyboard scan code -> ASCII conversion tables
+; Keyboard scan code -> ASCII conversion tables (SCAN CODE 1) - FYI The Keyboard is spewing SCAN CODE 2 ( the controller does the translation)
 .align 256
 ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
                       .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10
@@ -3322,7 +3205,11 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
 ;
 
 * = START_OF_BASIC
-.binary "binaries/basic816.bin"
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+        .binary "binaries/basic816_3A0000.bin"
+.else
+        .binary "binaries/basic816_1A0000.bin"
+.endif
 
 * = START_OF_CREDITS
 
@@ -3332,28 +3219,449 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
 
 TXTLINE         .macro txt
                 .text \txt
-                .fill 128 - len(\txt), $20
+                .fill 80 - len(\txt), $20
                 .endm
 
 .align 256
-CREDITS_TEXT    TXTLINE "This is the credits screen!"
-                TXTLINE "I would like to thank the academy."
-                TXTLINE ""
-                TXTLINE "Press any key to go back..."
-                .fill 128 * 60,$20
+CREDITS_TEXT    TXTLINE "                              CREDITS                                  "
+                TXTLINE "                       The C256 Foenix Project                         "
+                TXTLINE "                                                                       "
+                TXTLINE "                                                                       "                
+                TXTLINE "Project Creator & Hardware Design: Stefany Allaire"
+                TXTLINE "www.c256foenix.com"
+                TXTLINE " "
+                TXTLINE " "
+                TXTLINE "EARLY ALPHA & KEY PLAYERS:"
+                TXTLINE "  Foenix IDE Design : Daniel Tremblay"
+                TXTLINE "  Kernel Design, BASIC816 Creator: Peter J. Weingartner "
+                TXTLINE "  FX/OS (GUI Environment) Design: Mike Bush"
+                TXTLINE "Special Thanks:"
+                TXTLINE "  Early Creator for the Foenix IDE & Kernel: Tom Wilson"
+                TXTLINE " "
+                TXTLINE " "                
+                TXTLINE "FPGA CORES AUTHORS:"
+                TXTLINE "  LPC Core: Howard M. Harte, hharte@opencores.org"
+                TXTLINE "  SDCard Core: Steve Fielding, sfielding@base2designs.com"
+                TXTLINE "  PS2 Controller (C256 Foenix U): Miha Dolenc, mihad@opencores.org "
+                TXTLINE "  SN76489 (JT89) (C256 Foenix U): Jose Tejada Gomez"
+                TXTLINE "  YM2612 (JT12): Jose Tejada Gomez"
+                TXTLINE "  YM2151 (JT51) (C256 Foenix U): Jose Tejada Gomez"
+                TXTLINE "  SID (6581): Gideon Zweijtzer, gideon.zweijtzer@gmail.com"
+                TXTLINE "  UART (16550) (C256 Foenix U): TBD"
+                TXTLINE " "
+                TXTLINE " "                
+                TXTLINE "SPECIAL THANKS:"
+                TXTLINE "  Joeri Vanharen"
+                TXTLINE "  Jim Drew"
+                TXTLINE "  Aidan Lawrence (Sound Chip Schematic references)"
+                TXTLINE " "
+                TXTLINE " "
+                TXTLINE "                                                                       "                                
+                TXTLINE "                     I would like to say a big thanks               "
+                TXTLINE "                  from the bottom of my heart for all of            "
+                TXTLINE "              those who have believed in this project since          " 
+                TXTLINE "                the very beginning and have been there to            "
+                TXTLINE "                        make it what it is today!!!                  "
+                TXTLINE "                                                                       "                
+                TXTLINE "                        Stefany"
+                .fill 80 * (60 - 26),$20
 
 .align 256
-CREDITS_COLOR   .fill 128 * 64, $F3
+CREDITS_COLOR   .fill 80 * 60, $F3
+
 
 ;
 ; The default font and end of flash memory
 ;
+* = START_OF_SPLASH
+INTERRUPT_STATE  = $000068
+INTERRUPT_COUNT  = $000069
+IRQ_COLOR_CHOICE = $00006A
 
+         ; This is for the Color Rolling Scheme
+BOOT_MENU .proc
+SplashScreenMain:
+                setdp 0
+                setxl 
+                setas     
+                LDA #$00
+                STA INTERRUPT_STATE
+                STA INTERRUPT_COUNT
+                STA IRQ_COLOR_CHOICE
+                ; Clear Any Pending Interrupt
+                LDA @lINT_PENDING_REG0  ; Read the Pending Register &
+                AND #FNX0_INT02_TMR0
+                STA @lINT_PENDING_REG0  ; Writing it back will clear the Active Bit
+
+                ; Go Get the Model Number here:
+                JSR Splash_Get_Machine_ID
+                JSR Splash_Clear_Screen
+                JSR Splash_Load_FontSet
+                JSL Splashscreen_BitMapSetup
+                JSR Model_Update_Info_Field
+                JSR Set_Text_Color
+                LDA #$00 
+                STA LINE_INDEX  ; Point to the first line to be displayed
+                STA LINE_INDEX + 1
+                JSR Line_Setup_Before_Display   ; Assign and Compute the Pointer   
+;Main Loop is here, Timed @ 16ms
+;
+;
+HAVE_FUN:
+                JSL Splash_Moniker_Color_Rolling  ; Go Move The Colors on the Logo
+                LDX LINE_INDEX
+                CPX #NumberOfEntry
+                BEQ ByPassCharDisplay           ; If Equal all Lines have been displayed
+                JSR Line_Display_1_Character    ; Go move the cursor one stop 
+                BCC Still_Displaying_Char
+                JSR Line_Setup_Before_Display   ; Assign and Compute the Pointer
+; Replication of the old BOOT_MENU Code - Sorry PJW, it needed some upgrades
+ByPassCharDisplay:
+                setas 
+                JSL GETCH               ; Try to get a character
+                CMP #0                  ; Did we get anything
+                BEQ Still_Displaying_Char            ; No: keep waiting until timeout
+                CMP #CHAR_F1            ; Did the user press F1?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_F2            ; Did the user press F2?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_F3            ; Did the user press F3?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_CR            ; Did the user press CR?
+                BEQ return              ; Yes: return it
+                CMP #CHAR_SP            ; Did the user press SPACE?
+                BEQ exitshere
+                ;BNE wait_key            ; No: keep waiting
+Still_Displaying_Char:        
+                ;JSR Pause_16ms
+WaitForNextSOF:   
+                LDA @l INT_PENDING_REG0
+                AND #FNX0_INT00_SOF
+                CMP #FNX0_INT00_SOF
+                BNE WaitForNextSOF;
+                JMP HAVE_FUN
+
+exitshere: 
+timeout 
+                LDA #0                  ; Return 0 for a timeout / SPACE
+return      
+                STA @l KRNL_BOOT_MENU_K          ; Store ther Keyboard Value
+                ; Let's do some housekeeping before giving back the computer to the user
+                LDA #$00
+                STA @l MASTER_CTRL_REG_L         ; Disable Everything
+                JSL SS_VDMA_CLEAR_MEMORY_640_480 ; Clear the Bitmap Screen
+                JSR VickyII_Registers_Clear      ; Reset All Vicky Registers
+                JSL INITFONTSET ; Reload the Official FONT set
+                JSL INITCURSOR ; Reset the Cursor to its origin
+                JSL INITCHLUT ; The Software does change one of the CH LUT, so, let's Init again
+                JSL INITVKYTXTMODE  ; Init VICKY TextMode now contains Hi-Res Dipswitch read and Automatic Text Size Parameter adjust
+                NOP
+                RTL
+.pend
+
+; Let's initialized all the registers to make sure the app doesn't pick up stuff from a previously ran code
+VickyII_Registers_Clear: .proc
+                setas
+                setxl
+                ; SPRITE CLEAR
+                LDX #$0000
+                LDA #$00
+                ; This will clear all the Sprite Registers
+ClearSpriteRegisters:
+                STA @l SP00_CONTROL_REG, X
+                INX
+                CPX #$0200
+                BNE ClearSpriteRegisters
+
+                ; TILE CLEAR
+                ; This will clear all the Tile Layers Registers
+                LDX #$0000
+                LDA #$00
+ClearTiles0Registers:
+                STA @l TL0_CONTROL_REG, X
+                INX
+                CPX #$0030
+                BNE ClearTiles0Registers
+                NOP
+                ; This will clear all the Tiles Graphics Registers
+                LDX #$0000
+                LDA #$00
+ClearTiles1Registers:
+                STA @l TILESET0_ADDY_L, X
+                INX
+                CPX #$0020
+                BNE ClearTiles1Registers
+                NOP
+
+                LDX #$0000
+                LDA #$00
+                ; This will clear all the Tiles Registers
+ClearBitmapRegisters:
+                STA @l BM0_CONTROL_REG, X
+                STA @l BM1_CONTROL_REG, X
+                INX
+                CPX #$0010
+                BNE ClearBitmapRegisters
+                RTS
+.pend
+;Bit 2, Bit 1, Bit 0
+;$000: FMX
+;$100: FMX (Future C5A)
+;$001: U 2Meg
+;$101: U+ 4Meg U+
+;$010: TBD (Reserved)
+;$110: TBD (Reserved)
+;$011: A2560 Dev
+;$111: A2560 Keyboard
+Splash_Get_Machine_ID .proc
+                setas 
+                LDA @lGABE_SYS_STAT
+                AND #$03        ; Isolate the first 2 bits to know if it is a U or FMX
+                STA MODEL
+                CMP #$00
+                BEQ DONE 
+                ; Now let's figure out if it has 2Megs or 4Megs
+                ; Here we got the Code $01 from Sys_Stat
+                LDA @lGABE_SYS_STAT
+                AND #GABE_SYS_STAT_MID2 ; High 4Meg, Low - 2Megs
+                CMP #GABE_SYS_STAT_MID2
+                BEQ DONE
+                LDA #$02
+                STA MODEL       ; In this Scheme 00 - FMX, 01 - U+, 02 - U
+DONE: 
+                RTS
+.pend
+
+Splash_Load_FontSet .proc
+                setas 
+                setxl
+                LDX #$0000
+DONE_LOADING_FONT:        
+                LDA @l FONT_4_SPLASH, X 
+                STA @l FONT_MEMORY_BANK0, X
+                INX 
+                CPX #2048
+                BNE DONE_LOADING_FONT
+                RTS
+.pend
+
+Splash_Clear_Screen .proc
+                setas
+                setxl
+                LDX #$0000
+Branch_Clear:
+                LDA #$20
+                STA @l CS_TEXT_MEM_PTR,X
+                LDA #$F0
+                STA @l CS_COLOR_MEM_PTR,X
+                INX
+                CPX #$2000
+                BNE Branch_Clear
+                RTS
+.pend
+
+IRQ_SOF_ST0 = $00
+IRQ_SOF_ST1 = $01
+IRQ_SOF_ST2 = $02
+;
+; ///////////////////////////////////////////////////////////////////
+; ///
+; /// Timer Driver Routine (Not using Interrupts)
+; /// 60Hz, 16ms Cyclical
+; ///
+; ///////////////////////////////////////////////////////////////////
+Splash_Moniker_Color_Rolling   .proc
+                ; Let's go throught the statemachine
+                setas
+                LDA @lINT_PENDING_REG0
+                AND #FNX0_INT00_SOF
+                STA @lINT_PENDING_REG0
+
+                LDA INTERRUPT_STATE
+                CMP #IRQ_SOF_ST0
+                BEQ SERVE_STATE0
+
+                CMP #IRQ_SOF_ST1
+                BEQ SERVE_STATE1
+
+                CMP #IRQ_SOF_ST2
+                BNE NOT_SERVE_STATE2
+                BRL SERVE_STATE2
+NOT_SERVE_STATE2
+                RTL
+
+; Go Count for a 4 Frame Tick
+SERVE_STATE0
+                LDA INTERRUPT_COUNT
+                CMP #$04
+                BEQ SERVE_NEXT_STATE
+                INC INTERRUPT_COUNT
+                RTL
+
+SERVE_NEXT_STATE
+                LDA #$00
+                STA INTERRUPT_COUNT
+                LDA #IRQ_SOF_ST1
+                STA INTERRUPT_STATE
+                RTL
+; Change the Color Here
+SERVE_STATE1
+                setaxl
+                LDA #$0000
+                LDX #$0000
+                setaxs
+                ; RED
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+0, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+992
+                ;STA @lBORDER_COLOR_B
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+993
+                ;STA @lBORDER_COLOR_G
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+994
+                ;STA @lBORDER_COLOR_R
+                ;BRL HERE
+                ; ORANGE
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+1, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+996
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+997
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+998
+                ; YELLOW
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+2, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1000
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1001
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1002
+                ; GREEN
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+3, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1004
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1005
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1006
+                ; CYAN
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+4, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1008
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1009
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1010
+                ; BLUE
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+5, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1012
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1013
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1014
+                ; PURPLE
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+6, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1016
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1017
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1018
+                ; New Color Here - Jan 2021
+                LDX IRQ_COLOR_CHOICE
+                LDA @lCOLOR_POINTER+7, X
+                TAX
+                LDA @lCOLOR_CHART, X
+                STA @lGRPH_LUT7_PTR+1020
+                
+                STA @lFG_CHAR_LUT_PTR + $10           ; 
+
+                LDA @lCOLOR_CHART+1, X
+                STA @lGRPH_LUT7_PTR+1021
+                
+                STA @lFG_CHAR_LUT_PTR + $11            ;
+
+                LDA @lCOLOR_CHART+2, X
+                STA @lGRPH_LUT7_PTR+1022                
+                STA @lFG_CHAR_LUT_PTR + $12            ;
+
+HERE
+                CLC
+                LDA IRQ_COLOR_CHOICE
+                ADC #$09
+                STA IRQ_COLOR_CHOICE
+                LDA IRQ_COLOR_CHOICE
+                CMP #$48
+                BNE EXIT_COLOR_CHANGE
+                LDA #$00
+                STA IRQ_COLOR_CHOICE
+EXIT_COLOR_CHANGE
+                setxl
+                LDA #IRQ_SOF_ST0
+                STA INTERRUPT_STATE
+                RTL
+
+SERVE_STATE2
+                LDA #IRQ_SOF_ST0
+                STA INTERRUPT_STATE
+                RTL
+.pend
+.align 16
+COLOR_CHART     .text 46, 46, 164, 00     ;248
+                .text 37, 103, 193, 00    ;249
+                .text 32, 157, 164, 00    ;250
+                .text 44, 156 , 55, 00    ;251
+                .text 148, 142, 44, 00    ;252
+                .text 145, 75, 43, 00     ;253
+                .text 142, 47, 97, 00     ;254
+                .text 33, 80, 127, 00     ;255
+
+COLOR_POINTER   .text 0,4,8,12,16,20,24,28,0
+                .text 4,8,12,16,20,24,28,0,0
+                .text 8,12,16,20,24,28,0,4,0
+                .text 12,16,20,24,28,0,4,8,0
+                .text 16,20,24,28,0,4,8,12,0
+                .text 20,24,28,0,4,8,12,16,0
+                .text 24,28,0,4,8,12,16,20,0
+                .text 28,0,4,8,12,16,20,24,0
+
+.include "SplashScreenCode/Splashscreen_Bitmap_Setup.asm"             ;
+.include "SplashScreenCode/Splashscreen_Text_Display.asm"
+.align 256
+SS_MONIKER_LUT
+.binary "SplashScreenCode/Graphics Assets/Graphic_C256Foenix.data.pal"
+SS_MONIKER
+.binary "SplashScreenCode/Graphics Assets/Graphic_C256Foenix.data"
+SS_FMX_TXT
+.binary "SplashScreenCode/Graphics Assets/Graphic_FMX.data"
+SS_UPlus_TXT
+.binary "SplashScreenCode/Graphics Assets/Graphic_UPlus.data"
+SS_U_TXT
+.binary "SplashScreenCode/Graphics Assets/Graphic_U.data"
+;
+; The default font and end of flash memory
+;
 * = START_OF_FONT
 FONT_4_BANK0
 .binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
-FONT_4_BANK1
-.binary "FONT/CBM-ASCII_8x8.bin", 0, 2048
-
+FONT_4_SPLASH 
+.binary "FONT/quadrotextFONT.bin"
 * = START_OF_FONT + $00FFFF
                 .byte $FF               ; Last byte of flash data

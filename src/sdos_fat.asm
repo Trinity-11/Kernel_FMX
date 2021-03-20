@@ -140,9 +140,9 @@ BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 ;;
 
 .if TARGET_SYS == SYS_C256_FMX
-.include "sdos_fat_vars_fmx_inc.asm"
+.include "Includes/sdos_fat_vars_fmx_inc.asm"
 .else
-.include "sdos_fat_vars_user_inc.asm"
+.include "Includes/sdos_fat_vars_user_inc.asm"
 .endif
 
 ;;
@@ -1097,9 +1097,6 @@ pass_failure    PLP                             ; If failure, just pass the fail
                 RTL
 
 mount           JSL DOS_MOUNT
-                BCS get_directory
-                BRL ret_failure
-                
 
 get_directory   setal
                 JSL DOS_DIROPEN                 ; Get the directory
