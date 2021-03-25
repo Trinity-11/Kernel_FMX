@@ -112,6 +112,7 @@ DOS_ERR_WRITEPROT = 19                  ; The medium is write-protected
 DOS_ERR_FATUPDATE = 20                  ; Can't update the FAT
 DOS_ERR_DIRFULL = 21                    ; The directory is full
 DOS_ERR_NOFD = 22                       ; No file descriptors are available for allocation
+DOS_ERR_NOMEDIA = 23                    ; No media was present
 
 ; MBR Field Offsets
 
@@ -1096,7 +1097,11 @@ pass_failure    PLP                             ; If failure, just pass the fail
                 CLC
                 RTL
 
-mount           JSL DOS_MOUNT
+mount           JSL DOS_MOUNT                   ; Try to mount the drive
+                BCS get_directory
+                setas
+                LDA #DOS_ERR_NOMEDIA            ; If failure: Report that we couldn't access the media
+                BRL ret_failure
 
 get_directory   setal
                 JSL DOS_DIROPEN                 ; Get the directory
