@@ -14,6 +14,8 @@ SDCARD_CMD    = $AFE811     ;(R/W) SDCARD (CH376S) CMD/STATUS Port (A0 = 1)
 
 ; SD Card Card Presence / Write Protect Status Reg
 SDCARD_STAT   = $AFE812     ;(R) SDCARD (Bit[0] = CD, Bit[1] = WP)
+SDC_DETECTED = $01          ; SD card has been detected (0 = card present, 1 = no card present)
+SDC_WRITEPROT = $02         ; SD card is write protected (0 = card is writeable, 1 = card is write protected or missing)
 
 ; Audio WM8776 CODEC Control Interface (Write Only)
 CODEC_DATA_LO = $AFE900     ;(W) LSB of Add/Data Reg to Control CODEC See WM8776 Spec
