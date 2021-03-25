@@ -1363,12 +1363,12 @@ IPRINTAH        .proc
                 CMP #%00100000
                 BEQ eight_bit
 
-                LDA @lCPUA+2          ; Get nibble [15..12]
+                LDA @lCPUA+1          ; Get nibble [15..12]
                 .rept 4
                 LSR A
                 .next
                 JSL iprint_digit      ; And print it
-                LDA @lCPUA+2          ; Get nibble [11..8]
+                LDA @lCPUA+1          ; Get nibble [11..8]
                 JSL iprint_digit      ; And print it
 
 eight_bit       LDA @lCPUA            ; Get nibble [7..4]

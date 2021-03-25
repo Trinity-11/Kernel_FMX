@@ -1271,7 +1271,7 @@ next_fd         setal
                 LDA #DOS_ERR_NOFD                   ; Yes: Return failure (no file descriptors available)
                 BRL IF_FAILURE
 
-found           ORA #FD_STAT_ALLOC                  ; No: Set the ALLOC bit
+found           LDA #FD_STAT_ALLOC                  ; No: Set the ALLOC bit
                 STA @w DOS_FILE_DESCS,X             ; And store it in the file descriptor's status
 
                 setal
@@ -1341,10 +1341,30 @@ DOS_SRC2DST     .proc
                 LDA [DOS_DST_PTR],Y
                 TAY                                     ; Y := destination buffer address
 
-                LDA #DOS_SECTOR_SIZE                    ; A := the size of the buffers
-                MVN #`DOS_FILE_BUFFS,#`DOS_FILE_BUFFS   ; Copy the sector data
+                setas
+                LDA #`DOS_FILE_BUFFS
+                PHA
+                PLB
 
-                PLP
+                setal
+                LDA #DOS_SECTOR_SIZE                    ; A := the size of the buffers
+
+loop            BEQ done
+                PHA
+                setas
+                LDA #0,B,X
+                STA #0,B,Y
+                setal
+                PLA
+
+                DEC A
+                INX
+                INY
+                BRA loop
+
+                ; MVN #`DOS_FILE_BUFFS,#`DOS_FILE_BUFFS   ; Copy the sector data
+
+done            PLP
                 PLB
                 PLD
                 PLY
@@ -1427,6 +1447,8 @@ set_paths       setaxl
                 STA @b DOS_FD_PTR+2
                 JSL F_OPEN                      ; Try to open the file
                 BCS src_open                    ; If success, work with the openned file
+
+                BRK
 
 err_free_dst_fd LDA @b DOS_DST_PTR              ; Get the destination file descriptor pointer
                 STA @b DOS_FD_PTR

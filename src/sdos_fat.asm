@@ -65,7 +65,7 @@ RESERVED            .word ?             ; Two reserved bytes to bring the descri
 FD_STAT_READ = $01                      ; The file is readable
 FD_STAT_WRITE = $02                     ; The file is writable
 FD_STAT_ALLOC = $10                     ; The file descriptor has been allocated
-FD_STAT_OPEN = $38                      ; The file is open
+FD_STAT_OPEN = $20                      ; The file is open
 FD_STAT_ERROR = $40                     ; The file is in an error condition
 FD_STAT_EOF = $80                       ; The file cursor is at the end of the file
 

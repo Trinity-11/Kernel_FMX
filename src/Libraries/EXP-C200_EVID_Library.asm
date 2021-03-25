@@ -703,31 +703,31 @@ iprinth1        setas
 EVID_IPRINTAH   .proc
                 PHA
                 PHP
-                STA @lCPUA            ; Save A where we can use it multiple times
+                STA @lCPUA              ; Save A where we can use it multiple times
 
-                PHP                   ; Get the processor status into A
+                PHP                     ; Get the processor status into A
                 setas
                 setxl
                 PLA
-                AND #%00100000        ; Is M = 1?
+                AND #%00100000          ; Is M = 1?
                 CMP #%00100000
                 BEQ eight_bit
 
-                LDA @lCPUA+2          ; Get nibble [15..12]
+                LDA @lCPUA+1            ; Get nibble [15..12]
                 .rept 4
                 LSR A
                 .next
-                JSL EVID_iprint_digit      ; And print it
-                LDA @lCPUA+2          ; Get nibble [11..8]
-                JSL EVID_iprint_digit      ; And print it
+                JSL EVID_iprint_digit   ; And print it
+                LDA @lCPUA+1            ; Get nibble [11..8]
+                JSL EVID_iprint_digit   ; And print it
 
-eight_bit       LDA @lCPUA            ; Get nibble [7..4]
+eight_bit       LDA @lCPUA              ; Get nibble [7..4]
                 .rept 4
                 LSR A
                 .next
-                JSL EVID_iprint_digit      ; And print it
-                LDA @lCPUA            ; Get nibble [3..0]
-                JSL EVID_iprint_digit      ; And print it
+                JSL EVID_iprint_digit   ; And print it
+                LDA @lCPUA              ; Get nibble [3..0]
+                JSL EVID_iprint_digit   ; And print it
 
                 PLP
                 PLA
