@@ -294,7 +294,8 @@ retry_boot
                 setaxl
                 LDX #0
                 LDY #0
-                JSL ILOCATE                
+                JSL ILOCATE
+
 greet           setdbr `greet_msg       ;Set data bank to ROM
                 LDX #<>greet_msg
                 JSL IPRINT       ; print the first line           
@@ -304,7 +305,7 @@ greet           setdbr `greet_msg       ;Set data bank to ROM
                 TAS     
                 ; Init Globacl Look-up Table
                 ; Moved the DOS Init after the FLashing Moniker Display
-           
+
                 setas
                 setxl
                 LDA @l KRNL_BOOT_MENU_K ; Get the Value of the Keyboard Boot Choice
@@ -550,6 +551,7 @@ ISETIN          PHP
 ;       1 = COM1
 ;       2 = COM2
 ;       3 = LPT
+;       4 = EVID (if installed)
 ;
 ISETOUT         PHP
                 setas
@@ -729,6 +731,9 @@ IPUTC           .proc
                 CMP #CHAN_COM2      ; Check to see if it's the COM2 port
                 BEQ putc_uart       ; Yes: handle printing to the UART
 
+                CMP #CHAN_EVID      ; Check to see if it's the second video port
+                BEQ putc_evid       ; Yes: handle printing to the second video port
+
                 ; TODO: handle other output channels
 
                 PLA                 ; Otherwise, just exit
@@ -738,6 +743,10 @@ putc_uart       JSL UART_SELECT     ; Point to the correct UART
 
                 PLA                 ; Recover the character to send
                 JSL UART_PUTC       ; Send the character
+                BRA done
+
+putc_evid       PLA                 ; Recover the character to send
+                JSL EVID_IPUTC      ; Call the EVID routines
                 BRA done
 
 putc_screen     PLA                 ; Get the character to print
@@ -2941,16 +2950,18 @@ ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a spac
 ;
 IRQHANDLESTUB   RTL
 
-.include "Libraries/OPL2_Library.asm"               ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
+.include "Libraries/OPL2_Library.asm"             ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
 .include "Defines/sdcard_controller_def.asm"
 .include "sdos.asm"
-.include "uart.asm"                       ; The code to handle the UART
-.include "joystick.asm"                   ; Code for the joysticks and gamepads
-.include "Libraries/sdc_library.asm"                ; Library code for the SD card interface
-.include "Libraries/fdc_library.asm"                ; Library code for the floppy drive controller
-.include "Libraries/ide_library.asm"                ; Library code for the IDE interface
+.include "uart.asm"                               ; The code to handle the UART
+.include "joystick.asm"                           ; Code for the joysticks and gamepads
+.include "Libraries/sdc_library.asm"              ; Library code for the SD card interface
+.include "Libraries/fdc_library.asm"              ; Library code for the floppy drive controller
+.include "Libraries/ide_library.asm"              ; Library code for the IDE interface
 .include "Libraries/Ethernet_Init_library.asm"    ; This is a simple Init of the Controller, by Seting the MAC and enabling the RX and TX
 .include "Libraries/EXP-C200_EVID_Library.asm"
+.include "ansi_screens.asm"                       ; Include the ANSI text screen common code
+
 ;
 ; Greeting message and other kernel boot data
 ;
@@ -3274,9 +3285,6 @@ CREDITS_COLOR   .fill 80 * 60, $F3
 ; The default font and end of flash memory
 ;
 * = START_OF_SPLASH
-INTERRUPT_STATE  = $000068
-INTERRUPT_COUNT  = $000069
-IRQ_COLOR_CHOICE = $00006A
 
          ; This is for the Color Rolling Scheme
 BOOT_MENU .proc

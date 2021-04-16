@@ -1,47 +1,10 @@
 ;;;
-;;; Definitions of important characters
+;;; Driver for the EVID second video port
 ;;;
-; Please include page_00_inc.asm for the CPUA register
-;CHAR_CTRL_A = $01   ; CTRL-A (move to start of line)
-;CHAR_CTRL_C = $03   ; CTRL-C
-;CHAR_CTRL_E = $05   ; CTRL-E (move to end of line)
-;CHAR_BS = $08       ; Backspace (delete character to the left of the cursor)
-;CHAR_TAB = $09      ; TAB (moves cursor to next tabulated column)
-;CHAR_LF = $0A       ; Line feed
-;CHAR_CR = $0D       ; Carriage return
-;CHAR_INS = $0F      ; Insert a space at the cursor
-;CHAR_UP = $11       ; Up arrow
-;CHAR_RIGHT = $1D    ; Right arrow
-;CHAR_SP = $20       ; Space
-;CHAR_DOWN = $91     ; Down arrow
-;CHAR_LEFT = $9D     ; Left arrow
-;CHAR_DEL = $7F      ; Delete key (delete the character at the cursor)
 
-;CHAR_F1 = $81       ; Function keys
-;CHAR_F2 = $82
-;CHAR_F3 = $83
-;CHAR_F4 = $84
-;CHAR_F5 = $85
-;CHAR_F6 = $86
-;CHAR_F7 = $87
-;CHAR_F8 = $88
-;CHAR_F9 = $89
-;CHAR_F10 = $8A
-;CHAR_F11 = $8B
-;CHAR_F12 = $8C
 
-EVID_SCREENBEGIN      = $000060 ;3 Bytes Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
-EVID_COLS_VISIBLE     = $000064 ;2 Bytes Columns visible per screen line. A virtual line can be longer than displayed, up to COLS_PER_LINE long. Default = 80
-EVID_COLS_PER_LINE    = $000066 ;2 Bytes Columns in memory per screen line. A virtual line can be this long. Default=128
-EVID_LINES_VISIBLE    = $000068 ;2 Bytes The number of rows visible on the screen. Default=25
-EVID_LINES_MAX        = $00006A ;2 Bytes The number of rows in memory for the screen. Default=64
-EVID_CURSORPOS        = $00006C ;3 Bytes The next character written to the screen will be written in this location.
-EVID_CURSORX          = $000070 ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
-EVID_CURSORY          = $000072 ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
-EVID_CURCOLOR         = $000074 ;1 Byte Color of next character to be printed to the screen.
-EVID_COLORPOS         = $000075 ;3 Byte address of cursor's position in the color matrix
-EVID_TMPPTR1          = $000076 ; 4 byte temporary pointer
 EVID_SCREEN_PAGE      = $AE2000 ;8192 Bytes First page of display RAM. This is used at boot time to display the welcome screen and the BASIC or MONITOR command screens.
+
 ;
 ; EVID_IPRINT
 ; Print a string, followed by a carriage return

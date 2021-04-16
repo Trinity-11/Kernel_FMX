@@ -19,6 +19,7 @@ CURSORX          = $00001A ;2 Bytes This is where the blinking cursor sits. Do n
 CURSORY          = $00001C ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
 CURCOLOR         = $00001E ;1 Byte Color of next character to be printed to the screen.
 COLORPOS         = $00001F ;3 Byte address of cursor's position in the color matrix
+COLORBEGIN       = $000022 ;3 Byte, address of the color screen
 STACKBOT         = $000022 ;2 Bytes Lowest location the stack should be allowed to write to. If SP falls below this value, the runtime should generate STACK OVERFLOW error and abort.
 STACKTOP         = $000024 ;2 Bytes Highest location the stack can occupy. If SP goes above this value, the runtime should generate STACK OVERFLOW error and abort.
 ; OPL2 Library Variable (Can be shared if Library is not used)
@@ -90,12 +91,26 @@ BMP_FILE_SIZE    = $000050 ; 4 Bytes
 BMP_POSITION_X   = $000054 ; 2 Bytes Where, the BMP will be position on the X Axis
 BMP_POSITION_Y   = $000056 ; 2 Bytes Where, the BMP will be position on the Y Axis
 BMP_PALET_CHOICE = $000058 ;
-;Empty Region
-;XXX             = $000060
-;..
-;..
-;..
-;YYY             = $0000EE
+
+; EVID Kernel Variables
+
+EVID_SCREENBEGIN      = $000060 ;3 Bytes Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
+EVID_COLS_VISIBLE     = $000063 ;2 Bytes Columns visible per screen line. A virtual line can be longer than displayed, up to COLS_PER_LINE long. Default = 80
+EVID_COLS_PER_LINE    = $000065 ;2 Bytes Columns in memory per screen line. A virtual line can be this long. Default=128
+EVID_LINES_VISIBLE    = $000067 ;2 Bytes The number of rows visible on the screen. Default=25
+EVID_LINES_MAX        = $000069 ;2 Bytes The number of rows in memory for the screen. Default=64
+EVID_CURSORPOS        = $00006B ;3 Bytes The next character written to the screen will be written in this location.
+EVID_CURSORX          = $00006E ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
+EVID_CURSORY          = $000070 ;2 Bytes This is where the blinking cursor sits. Do not edit this direectly. Call LOCATE to update the location and handle moving the cursor correctly.
+EVID_CURCOLOR         = $000072 ;1 Byte Color of next character to be printed to the screen.
+EVID_COLORBEGIN       = $000073 ;
+EVID_COLORPOS         = $000076 ;3 Byte address of cursor's position in the color matrix
+EVID_TMPPTR1          = $000079 ; 4 byte temporary pointer
+EVID_PRESENT          = $00007D ;1 Byte: is the EVID present?
+
+;
+; Empty region $000080 -- $0000DF
+;
 
 MOUSE_PTR        = $0000E0
 MOUSE_POS_X_LO   = $0000E1
@@ -104,6 +119,14 @@ MOUSE_POS_Y_LO   = $0000E3
 MOUSE_POS_Y_HI   = $0000E4
 
 USER_TEMP        = $0000F0 ;32 Bytes Temp space for user programs
+
+;
+; Boot menu variables -- Used only by the boot menu, so placed at $0000F0, which is scratch storage
+;
+
+INTERRUPT_STATE  = $0000F0      ; 1 byte: current state of the boot menu color cycler
+INTERRUPT_COUNT  = $0000F1      ; 1 byte: counter for the boot menu color cycler
+IRQ_COLOR_CHOICE = $0000F2      ; 1 byte: index of the color to cycle in the boot menu
 
 ;;///////////////////////////////////////////////////////////////
 ;;; NO CODE or Variable ought to be Instantiated in this REGION
@@ -123,6 +146,8 @@ TIMER_CTRL_REGHH = $000163 ;
 ;;; NO CODE or Variable ought to be Instatied in this REGION
 ;; END
 ;;///////////////////////////////////////////////////////////////
+
+
 CPU_REGISTERS    = $000240 ; Byte
 CPUPC            = $000240 ;2 Bytes Program Counter (PC)
 CPUPBR           = $000242 ;2 Bytes Program Bank Register (K)

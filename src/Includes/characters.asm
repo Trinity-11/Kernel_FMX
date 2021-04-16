@@ -11,6 +11,7 @@ CHAR_LF = $0A       ; Line feed
 CHAR_CR = $0D       ; Carriage return
 CHAR_INS = $0F      ; Insert a space at the cursor
 CHAR_UP = $11       ; Up arrow
+CHAR_ESC = $1B      ; ESC
 CHAR_RIGHT = $1D    ; Right arrow
 CHAR_SP = $20       ; Space
 CHAR_DOWN = $91     ; Down arrow

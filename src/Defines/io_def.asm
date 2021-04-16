@@ -7,6 +7,7 @@ CHAN_CONSOLE  = 0           ; ID for screen and keyboard access
 CHAN_COM1     = 1           ; ID for serial access on COM1 (external port)
 CHAN_COM2     = 2           ; ID for serial access on COM2 (internal port)
 CHAN_LPT      = 3           ; ID for parallel port
+CHAN_EVID     = 4           ; ID for the second video port
 
 ; SD Card CH376S Port
 SDCARD_DATA   = $AFE810     ;(R/W) SDCARD (CH376S) Data PORT_A (A0 = 0)

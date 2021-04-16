@@ -603,6 +603,11 @@ read_loop       LDA [BIOS_BUFF_PTR],Y           ; Get the word from the buffer
                 JSR IDE_DRV_READY_NOTBUSY       ; Wait for the device to be ready
                 BCC ret_failure                 ; If an error occurred, return it
 
+                NOP                             ; Wait about 500ns
+                NOP
+                NOP
+                NOP
+
                 LDA @l IDE_CMD_STAT             ; Check the status
                 BIT #IDE_STAT_ERR | IDE_STAT_DF
                 BNE ret_failure                 ; If error: return failure
@@ -619,13 +624,26 @@ ret_success     setas
                 SEC
                 RTL
 
-ret_failure     setas
+ret_failure     NOP                             ; Wait about 500ns
+                NOP
+                NOP
+                NOP
+                
+                setas
                 LDA @l IDE_ERROR
-                STA @w FDC_ST0
+                BRA save_error
+
+                NOP
+                NOP
+                NOP
+                NOP
+
+                LDA @l IDE_ERROR
+save_error      STA @w FDC_ST0
 
                 ; TODO: determine if there was a timeout
 
-                LDA #BIOS_ERR_READ
+                LDA #BIOS_ERR_WRITE
                 STA BIOS_STATUS
 
                 PLP
