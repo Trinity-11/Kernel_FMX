@@ -2036,7 +2036,7 @@ vbr_start           setal
                     LDA #`(DOS_SECTOR + (file_path - FDC_VBR_BEGIN))
                     STA @l DOS_RUN_PARAM+2
                     
-                    JSL IF_RUN              ; And try to execute the binary file
+                    JSL F_RUN               ; And try to execute the binary file
                     BCS lock                ; If it returned success... lock up... I guess?
 
 error               setas

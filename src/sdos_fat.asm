@@ -113,6 +113,8 @@ DOS_ERR_FATUPDATE = 20                  ; Can't update the FAT
 DOS_ERR_DIRFULL = 21                    ; The directory is full
 DOS_ERR_NOFD = 22                       ; No file descriptors are available for allocation
 DOS_ERR_NOMEDIA = 23                    ; No media was present
+DOS_ERR_EOF = 24                        ; At end of file
+DOS_ERR_PGZSIG = 25                     ; File does not have the PGZ signature
 
 ; MBR Field Offsets
 

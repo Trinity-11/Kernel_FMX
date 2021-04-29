@@ -236,6 +236,7 @@ DOS_RUN_PARAM    = $000360      ; 4 bytes - Pointer to the ASCIIZ string for arg
 DOS_STR1_PTR     = $000364      ; 4 bytes - pointer to a string
 DOS_STR2_PTR     = $000368      ; 4 bytes - pointer to a string
 DOS_SCRATCH      = $00036B      ; 4 bytes - general purpose short term storage
+DOS_BLOCK_SIZE   = $000370      ; 4 bytes - the size of a block to load (in bytes)
 
 DOS_PATH_BUFF    = $000400      ; 256 bytes - A buffer for path names
 

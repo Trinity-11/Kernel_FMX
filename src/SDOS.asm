@@ -654,7 +654,7 @@ IF_DIRWRITE     .proc
 ;
 ; Formats to be supported:
 ;   PGX -- First four bytes contain the loading address
-;   FNX -- multi-segmented file format with multiple addresses
+;   PGZ -- multi-segmented file format with multiple addresses based on WDC's binary format
 ;   BIN -- Generic binary requiring a destination address
 ;
 ; Inputs:
@@ -760,7 +760,13 @@ no_match        setas
 LOAD_TYPE_TABLE .text "PGX"                 ; "PGX" --> IF_LOADPGX
                 .word <>IF_LOADPGX
                 .byte `IF_LOADPGX
+
+                .text "PGZ"                 ; "PGZ" --> IF_LOADPGZ
+                .word <>IF_LOADPGZ
+                .byte `IF_LOADPGZ
+
                 .byte 0
+
 
 ; IF_LOADPGX
 ;
@@ -872,6 +878,273 @@ next_cluster    LDY #0
                 BRA copy_loop                       ; Go back to copying
 
 done            BRL IF_SUCCESS
+                .pend
+
+;
+; IF_LOADPGZ -- Load a PGZ file into memory
+; 
+; PGZ is a binary file format for the Foenix based on Western Design Center's binary file format
+; It starts with an ASCII "Z" and is then followed by any number of data blocks. Each block starts
+; with a three byte address for the location in memory to load the data. That is followed by a
+; three byte block giving the size of the data in bytes. That is followed by that many blocks of data.
+; 
+; At the end, there is a special block with an address and three 0 bytes for the size (with no additional
+; data). This block specifies the starting address of the program. This loader will treat that final block
+; as optional. If the start address record is not present, the file cannot be executed by F_RUN.
+;
+;           +-----+------+------+------+-------+--------+
+; Contents  | 'Z' | ADDR | SIZE | DATA | ENTRY | ZEROES | 
+;           +-----|------+------+------+-------+--------+
+; No. Bytes |  1  |  3   |   3  | SIZE |  3    |   3    |
+;           +-----+--------------------+-------|--------+
+;                 | Repating blocks    |
+;                 +--------------------+
+; If the SIZE of a repeating block is 0, then it is the ENTRY
+; * ALL Numbers in Little Endian
+;
+; Inputs:
+;   DOS_FD_PTR = pointer to the file descriptor (already open)
+;   DOS_SRC_PTR = pointer to the in-memory copy of the current cluster
+;
+; Outputs:
+;   DOS_RUN_PTR = pointer to the first byte loaded
+;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
+;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
+;   C = set if success, clear on error
+;
+IF_LOADPGZ      .proc
+                ; The usual PH* and other preamble instructions are handled by IF_LOAD
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setaxl
+                LDY #FILEDESC.SIZE                  ; Get the file size
+                LDA [DOS_FD_PTR],Y
+                STA DOS_FILE_SIZE                   ; And save it to DOS_FILE_SIZE
+                INY
+                INY
+                LDA [DOS_FD_PTR],Y
+                STA DOS_FILE_SIZE+2
+
+                setas
+                LDY #0                              ; Starting at the beginning of the file
+
+                ; Verify signature and CPU
+                LDA [DOS_SRC_PTR],Y                 ; Check for "Z" signature
+                CMP #'Z'
+                BEQ start_block                     ; If found, get the starting address
+fail_sig        LDA #DOS_ERR_PGZSIG                 ; Fail with a PGZSIG error code
+                JSL IF_FAILURE
+
+start_block     INY
+
+get_addr        setas
+                JSL IF_FILE_EOF                     ; Check if EOF
+                BCC get_addr_lo
+done            BRL IF_SUCCESS                      ; If so: we're done
+
+get_addr_lo     JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_DST_PTR                     ; Save it as the low byte of the destination address
+
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_DST_PTR+1                   ; Save it as the middle byte of the destination address
+
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_DST_PTR+2                   ; Save it as the high byte of the destination address
+
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_BLOCK_SIZE                  ; Save it as the low byte of the block size
+
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_BLOCK_SIZE+1                ; Save it as the middle byte of the block size
+
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure                     ; Got an error: pass it on
+                STA DOS_BLOCK_SIZE+2                ; Save it as the high byte of the block size
+                STZ DOS_BLOCK_SIZE+3                ; And MSB is 0
+
+                LDA DOS_BLOCK_SIZE                  ; If DOS_BLOCK_SIZE <> 0, we have data to load
+                BNE read_data
+                LDA DOS_BLOCK_SIZE+1
+                BNE read_data
+                LDA DOS_BLOCK_SIZE+2
+                BNE read_data
+
+                LDA DOS_DST_PTR                     ; If DOS_BLOCK_SIZE = 0, we have the run address
+                STA DOS_RUN_PTR
+                LDA DOS_DST_PTR+1
+                STA DOS_RUN_PTR+1
+                LDA DOS_DST_PTR+2
+                STA DOS_RUN_PTR+2
+
+                BRL IF_SUCCESS                      ; And finish
+
+ret_failure     BRL IF_FAILURE                      ; If there was an error, pass it up to the caller
+
+read_data       setas
+                JSL IF_READ_NEXT                    ; Get the next byte
+                BCC ret_failure
+                STA [DOS_DST_PTR]                   ; Save it to the destination address
+
+                setal
+                INC DOS_DST_PTR                     ; Increment the destination pointer
+                BNE dec_block_size
+                INC DOS_DST_PTR+2
+
+dec_block_size  SEC
+                LDA DOS_BLOCK_SIZE
+                SBC #1
+                STA DOS_BLOCK_SIZE
+                LDA DOS_BLOCK_SIZE+2
+                SBC #0
+                STA DOS_BLOCK_SIZE+2
+
+                BNE read_data
+                LDA DOS_BLOCK_SIZE                  ; Is block size = 0?
+                BNE read_data                       ; No: keep reading data
+
+                BRL get_addr                        ; Yes: check for another block
+                .pend
+
+;
+; Return success if the current file is at EOF.
+;
+; Inputs:
+;   DOS_FD_PTR = pointer to the file descriptor (already open)
+;   DOS_FILE_SIZE = the size of the current file (decremented per byte read)
+;
+; Outputs:
+;   C = set if EOF, clear otherwise
+;
+IF_FILE_EOF     .proc
+                PHA
+                PHY
+                PHB
+                PHD
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setas
+                setxl
+
+                LDY #FILEDESC.STATUS                ; Get the file's status
+                LDA [DOS_FD_PTR],Y                  ; Restore the index
+                BIT #FD_STAT_EOF                    ; Check if the file is EOF
+                BEQ chk_file_size                   ; If not: check the file size
+
+ret_true        PLP                                 ; Return true
+                PLD
+                PLB
+                PLY
+                PLA
+                SEC
+                RTL
+
+chk_file_size   setal
+                LDA DOS_FILE_SIZE                   ; if DOS_FILE_SIZE = 0
+                BNE ret_false
+                LDA DOS_FILE_SIZE+2
+                BEQ ret_true
+
+ret_false       PLP                                 ; Return false
+                PLD
+                PLB
+                PLY
+                PLA
+                CLC
+                RTL
+                .pend
+
+;
+; Read the next sector from the current file if Y >= sector length
+; 
+; Inputs:
+;   DOS_FD_PTR = pointer to the file descriptor (already open)
+;   DOS_SRC_PTR = pointer to the in-memory copy of the current cluster
+;   DOS_FILE_SIZE = the number of bytes left in the file to read before EOF
+;   Y = index of the current byte in the file descriptor's buffer
+;   
+; Outputs:
+;   A = the byte read from the file
+;   Y = index of the new current byte in the file descriptor's buffer
+;   DOS_FILE_SIZE = the number of bytes left in the file to read before EOF
+;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
+;   BIOS_STATUS = status code for any BIOS-related errors (0 = fine)
+;   C = set if success, clear on error
+;
+IF_READ_NEXT    .proc
+                PHB
+                PHD
+                PHP
+
+                setdbr `DOS_HIGH_VARIABLES
+                setdp SDOS_VARIABLES
+
+                setas
+                setxl
+
+                JSL IF_FILE_EOF                     ; Check if the file is EOF
+                BCC get_byte                        ; If not: get the next byte
+                LDA #DOS_ERR_EOF                    ; If so: return an EOF error
+                STA DOS_STATUS
+                BRA ret_failure
+
+get_byte        LDA [DOS_SRC_PTR],Y                 ; Read the byte...
+                PHA                                 ; And save it for the moment
+
+                setal
+                LDA DOS_FILE_SIZE                   ; Decrement the file size...
+                BNE dec_low
+                DEC DOS_FILE_SIZE+2
+dec_low         DEC DOS_FILE_SIZE
+
+                LDA DOS_FILE_SIZE                   ; Are we at the end of the file?
+                BNE next_byte
+                LDA DOS_FILE_SIZE+2
+                BEQ ret_eof                         ; Yes: mark the file as EOF
+
+next_byte       setas
+                INY                                 ; Move to the next byte
+                CPY #DOS_SECTOR_SIZE                ; Have we reached the end of the sector?
+                BLT ret_success                     ; No: just return the byte
+
+                JSL DOS_READNEXT                    ; Yes: read the next sector
+                BCS reset_index
+                BRA ret_failure                     ; If failure: pass the error up the chain
+
+reset_index     LDY #0                              ; Reset the index
+
+ret_success     setas
+                PLA                                 ; Return the byte retrieved
+                PLP
+                PLD
+                PLB
+                SEC
+                RTL
+
+ret_eof         setas
+                PHY                                 ; Save the index
+                LDY #FILEDESC.STATUS                ; Get the file's status
+                LDA [DOS_FD_PTR],Y
+                ORA #FD_STAT_EOF                    ; Mark it EOF
+                STA [DOS_FD_PTR],Y                  ; And update the status
+                PLY                                 ; Restore the index
+                BRA ret_success
+
+ret_failure     setas
+                PLP
+                PLD
+                PLB
+                CLC
+                RTL
                 .pend
 
 ; IF_LOADRAW
@@ -1144,7 +1417,7 @@ IF_SUCCESS      setas
 ; to the stack prior to executing a JSL instruction to the binary.
 ;
 ; Inputs:
-;   DOS_RUN_PARAMS = pointer to the path an parameters to execute
+;   DOS_RUN_PARAM = pointer to the path and parameters to execute
 ;
 ; Outputs:
 ;   DOS_STATUS = status code for any DOS-related errors (0 = fine)
@@ -1197,7 +1470,7 @@ clr_fd_loop     STA @l DOS_SPARE_FD,X
                 STA @l DOS_DST_PTR+2
 
                 JSL F_LOAD                              ; Try to load the file
-                BCS try_execute
+                BCS chk_execute
                 BRL IF_PASSFAILURE                      ; On error: pass failure up the chain
 
 chk_execute     setal
