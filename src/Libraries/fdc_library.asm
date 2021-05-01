@@ -26,8 +26,8 @@ FDC_TEST            .proc
                     LDA #$F0
                     STA @w CURCOLOR
 
-                    JSL ICLRSCREEN
-                    JSL ICSRHOME
+                    JSL CLRSCREEN
+                    JSL CSRHOME
 
                     setaxl
 

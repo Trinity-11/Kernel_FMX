@@ -1,21 +1,4 @@
-TEXT_SRC_PTR_L      = $000098
-TEXT_SRC_PTR_H      = $00009A
-TEXT_DST_PTR_L      = $00009C
-TEXT_DST_PTR_H      = $00009E
 
-TEXT_INDEX          = $0000A0
-
-MOD_SELECT_L        = $0000A0
-MOD_SELECT_H        = $0000A2
-
-TEXT_CURSOR_X       = $0000A2
-TEXT_CURSOR_Y       = $0000A4
-LINE_INDEX          = $0000A6
-
-COLOR_DST_PTR_L     = $0000A8
-COLOR_DST_PTR_H     = $0000AA
-
-MODEL               = $0000B0
 
 NumberOfEntry = size( TEXT_POSX ) / 2; (1 more then the actual number)
 

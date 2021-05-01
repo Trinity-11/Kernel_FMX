@@ -47,98 +47,10 @@ CONTROL_BOLD = $40      ; Control bit: Colors should be intense
 ; Code
 ;
 
-ANSI_TEST           .proc
-                    PHB
-                    PHD
-                    PHP
-
-                    setdbr `ANSI_TEST
-
-                    JSR INIT_SCREENS
-
-                    setas
-                    setxl
-                    LDA #CHAN_CONSOLE               ; Switch to the main screen
-                    JSL SETOUT
-                    JSR ANSI_CLR                    ; And clear it
-
-                    LDX #0
-                    setas
-loop0               LDA @w test_message0,X          ; Print the message for the main screen
-                    BEQ done
-                    JSR ANSI_PUTC
-                    INX
-                    BRA loop0
-
-send1               setas
-                    LDA #CHAN_EVID                  ; Switch to the EVID screen
-                    JSL SETOUT
-                    JSR ANSI_CLR                    ; And clear it
-                    
-                    LDX #0
-loop1               LDA @w test_message0,X          ; Print the message for the EVID screen
-                    BEQ done
-                    JSR ANSI_PUTC
-                    INX
-                    BRA loop1
-
-done                setas
-                    LDA #CHAN_CONSOLE               ; And switch back to the main screen
-                    JSL SETOUT
-
-                    BRK
-
-                    PLP
-                    PLD
-                    PLB
-                    RTL
-                    
-test_message0       .text CHAR_ESC,"[0m",CHAR_ESC,"[H0",CHAR_ESC,"[8C1",CHAR_ESC,"[8C2",CHAR_ESC,"[8C3"
-                    .text CHAR_ESC,"[1;2H0123456789012345678901234567890"
-                    .text CHAR_ESC,"[1;3H",CHAR_ESC,"[30mBLACK"
-                    .text CHAR_ESC,"[1;4H",CHAR_ESC,"[31mRED"
-                    .text CHAR_ESC,"[1;5H",CHAR_ESC,"[32mGREEN"
-                    .text CHAR_ESC,"[1;6H",CHAR_ESC,"[33mYELLOW"
-                    .text CHAR_ESC,"[1;7H",CHAR_ESC,"[34mBLUE"
-                    .text CHAR_ESC,"[1;8H",CHAR_ESC,"[35mMAGENTA"
-                    .text CHAR_ESC,"[1;9H",CHAR_ESC,"[36mCYAN"
-                    .text CHAR_ESC,"[1;10H",CHAR_ESC,"[37mWHITE"
-
-                    .text CHAR_ESC,"[20;3H",CHAR_ESC,"[40mBLACK"
-                    .text CHAR_ESC,"[20;4H",CHAR_ESC,"[41mRED"
-                    .text CHAR_ESC,"[20;5H",CHAR_ESC,"[42mGREEN"
-                    .text CHAR_ESC,"[20;6H",CHAR_ESC,"[43mYELLOW"
-                    .text CHAR_ESC,"[20;7H",CHAR_ESC,"[44mBLUE"
-                    .text CHAR_ESC,"[20;8H",CHAR_ESC,"[45mMAGENTA"
-                    .text CHAR_ESC,"[20;9H",CHAR_ESC,"[46mCYAN"
-                    .text CHAR_ESC,"[20;10H",CHAR_ESC,"[47m",CHAR_ESC,"[30mWHITE",CHAR_ESC,"[49m"
-
-                    .text CHAR_ESC,"[1m"
-                    .text CHAR_ESC,"[10;3H",CHAR_ESC,"[30mBLACK"
-                    .text CHAR_ESC,"[10;4H",CHAR_ESC,"[31mRED"
-                    .text CHAR_ESC,"[10;5H",CHAR_ESC,"[32mGREEN"
-                    .text CHAR_ESC,"[10;6H",CHAR_ESC,"[33mYELLOW"
-                    .text CHAR_ESC,"[10;7H",CHAR_ESC,"[34mBLUE"
-                    .text CHAR_ESC,"[10;8H",CHAR_ESC,"[35mMAGENTA"
-                    .text CHAR_ESC,"[10;9H",CHAR_ESC,"[36mCYAN"
-                    .text CHAR_ESC,"[10;10H",CHAR_ESC,"[37mWHITE",CHAR_ESC,"[0m"
-
-                    .text CHAR_ESC,"[1;15H012345678901234567890123456789"       ; Erase from cursor to end of line
-                    .text CHAR_ESC,"[10;15H",CHAR_ESC,"[K"
-                    .text CHAR_ESC,"[1;16H012345678901234567890123456789"       ; Erase from cursor to beginning of line
-                    .text CHAR_ESC,"[10;16H",CHAR_ESC,"[1K"
-                    .text CHAR_ESC,"[1;17H012345678901234567890123456789"       ; Erase entire line
-                    .text CHAR_ESC,"[10;17H",CHAR_ESC,"[2K"
-
-                    .text CHAR_ESC,"[1;20H"
-
-                    .byte 0
-                    .pend
-
 ;
-; Initialize the screens
+; FAR: Initialize the screen kernel variables for the main screen and the EVID (if present)
 ;
-INIT_SCREENS        .proc
+ANSI_INIT           .proc
                     PHX
                     PHY
                     PHB
@@ -168,13 +80,11 @@ INIT_SCREENS        .proc
 
                     LDY #1
                     JSR INIT_SCREEN_Y               ; Initialize the EVID screen variables
-                    BRA set_luts
+                    BRA done
 
 no_evid             setas
                     LDA #0                          ; Mark that there is no EVID present
                     STA @l EVID_PRESENT
-
-set_luts            JSR ANSI_INIT_LUTS              ; Initialize the color look up tables
 
 done                PLP
                     PLD
@@ -236,7 +146,7 @@ ANSI_TEXT_LUT       LUTRGB 0, 0, 0          ; Black
                     LUTRGB 0, 255, 0        ; Bright Green
                     LUTRGB 255, 255, 0      ; Bright Yellow
                     LUTRGB 0, 0, 255        ; Bright Blue
-                    LUTRGB 255, 0, 255      ; Bright Magenta
+                    LUTRGB 252, 127, 0      ; Bright Orange
                     LUTRGB 0, 255, 255      ; Bright Cyan
                     LUTRGB 255, 255, 255    ; Bright White
 ;
@@ -295,6 +205,36 @@ set_addresses       TYA                             ; Compute offset to screen Y
                     RTS
 text_address        .dword CS_TEXT_MEM_PTR, EVID_TEXT_MEM
 color_address       .dword CS_COLOR_MEM_PTR, EVID_COLOR_MEM
+                    .pend
+
+;
+; Set the sizes of the text screens based on their Vicky and EVID (if installed) registers
+;
+ANSI_SETSIZES       .proc
+                    PHD
+
+                    setasx
+                    LDA @l CHAN_OUT                 ; Save the current output channel
+                    PHA
+
+                    LDA #CHAN_CONSOLE               ; Set the sizes for the main screen
+                    STA @l CHAN_OUT
+                    JSR ANSI_SETDEVICE              ; Set the DP to the device's record
+                    LDY #CHAN_CONSOLE
+                    JSR ANSI_SETSIZE_Y              ; Set the sizes for that device
+
+                    LDA #CHAN_EVID                  ; Set the sizes for the EVID screen
+                    STA @l CHAN_OUT
+                    JSR ANSI_SETDEVICE              ; Set the DP to the device's record
+                    BCS done                        ; Not present, just return
+                    LDY #CHAN_EVID
+                    JSR ANSI_SETSIZE_Y              ; Set the sizes for that device
+
+done                PLA
+                    STA @l CHAN_OUT                 ; Restore the output channel
+
+                    PLD
+                    RTS
                     .pend
 
 ;
@@ -450,10 +390,9 @@ console             setal
                     LDA #<>SCREENBEGIN              ; Point to the the main screen's variables
                     BRA set_dp
 
-evid                NOP
-                    ; setas
-                    ; LDA @l EVID_PRESENT             ; Is the EVID present?
-                    ; BEQ bad_device                  ; No: return that the device is bad
+evid                setas
+                    LDA @l EVID_PRESENT             ; Is the EVID present?
+                    BEQ bad_device                  ; No: return that the device is bad
 
                     setal
                     LDA #<>EVID_SCREENBEGIN         ; Yes: point to the EVID's variables
@@ -719,6 +658,7 @@ ANSI_PR_CONTROL     .proc
                     CMP #CHAR_TAB               ; Handle TAB
                     BEQ do_tab
 
+                    JSR ANSI_PUTRAWC            ; Otherwise, just print it raw and wriggling!
                     BRA done
                                         
 do_cr               LDX #0                      ; Move to the beginning of the next line
@@ -1422,9 +1362,10 @@ ANSI_SCROLLUP       .proc
 
                     JSR ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
-                    BCS done                    ; If invalid, just return
+                    BCC calc_size
+                    BRL done                    ; If invalid, just return
 
-                    setaxl
+calc_size           setaxl
                     ; Calculate the number of bytes to move
                     LDA #S_ANSI_VARS.COLS_PER_LINE,D
                     STA @l UNSIGNED_MULT_A_LO
@@ -1437,25 +1378,46 @@ ANSI_SCROLLUP       .proc
 
                     ; Scroll Text Up
                     CLC
-                    LDA #$2000
+                    LDA #S_ANSI_VARS.SCREENBEGIN,D
                     TAY
                     ADC #S_ANSI_VARS.COLS_PER_LINE,D
                     TAX
+
+                    setas
+                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID
+                    CMP #CHAN_EVID
+                    BEQ move_text_1                             ; Yes: do the move on the EVID memory
+
+move_text_0         setal
                     LDA #S_ANSI_VARS.TMPPTR1,D
-                    ; Move the data
-                    MVN $AE,$AE
+                    MVN `CS_TEXT_MEM_PTR,`CS_TEXT_MEM_PTR       ; Move the data on the main screen
+                    BRA scroll_color
+
+move_text_1         setal
+                    LDA #S_ANSI_VARS.TMPPTR1,D
+                    MVN `EVID_TEXT_MEM,`EVID_TEXT_MEM           ; Move the data on the EVID screen
 
                     ; Scroll Color Up
-                    setaxl
+scroll_color        setaxl
                     CLC
-                    LDA #$4000
+                    LDA #S_ANSI_VARS.COLORBEGIN,D
                     TAY
                     ADC #S_ANSI_VARS.COLS_PER_LINE,D
                     TAX
-                    ; for now, should be 8064 or $1f80 bytes
+
+                    setas
+                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID?
+                    CMP #CHAN_EVID
+                    BEQ move_color_1                            ; Yes: scroll the EVID color matrix
+
+move_color_0        setal
                     LDA #S_ANSI_VARS.TMPPTR1,D
-                    ; Move the data
-                    MVN $AE,$AE
+                    MVN `CS_COLOR_MEM_PTR,`CS_COLOR_MEM_PTR     ; Move the data on the main screen
+                    BRA vicky_lastline
+
+move_color_1         setal
+                    LDA #S_ANSI_VARS.TMPPTR1,D
+                    MVN `EVID_COLOR_MEM,`EVID_COLOR_MEM         ; Move the data on the EVID screen
 
                     ; Clear the last line of text on the screen
                     
@@ -1484,7 +1446,7 @@ start_color         LDY #0
                     LDA #S_ANSI_VARS.CURCOLOR,D
 clr_color           STA [#S_ANSI_VARS.TMPPTR1,D],Y
                     INY
-                    CPY #S_ANSI_VARS.COLS_VISIBLE,D
+                    CPY #S_ANSI_VARS.COLS_PER_LINE,D
                     BNE clr_color
 
 done                PLP
@@ -1496,11 +1458,11 @@ done                PLP
                     .pend
 
 ;
-; ANSI_CLR
+; ANSI_CLRSCREEN
 ; Clear the screen and set the background and foreground colors to the
 ; currently selected colors.
 ;
-ANSI_CLR            .proc
+ANSI_CLRSCREEN      .proc
                     PHX
                     PHY
                     PHD

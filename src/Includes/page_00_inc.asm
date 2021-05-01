@@ -42,19 +42,6 @@ OPL2_BLOCK       = $000036
 SDCARD_FILE_PTR  = $000038 ; 3 Bytes Pointer to Filename to open
 SDCARD_BYTE_NUM  = $00003C ; 2Bytes
 SDCARD_PRSNT_MNT = $00003F ; 1 Byte, Indicate that the SDCard is Present and that it is Mounted
-; Command Line Parser Variables
-; CMD_PARSER_TMPX  = $000040 ; <<< Command Parser 2Bytes
-; CMD_PARSER_TMPY  = $000042 ; <<< Command Parser 2Bytes
-; CMD_LIST_PTR     = $000044 ; <<< Command Parser 3 Bytes
-; CMD_PARSER_PTR   = $000048 ; <<< Command Parser 3 Bytes
-; CMD_ATTRIBUTE    = $00004B ; <<< Command Parser 2 Bytes (16bits Attribute Field)
-; CMD_EXEC_ADDY    = $00004D ; <<< Command Parser 3 Bytes 24 Bits Address Jump to execute the Command
-; CMD_VARIABLE_TMP = $000050 ;
-; CMD_ARG_DEV      = $000052 ;
-; CMD_ARG_SA       = $000053 ;
-; CMD_ARG_EA       = $000056 ;
-; CMD_VALID        = $00005A ;
-
 
 ; Bitmap Clear Routine
 BM_CLEAR_SCRN_X  = $000040
@@ -109,7 +96,30 @@ EVID_TMPPTR1          = $000079 ; 4 byte temporary pointer
 EVID_PRESENT          = $00007D ;1 Byte: is the EVID present?
 
 ;
-; Empty region $000080 -- $0000DF
+; Boot screen variables... can probably be reused...
+;
+
+TEXT_SRC_PTR_L   = $000098
+TEXT_SRC_PTR_H   = $00009A
+TEXT_DST_PTR_L   = $00009C
+TEXT_DST_PTR_H   = $00009E
+
+TEXT_INDEX       = $0000A0
+
+MOD_SELECT_L     = $0000A0
+MOD_SELECT_H     = $0000A2
+
+TEXT_CURSOR_X    = $0000A2
+TEXT_CURSOR_Y    = $0000A4
+LINE_INDEX       = $0000A6
+
+COLOR_DST_PTR_L  = $0000A8
+COLOR_DST_PTR_H  = $0000AA
+
+MODEL            = $0000B0
+
+;
+; Mouse variables
 ;
 
 MOUSE_PTR        = $0000E0

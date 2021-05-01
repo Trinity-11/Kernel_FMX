@@ -755,7 +755,7 @@ INIT_EVID_VID_MODE .proc
                 LDY #75
                 STY EVID_LINES_MAX
 
-                LDA #$F0                  ; Set the default text color to light gray on dark gray 
+                LDA #$70                  ; Set the default text color to light gray on dark gray 
                 STA EVID_CURCOLOR
 
                 setaxl

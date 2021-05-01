@@ -133,6 +133,8 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG3
 
                 JSL INITRTC               ; Initialize the RTC
+                JSR ANSI_INIT             ; Initialize the ANSI screen driver
+
                 setas
                 ; Here we check for Expansion Card and Init them soon in the process
                 LDA @L GABE_SYS_STAT      ; Let's check the Presence of an Expansion Card here
@@ -158,49 +160,30 @@ InitC100ESID:
 
 SkipInitExpC100C200:
                 setaxl
-                LDX #72                   ; Set these by default, but they will be changed later by Init Vicky Text Mode
-                STX COLS_VISIBLE
-                LDY #52
-                STY LINES_VISIBLE
-                LDX #128
-                STX COLS_PER_LINE
-                LDY #64
-                STY LINES_MAX
-
-                LDA #<>SCREEN_PAGE0      ; store the initial screen buffer location
-                STA SCREENBEGIN
-                STA CURSORPOS
-                LDA #<>CS_COLOR_MEM_PTR   ; Set the initial COLOR cursor position
-                STA COLORPOS
-
-                setas
-                LDA #`SCREEN_PAGE0
-                STA SCREENBEGIN+2
-                STA CURSORPOS+2
-
-                LDA #`CS_COLOR_MEM_PTR    ; Set the initial COLOR cursor position
-                STA COLORPOS+2
-                
+                 
                 LDA #$00
-                STA KEYBOARD_SC_FLG     ; Clear the Keyboard Flag
+                STA KEYBOARD_SC_FLG       ; Clear the Keyboard Flag
+
                 ; Shutdown the SN76489 before the CODEC enables all the channels
-                LDA #$9F ; Channel Two - No Atteniation
+
+                LDA #$9F                  ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$BF ; Channel Two - No Atteniation
+                LDA #$BF                  ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$DF ; Channel Two - No Atteniation
+                LDA #$DF                  ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$FF ; Channel Two - No Atteniation
+                LDA #$FF                  ; Channel Two - No Atteniation
                 STA $AFF100
-                ;LDA #$04                ; This is to make sure the RTC will keep working after unit is turn-off
-                ;STA @lRTC_CTRL
-                LDA #$ED                  ; Set the default text color to light gray on dark gray 
+
+                LDA #$70                  ; Set the default text color to dim white on black
                 STA CURCOLOR              
+
                 ; This is to force the DotClock Frequency to 25.175Mhz no matter what it is when it is reseted.
                 LDA @l MASTER_CTRL_REG_H
                 AND #$01
                 CMP #$01
                 BNE Alreadyin640480Mode
+
                 ; Otherwise, we need to flip the bit once to get the PLL to go back to Zero
                 LDA @L MASTER_CTRL_REG_H
                 AND #$FC
@@ -208,10 +191,12 @@ SkipInitExpC100C200:
                 LDA @L MASTER_CTRL_REG_H
                 ORA #$01
                 STA @L MASTER_CTRL_REG_H
+
 Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 LDA @L MASTER_CTRL_REG_H
                 AND #$FC
                 STA @L MASTER_CTRL_REG_H ; Set it to 640x480 for real
+
                 ;Init CODEC
                 JSL INITCODEC
                 ; Init Suprt IO (Keyboard/Floppy/Etc...)
@@ -247,32 +232,33 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setal
                 setdp 0
                 ; Init the Keyboard used by the SuperIO
-                JSL INITKEYBOARD ;
-                JSL INITMOUSE;  // I Seperated them
+                JSL INITKEYBOARD
+                JSL INITMOUSE
+
                 setas
                 setxl
-                LDA #$9F ; Channel Two - No Atteniation
+                LDA #$9F              ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$BF ; Channel Two - No Atteniation
+                LDA #$BF              ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$DF ; Channel Two - No Atteniation
+                LDA #$DF              ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$FF ; Channel Two - No Atteniation
+                LDA #$FF              ; Channel Two - No Atteniation
                 STA $AFF100
-                LDA #$83 ; Channel Zero - No Atteniation
+                LDA #$83              ; Channel Zero - No Atteniation
                 STA $AFF100
-                LDA #$12 ; Channel Zero - No Atteniation
+                LDA #$12              ; Channel Zero - No Atteniation
                 STA $AFF100
-                LDA #$90 ; Channel One - No Atteniation
+                LDA #$90              ; Channel One - No Atteniation
                 STA $AFF100
-                LDX #16384      ; 400ms
+                LDX #16384            ; 400ms
                 JSL ILOOP_MS
-                LDA #$9F ; Channel Two - No Atteniation
+                LDA #$9F              ; Channel Two - No Atteniation
                 STA $AFF100
                 CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
                 setas
                 setxl
-                setdbr `greet_msg     ;set data bank to 39 (Kernel Variables)
+                setdbr `greet_msg     ; set data bank to 39 (Kernel Variables)
 
                 ; Copy the jump table from the "pristine" copy that came from flahs
                 ; down to the working copy in bank 0.
@@ -283,27 +269,26 @@ jmpcopy         LDA @l BOOT,X
                 CPX #$1000
                 BNE jmpcopy
 retry_boot
-                JSL DOS_INIT          ; Initialize the "disc operating system"
-
+                JSL DOS_INIT            ; Initialize the "disc operating system"
                 JSL BOOT_MENU           ; Show the splash screen / boot menu and wait for key presses
                                         ; Coming back from the Splash Screen the Value of the Keyboard has been pushed in the stack
                                         ; This is the balance of House Keeping that needs to be done to put it back the way it was
                                      
                 ; Now, clear the screen and Setup Foreground/Background Bytes, so we can see the Text on screen
-                JSL ICLRSCREEN  ; Clear Screen and Set a standard color in Color Memory
+                JSL CLRSCREEN           ; Clear Screen and Set a standard color in Color Memory
                 setaxl
-                LDX #0
-                LDY #0
-                JSL ILOCATE
+                JSL CSRHOME             ; Move to the home position
 
-greet           setdbr `greet_msg       ;Set data bank to ROM
+greet           setdbr `greet_msg       ; Set data bank to ROM
                 LDX #<>greet_msg
-                JSL IPRINT       ; print the first line           
-                JSL ICOLORFLAG  ; This is to set the Color Memory for the TExt Logo                    
+                JSL IPRINT              ; print the first line           
+                JSL ICOLORFLAG          ; This is to set the color memory for the text logo
+
                 setaxl 
-                LDA #STACK_END    ; We are the root, let's make sure from now on, that we start clean
-                TAS     
-                ; Init Globacl Look-up Table
+                LDA #STACK_END          ; We are the root, let's make sure from now on, that we start clean
+                TAS
+
+                ; Init Global Look-up Table
                 ; Moved the DOS Init after the FLashing Moniker Display
 
                 setas
@@ -567,8 +552,8 @@ ISETOUT         PHP
 ; A: Character read
 ; Carry: 1 if no valid data
 ;
-IGETCHE         JSL IGETCHW
-                JSL IPUTC
+IGETCHE         JSL GETCHW
+                JSL PUTC
                 RTL
 
 ;
@@ -678,8 +663,8 @@ done            PLP
 ; X: address of the string in data bank
 ; Modifies: X
 ;
-IPRINT          JSL IPUTS
-                JSL IPRINTCR
+IPRINT          JSL PUTS
+                JSL PRINTCR
                 RTL
 
 ; IPUTS
@@ -696,7 +681,7 @@ IPUTS           PHA
                 setxl
 iputs1          LDA $0,b,x      ; read from the string
                 BEQ iputs_done
-iputs2          JSL IPUTC
+iputs2          JSL PUTC
 iputs3          INX
                 JMP iputs1
 iputs_done      INX
@@ -724,15 +709,14 @@ IPUTC           .proc
 
                 PHA                 ; Save the character to print
                 LDA @lCHAN_OUT      ; Check the output channel #
-                BEQ putc_screen     ; If it's 0: print to the screen
+                BEQ putc_ansi       ; If it's 0: print to the screen
+                CMP #CHAN_EVID      ; Check to see if it's the second video port
+                BEQ putc_ansi       ; Yes: handle printing to the second video port
 
                 CMP #CHAN_COM1      ; Check to see if it's the COM1 port
                 BEQ putc_uart       ; Yes: handle printing to the UART
                 CMP #CHAN_COM2      ; Check to see if it's the COM2 port
                 BEQ putc_uart       ; Yes: handle printing to the UART
-
-                CMP #CHAN_EVID      ; Check to see if it's the second video port
-                BEQ putc_evid       ; Yes: handle printing to the second video port
 
                 ; TODO: handle other output channels
 
@@ -745,53 +729,8 @@ putc_uart       JSL UART_SELECT     ; Point to the correct UART
                 JSL UART_PUTC       ; Send the character
                 BRA done
 
-putc_evid       PLA                 ; Recover the character to send
-                JSL EVID_IPUTC      ; Call the EVID routines
-                BRA done
-
-putc_screen     PLA                 ; Get the character to print
-                CMP #CHAR_LF        ; Linefeed moves cursor down one line
-                BEQ go_down
-                CMP #$20
-                BCC check_ctrl0     ; [$00..$1F]: check for arrows
-                CMP #$7F
-                BEQ do_del
-                BCS check_A0        ; [$20..$7E]: print it
-                BRA printc
-
-check_A0        CMP #$A0
-                BCC check_ctrl1
-                BRA printc          ; [$A0..$FF]: print it
-
-check_ctrl1     CMP #CHAR_DOWN      ; If the down arrow key was pressed
-                BEQ go_down         ; ... move the cursor down one row
-                CMP #CHAR_LEFT      ; If the left arrow key was pressed
-                BEQ go_left         ; ... move the cursor left one column
-                JMP done
-
-check_ctrl0     CMP #CHAR_TAB       ; If it's a TAB...
-                BEQ do_TAB          ; ... move to the next TAB stop
-                CMP #CHAR_BS        ; If it's a backspace...
-                BEQ backspace       ; ... move the cursor back and replace with a space
-                CMP #CHAR_CR        ; If the carriage return was pressed
-                BEQ do_cr           ; ... move cursor down and to the first column
-                CMP #CHAR_UP        ; If the up arrow key was pressed
-                BEQ go_up           ; ... move the cursor up one row
-                CMP #CHAR_RIGHT     ; If the right arrow key was pressed
-                BEQ go_right        ; ... move the cursor right one column
-                CMP #CHAR_INS       ; If the insert key was pressed
-                BEQ do_ins          ; ... insert a space
-                CMP #CHAR_CTRL_A    ; Check for CTRL-A (start of line)
-                BEQ go_sol          ; ... move the cursor to the start of the line
-                CMP #CHAR_CTRL_E    ; Check for CTRL-E (end of line)
-                BEQ go_eol          ; ... move the cursor to the end of the line
-
-printc          STA [CURSORPOS]     ; Save the character on the screen
-
-                LDA CURCOLOR        ; Set the color based on CURCOLOR
-                STA [COLORPOS]
-
-                JSL ICSRRIGHT       ; And advance the cursor
+putc_ansi       PLA                 ; Recover the character to send
+                JSR ANSI_PUTC       ; Print to the current selected ANSI screen
 
 done            PLP
                 PLB
@@ -799,87 +738,6 @@ done            PLP
                 PLY
                 PLX
                 RTL
-
-do_del          JSL SCRSHIFTLL      ; Shift the current line left one space into the cursor
-                BRA done
-
-do_ins          JSL SCRSHIFTLR      ; Shift the current line right one space from the cursor
-                BRA done
-
-backspace       JSL ICSRLEFT  
-                JSL SCRSHIFTLL      ; Shift the current line left one space into the cursor
-                BRA done
-
-do_cr           JSL IPRINTCR        ; Move the cursor to the beginning of the next line
-                BRA done
-
-go_down         JSL ICSRDOWN        ; Move the cursor down one row (might force a scroll)
-                BRA done
-
-go_up           JSL ICSRUP          ; Move the cursor up one line
-                BRA done
-
-go_right        JSL ICSRRIGHT       ; Move the cursor right one column
-                BRA done
-
-go_left         JSL ICSRLEFT        ; Move the cursor left one column
-                BRA done
-
-go_sol          setal               ; Move the cursor to the start of the line
-                LDX #0
-                LDY CURSORY
-                BRA do_locate
-
-do_TAB          setal
-                LDA CURSORX         ; Get the current column
-                AND #$FFF8          ; See which group of 8 it's in
-                CLC
-                ADC #$0008          ; And move it to the next one
-                TAX
-                LDY CURSORY
-                setas
-
-set_xy          CPX COLS_VISIBLE    ; Check if we're still on screen horizontally
-                BCC check_row       ; Yes: check the row
-                LDX #0              ; No: move to the first column...
-                INY                 ; ... and the next row
-
-check_row       CPY LINES_VISIBLE   ; Check if we're still on the screen vertically
-                BCC do_locate       ; Yes: reposition the cursor
-
-                JSL ISCROLLUP       ; No: scroll the screen
-                DEY                 ; And set the row to the last one   
-
-do_locate       JSL ILOCATE         ; Set the cursor position
-                BRA done
-
-; Move the cursor to be just to the right of the last non-white space character on the line
-; If the line is full, move it to the right-most column
-; If the line is empty, move it to the left-most column
-go_eol          LDX COLS_VISIBLE    ; Move the cursor to the right most column
-                DEX
-                LDY CURSORY
-                JSL ILOCATE
-
-                setas
-eol_loop        LDA [CURSORPOS]     ; Get the character under the cursor
-                CMP #CHAR_SP        ; Is it blank?
-                BNE eol_done        ; No: exit the loop
-
-                JSL ICSRLEFT        ; Yes: move to the left
-
-                LDX CURSORX         ; Are we at column 0?
-                BNE eol_loop        ; No: try again
-                BRL done            ; Yes: we're done
-
-eol_done        LDX CURSORX         ; Check the column
-                INX
-                CPX COLS_VISIBLE    ; Is it the right most?
-                BNE eol_right
-                BRL done            ; Yes: we're done
-                
-eol_right       JSL ICSRRIGHT       ; No: move right one column
-                BRL done
                 .pend
 
 ;
@@ -1007,15 +865,15 @@ IPRINTCR	      .proc
 
 uart_printcr    JSL UART_SELECT
                 LDA #CHAR_CR
-                JSL IPUTC
+                JSL PUTC
                 LDA #CHAR_LF
-                JSL IPUTC
+                JSL PUTC
                 BRA done
 
 scr_printcr     LDX #0
                 LDY CURSORY
                 INY
-                JSL ILOCATE
+                JSL LOCATE
 
 done            PLP
                 PLD
@@ -1035,7 +893,7 @@ ICSRHOME        PHX
 
                 LDX #0
                 LDY #0
-                JSL ILOCATE
+                JSL LOCATE
 
                 PLP
                 PLY
@@ -1053,27 +911,7 @@ ICSRRIGHT       PHX
                 PHD
                 PHP
 
-                setal
-                setxl
-                setdp $0
-
-                LDX CURSORX           ; Get the new column
-                INX
-                LDY CURSORY           ; Get the current row
-
-                CPX COLS_VISIBLE      ; Are we off screen?
-                BCC icsrright_nowrap  ; No: just set the position
-
-                LDX #0                ; Yes: move to the first column
-                INY                   ; And move to the next row
-                CPY LINES_VISIBLE     ; Are we still off screen?
-                BCC icsrright_nowrap  ; No: just set the position
-
-                DEY                   ; Yes: lock to the last row
-                JSL ISCROLLUP         ; But scroll the screen up
-
-icsrright_nowrap
-                JSL ILOCATE           ; Set the cursor position       
+                JSR ANSI_CSRRIGHT
 
                 PLP
                 PLD
@@ -1094,18 +932,8 @@ ICSRLEFT
                 PHD
                 PHP
 
-                setaxl
-                setdp $0
-                LDA CURSORX
-                BEQ icsrleft_done_already_zero ; Check that we are not already @ Zero
+                JSR ANSI_CSRLEFT
 
-                LDX CURSORX
-                DEX
-                STX CURSORX
-                LDY CURSORY
-                JSL ILOCATE
-
-icsrleft_done_already_zero
                 PLP
                 PLD
                 PLA
@@ -1125,18 +953,8 @@ ICSRUP
                 PHD
                 PHP
 
-                setaxl
-                setdp $0
+                JSR ANSI_CSRUP
 
-                LDA CURSORY
-                BEQ isrup_done_already_zero ; Check if we are not already @ Zero
-                LDY CURSORY
-                DEY
-                STY CURSORY
-                LDX CURSORX
-                JSL ILOCATE
-
-isrup_done_already_zero
                 PLP
                 PLD
                 PLA
@@ -1155,20 +973,7 @@ ICSRDOWN        PHX
                 PHY
                 PHD
 
-                setaxl
-                setdp $0
-
-                LDX CURSORX                 ; Get the current column
-                LDY CURSORY                 ; Get the new row
-                INY
-                CPY LINES_VISIBLE           ; Check to see if we're off screen
-                BCC icsrdown_noscroll       ; No: go ahead and set the position
-
-                DEY                         ; Yes: go back to the last row
-                JSL ISCROLLUP               ; But scroll the screen up
-
-icsrdown_noscroll
-                JSL ILOCATE                 ; And set the cursor position
+                JSR ANSI_CSRDOWN
 
                 PLD
                 PLY
@@ -1186,51 +991,53 @@ ILOCATE         PHA
                 PHD
                 PHP
 
-                setdp 0
-                setaxl
+                JSR ANSI_LOCATE
 
-ilocate_scroll  ; If the cursor is below the bottom row of the screen
-                ; scroll the screen up one line. Keep doing this until
-                ; the cursor is visible.
-                CPY LINES_VISIBLE
-                BCC ilocate_scrolldone
-                JSL ISCROLLUP
-                DEY
-                ; repeat until the cursor is visible again
-                BRA ilocate_scroll
+;                 setdp 0
+;                 setaxl
 
-ilocate_scrolldone
-                ; done scrolling store the resultant cursor positions.
-                STX CURSORX
-                STY CURSORY
-                LDA SCREENBEGIN
+; ilocate_scroll  ; If the cursor is below the bottom row of the screen
+;                 ; scroll the screen up one line. Keep doing this until
+;                 ; the cursor is visible.
+;                 CPY LINES_VISIBLE
+;                 BCC ilocate_scrolldone
+;                 JSL ISCROLLUP
+;                 DEY
+;                 ; repeat until the cursor is visible again
+;                 BRA ilocate_scroll
 
-ilocate_row     ; compute the row
-                CPY #$0
-                BEQ ilocate_right
+; ilocate_scrolldone
+;                 ; done scrolling store the resultant cursor positions.
+;                 STX CURSORX
+;                 STY CURSORY
+;                 LDA SCREENBEGIN
 
-                ; move down the number of rows in Y
-ilocate_down    CLC
-                ADC COLS_PER_LINE
-                DEY
-                BEQ ilocate_right
-                BRA ilocate_down
+; ilocate_row     ; compute the row
+;                 CPY #$0
+;                 BEQ ilocate_right
 
-                ; compute the column
-ilocate_right   CLC
-                ADC CURSORX             ; move the cursor right X columns
-                STA CURSORPOS
-                LDY CURSORY
-                TYA
-                STA @lVKY_TXT_CURSOR_Y_REG_L  ;Store in Vicky's registers
-                TXA
-                STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
+;                 ; move down the number of rows in Y
+; ilocate_down    CLC
+;                 ADC COLS_PER_LINE
+;                 DEY
+;                 BEQ ilocate_right
+;                 BRA ilocate_down
 
-                setal
-                CLC
-                LDA CURSORPOS
-                ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
-                STA COLORPOS
+;                 ; compute the column
+; ilocate_right   CLC
+;                 ADC CURSORX             ; move the cursor right X columns
+;                 STA CURSORPOS
+;                 LDY CURSORY
+;                 TYA
+;                 STA @lVKY_TXT_CURSOR_Y_REG_L  ;Store in Vicky's registers
+;                 TXA
+;                 STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
+
+;                 setal
+;                 CLC
+;                 LDA CURSORPOS
+;                 ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
+;                 STA COLORPOS
 
 ilocate_done    PLP
                 PLD
@@ -1565,25 +1372,27 @@ IINITCHLUT		  PHD
                 PHP
                 PHA
                 PHX
-                setas
-                setxs 					; Set 8bits
-				        ; Setup Foreground LUT First
-				        LDX	#$00
-lutinitloop0	LDA @lfg_color_lut,x		; get Local Data
-                STA FG_CHAR_LUT_PTR,x	; Write in LUT Memory
-                inx
-                cpx #$40
-                bne lutinitloop0
-                ; Set Background LUT Second
-                LDX	#$00
-lutinitloop1	  LDA @lbg_color_lut,x		; get Local Data
-                STA BG_CHAR_LUT_PTR,x	; Write in LUT Memory
-                INX
-                CPX #$40
-                bne lutinitloop1
 
-                setal
-                setxl 					; Set 8bits
+                JSR ANSI_INIT_LUTS
+;                 setas
+;                 setxs 					; Set 8bits
+; 				        ; Setup Foreground LUT First
+; 				        LDX	#$00
+; lutinitloop0	LDA @lfg_color_lut,x		; get Local Data
+;                 STA FG_CHAR_LUT_PTR,x	; Write in LUT Memory
+;                 inx
+;                 cpx #$40
+;                 bne lutinitloop0
+;                 ; Set Background LUT Second
+;                 LDX	#$00
+; lutinitloop1	  LDA @lbg_color_lut,x		; get Local Data
+;                 STA BG_CHAR_LUT_PTR,x	; Write in LUT Memory
+;                 INX
+;                 CPX #$40
+;                 bne lutinitloop1
+
+;                 setal
+;                 setxl 					; Set 8bits
                 PLX
                 PLA
                 PLP
@@ -1781,7 +1590,7 @@ INITVICKYMODEHIRES
 
                 setaxl                            ; Set Acc back to 16bits before setting the Cursor Position
 
-                JSL ISETSIZES                     ; Calculate the size of the text screen
+                JSL SETSIZES                      ; Calculate the size of the text screen
 
                 PLP
                 PLA
@@ -3006,17 +2815,17 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $0D,$00  
   .endif
 .if TARGET_SYS == SYS_C256_FMX
-  greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line4 .text $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
 .else 
-  greet_clr_line1 .text $1D, $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line2 .text $1D, $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line3 .text $1D, $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line4 .text $1D, $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
-  greet_clr_line5 .text $1D, $1D, $8D, $8D, $4D, $4D, $2D, $2D, $5D, $5D, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD, $FD
+  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line4 .text $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
 .endif
 
 fg_color_lut	  .text $00, $00, $00, $FF
@@ -3292,6 +3101,8 @@ SplashScreenMain:
                 setdp 0
                 setxl 
                 setas     
+                JSL INITCHLUT ; The Software does change one of the CH LUT, so, let's Init again
+
                 LDA #$00
                 STA INTERRUPT_STATE
                 STA INTERRUPT_COUNT
