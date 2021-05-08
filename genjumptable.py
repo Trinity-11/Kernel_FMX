@@ -6,7 +6,7 @@ import re
 
 labels = {}
 
-with open("kernel.lbl", "r") as label_file:
+with open("kernel_U_Plus.lbl", "r") as label_file:
     binding = 1
     while binding:
         binding = label_file.readline()

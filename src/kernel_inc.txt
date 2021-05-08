@@ -11,8 +11,8 @@ PUTC             = %ADDR% ; Print a character to the currently selected channel
 PUTS             = %ADDR% ; Print a string to the currently selected channel
 PUTB             = %ADDR% ; Output a byte to the currently selected channel
 PUTBLOCK         = %ADDR% ; Ouput a binary block to the currently selected channel
-SETLFS           = %ADDR% ; Obsolete (done in OPEN)
-SETNAM           = %ADDR% ; Obsolete (done in OPEN)
+GETSCANCODE      = %ADDR% ; Get the next scancode from the keyboard (A = scancode, 0 if none available)
+GETLOCKS         = %ADDR% ; Get the state of the lock keys on the keyboard (A[2] = CAPS, A[1] = NUM, A[0] = SCROLL)
 OPEN             = %ADDR% ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 CLOSE            = %ADDR% ; Close a channel
 SETIN            = %ADDR% ; Set the current input channel
@@ -75,6 +75,7 @@ F_MOUNT          = %ADDR% ; Mount the designated block device
 F_COPY           = %ADDR% ; Copy a file
 F_ALLOCFD        = %ADDR% ; Allocate a file descriptor
 F_FREEFD         = %ADDR% ; Free a file descriptor
+TESTBREAK        = %ADDR% ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
 
 ;
 ; Interrupt Vector Table

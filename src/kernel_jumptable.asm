@@ -31,8 +31,8 @@ PUTC            JML IPUTC
 PUTS            JML IPUTS
 PUTB            JML IPUTB
 PUTBLOCK        JML IPUTBLOCK
-SETLFS          JML ISETLFS
-SETNAM          JML ISETNAM
+GETSCANCODE     JML KBD_GET_SCANCODE    ; Get the next 8-bit scan code from the keyboard: A = 0 if no scancode present, contains the scancode otherwise
+GETLOCKS        JML KBD_GETLOCKS        ; Get the state of the lock keys on the keyboard
 OPEN            JML IOPEN
 CLOSE           JML ICLOSE
 SETIN           JML ISETIN
@@ -106,6 +106,8 @@ F_COPY          JML IF_COPY         ; Copy a file
 F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
 F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
+TESTBREAK       JML KBD_TEST_BREAK  ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
+
 .here
 
 ;
@@ -114,11 +116,38 @@ F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
 * = START_OF_FLASH + $001700
 .logical $001700
-VEC_INT00_SOF   JML FDC_TIME_HANDLE ; IRQ 0, 0 --- Start Of Frame interrupt 
-VEC_INT01_SOL   JML IRQHANDLESTUB   ; IRQ 0, 1 --- Start Of Line interrupt
-VEC_INT02_TMR0  JML IRQHANDLESTUB   ; IRQ 0, 2 --- Timer 0 interrupt
-VEC_INT03_TMR1  JML IRQHANDLESTUB   ; IRQ 0, 3 --- Timer 1 interrupt
-VEC_INT04_TMR2  JML IRQHANDLESTUB   ; IRQ 0, 4 --- Timer 2 interrupt
+VEC_INT_START = *                           ; Label for the start of the IRQ vectors
+
+VEC_INT00_SOF   JML FDC_TIME_HANDLE         ; IRQ 0, 0 --- Start Of Frame interrupt 
+VEC_INT01_SOL   JML IRQHANDLESTUB           ; IRQ 0, 1 --- Start Of Line interrupt
+VEC_INT02_TMR0  JML IRQHANDLESTUB           ; IRQ 0, 2 --- Timer 0 interrupt
+VEC_INT03_TMR1  JML IRQHANDLESTUB           ; IRQ 0, 3 --- Timer 1 interrupt
+VEC_INT04_TMR2  JML IRQHANDLESTUB           ; IRQ 0, 4 --- Timer 2 interrupt
+VEC_INT05_RTC   JML IRQHANDLESTUB           ; IRQ 0, 5 --- Real Time Clock interrupt
+VEC_INT06_FDC   JML IRQHANDLESTUB           ; IRQ 0, 6 --- Floppy Drive Controller interrupt
+VEC_INT07_MOUSE JML MOUSE_INTERRUPT         ; IRQ 0, 7 --- Mouse interrupt
+
+VEC_INT10_KBD   JML KBD_PROCESS_BYTE        ; IRQ 1, 0 --- Keyboard interrupt
+VEC_INT11_COL0  JML IRQHANDLESTUB           ; IRQ 1, 1 --- VICKY_II (INT2) Sprite Collision 
+VEC_INT12_COL1  JML IRQHANDLESTUB           ; IRQ 1, 2 --- VICKY_II (INT3) Bitmap Collision
+VEC_INT13_COM2  JML IRQHANDLESTUB           ; IRQ 1, 3 --- Serial port #2 interrupt
+VEC_INT14_COM1  JML IRQHANDLESTUB           ; IRQ 1, 4 --- Serial port #1 interrupt
+VEC_INT15_MIDI  JML IRQHANDLESTUB           ; IRQ 1, 5 --- MIDI controller interrupt
+VEC_INT16_LPT   JML IRQHANDLESTUB           ; IRQ 1, 6 --- Parallel port interrupt
+VEC_INT17_SDC   JML IRQHANDLESTUB           ; IRQ 1, 7 --- SD Card Controller interrupt (CH376S???)
+
+VEC_INT20_OPL   JML IRQHANDLESTUB           ; IRQ 2, 0 --- OPL3
+VEC_INT21_GABE0 JML IRQHANDLESTUB           ; IRQ 2, 1 --- GABE (INT0) - TBD
+VEC_INT22_GABE1 JML IRQHANDLESTUB           ; IRQ 2, 2 --- GABE (INT1) - TBD
+VEC_INT23_VDMA  JML IRQHANDLESTUB           ; IRQ 2, 3 --- VICKY_II (INT4) - VDMA Interrupt
+VEC_INT24_COL2  JML IRQHANDLESTUB           ; IRQ 2, 4 --- VICKY_II (INT5) Tile Collision
+VEC_INT25_GABE2 JML IRQHANDLESTUB           ; IRQ 2, 5 --- GABE (INT2) - TBD
+VEC_INT26_EXT   JML IRQHANDLESTUB           ; IRQ 2, 6 --- External Expansion
+VEC_INT17_SDINS JML IRQHANDLESTUB           ; IRQ 2, 7 --- SDCARD Insertion
+
+VEC_INT30_OPN2  JML IRQHANDLESTUB           ; IRQ 3, 0 --- OPN2
+VEC_INT31_OPM   JML IRQHANDLESTUB           ; IRQ 3, 1 --- OPM
+VEC_INT32_IDE   JML IRQHANDLESTUB           ; IRQ 3, 2 --- HDD IDE Interrupt
 .here
 
 ;

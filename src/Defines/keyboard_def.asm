@@ -5,6 +5,7 @@
 ; Register addresses
 .if TARGET_SYS == SYS_C256_FMX       
     STATUS_PORT 	= $AF1064
+    KBD_STATUS      = $AF1064
     KBD_OUT_BUF 	= $AF1060
     KBD_INPT_BUF	= $AF1060
     KBD_CMD_BUF		= $AF1064
@@ -13,6 +14,7 @@
     PORT_B			= $AF1061
 .else
     STATUS_PORT 	= $AF1807
+    KBD_STATUS      = $AF1807
     KBD_CMD_BUF		= $AF1807
     KBD_OUT_BUF 	= $AF1803
     KBD_INPT_BUF	= $AF1803
@@ -20,6 +22,7 @@
     PORT_A		    = $AF180A   ;This is a Timing Register, the value is hard coded, so there is no need to use those
     PORT_B			= $AF180B   ;This is a Timing Register, the value is hard coded, so there is no need to use those
 .endif
+
 ; Status
 OUT_BUF_FULL    = $01
 INPT_BUF_FULL	= $02

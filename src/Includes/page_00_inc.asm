@@ -268,6 +268,21 @@ TIMER0TRIGGER    = $80
 TIMER1TRIGGER    = $40
 TIMER2TRIGGER    = $20
 
+KBD_VARS = $000F00
+KBD_STATE           = $000F00   ; 1 byte - The state of the keyboard controller state machine
+KBD_SC_BUF          = $000F01   ; 16 bytes - Buffer for keyboard scancodes read
+KBD_SC_HEAD         = $000F11   ; 1 byte - Index of the first scancode cell to write to
+KBD_CHAR_BUF        = $000F12   ; 16 bytes - Character buffer
+KBD_CHAR_HEAD       = $000F22   ; 1 byte - Number of characters in the character buffer
+KBD_MODIFIERS       = $000F23   ; 1 byte - State of the modifier keys
+KBD_LOCKS           = $000F24   ; 1 byte - State of the lock keys: Caps, Num, Scroll
+KBD_TBL_UNMOD       = $000F25   ; 4 bytes - Pointer to the scan code translation table for unmodified keys
+KBD_TBL_SHIFT       = $000F29   ; 4 bytes - Pointer to the scan code translation table for shifted keys
+KBD_TBL_CTRL        = $000F2D   ; 4 bytes - Pointer to the scan code translation table for keys modified by CTRL
+KBD_TBL_LOCK        = $000F31   ; 4 bytes - Pointer to the scan code translation table for keys modified by CAPSLOCK or NUMLOCK
+KBD_TBL_LOCK_SHIFT  = $000F35   ; 4 bytes - Pointer to the scan code translation table for keys modified by CAPSLOCK and SHIFT
+KBD_TBL_CTRL_SHIFT  = $000F39   ; 4 bytes - Pointer to the scan code translation table for keys modified by CTRL and SHIFT
+
 ; COMMAND PARSER Variables
 ; Command Parser Stuff between $000F00 -> $000F84 (see CMD_Parser.asm)
 KEY_BUFFER       = $000F00 ; 64 Bytes keyboard buffer

@@ -1,7 +1,7 @@
 ;;
 ;; Base driver code for the text screens
 ;;
-;; This code supports the built-in text screen for the U, U+, and FMX
+;; This code suppoRTL the built-in text screen for the U, U+, and FMX
 ;; as well as the second text screen provided by the EVID expansion card
 ;;
 
@@ -59,7 +59,7 @@ ANSI_INIT           .proc
 
                     setaxl
                     LDY #0
-                    JSR INIT_SCREEN_Y               ; Set up the main screen
+                    JSL INIT_SCREEN_Y               ; Set up the main screen
 
                     ; Check to see if the EVID card is installed...
 
@@ -79,7 +79,7 @@ ANSI_INIT           .proc
                     STA @l EVID_PRESENT
 
                     LDY #1
-                    JSR INIT_SCREEN_Y               ; Initialize the EVID screen variables
+                    JSL INIT_SCREEN_Y               ; Initialize the EVID screen variables
                     BRA done
 
 no_evid             setas
@@ -91,7 +91,7 @@ done                PLP
                     PLB
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 LUTRGB              .macro red, green, blue
@@ -130,7 +130,7 @@ evid_loop           LDA ANSI_TEXT_LUT,X             ; Get the Xth LUT byte
                     BNE evid_loop
 
 done                PLP
-                    RTS
+                    RTL
                     .pend
 
 ANSI_TEXT_LUT       LUTRGB 0, 0, 0          ; Black
@@ -200,9 +200,9 @@ set_addresses       TYA                             ; Compute offset to screen Y
                     LDA #ANSI_DEF_COLOR
                     STA #S_ANSI_VARS.CURCOLOR,D     ; Set the current color to the default
 
-                    JSR ANSI_SETSIZE_Y              ; Set the size variables for the main screen
+                    JSL ANSI_SETSIZE_Y              ; Set the size variables for the main screen
 
-                    RTS
+                    RTL
 text_address        .dword CS_TEXT_MEM_PTR, EVID_TEXT_MEM
 color_address       .dword CS_COLOR_MEM_PTR, EVID_COLOR_MEM
                     .pend
@@ -219,22 +219,22 @@ ANSI_SETSIZES       .proc
 
                     LDA #CHAN_CONSOLE               ; Set the sizes for the main screen
                     STA @l CHAN_OUT
-                    JSR ANSI_SETDEVICE              ; Set the DP to the device's record
+                    JSL ANSI_SETDEVICE              ; Set the DP to the device's record
                     LDY #CHAN_CONSOLE
-                    JSR ANSI_SETSIZE_Y              ; Set the sizes for that device
+                    JSL ANSI_SETSIZE_Y              ; Set the sizes for that device
 
                     LDA #CHAN_EVID                  ; Set the sizes for the EVID screen
                     STA @l CHAN_OUT
-                    JSR ANSI_SETDEVICE              ; Set the DP to the device's record
+                    JSL ANSI_SETDEVICE              ; Set the DP to the device's record
                     BCS done                        ; Not present, just return
                     LDY #CHAN_EVID
-                    JSR ANSI_SETSIZE_Y              ; Set the sizes for that device
+                    JSL ANSI_SETSIZE_Y              ; Set the sizes for that device
 
 done                PLA
                     STA @l CHAN_OUT                 ; Restore the output channel
 
                     PLD
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -353,7 +353,7 @@ adjust_height       setal
                     STA #S_ANSI_VARS.LINES_VISIBLE,D
 
 done                PLP
-                    RTS
+                    RTL
 cols_by_res         .word 80,100,40,50
 lines_by_res        .word 60,75,30,37
                     .pend
@@ -384,7 +384,7 @@ ANSI_SETDEVICE      .proc
 bad_device          PLP
                     PLA
                     SEC
-                    RTS
+                    RTL
 
 console             setal
                     LDA #<>SCREENBEGIN              ; Point to the the main screen's variables
@@ -401,7 +401,7 @@ set_dp              TCD
                     PLP
                     PLA
                     CLC
-                    RTS                   
+                    RTL                   
                     .pend
 
 ;
@@ -417,7 +417,7 @@ ANSI_PUTC           .proc
                     PHP
 
                     setaxs
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
                     BCC get_state               ; If valid, check the current state           
                     BRL done                    ; If invalid, just return
@@ -437,14 +437,14 @@ pr_and_reset        STZ #S_ANSI_VARS.STATE,D    ; If invalid, reset to 0 and pri
 do_st_init          CMP #CHAR_ESC               ; Is it ESC?
                     BEQ go_escape               ; Yes, handle the ESC
                     BLT do_control              ; If less than, handle as a control code
-print_raw           JSR ANSI_PUTRAWC            ; Otherwise: Just print the raw character 
+print_raw           JSL ANSI_PUTRAWC            ; Otherwise: Just print the raw character 
                     BRA done
 
 go_escape           LDA #ST_ESCAPE
                     STA #S_ANSI_VARS.STATE,D    ; Move to the ESCAPE state
                     BRA done
 
-do_control          JSR ANSI_PR_CONTROL         ; Hand a single byte control code
+do_control          JSL ANSI_PR_CONTROL         ; Hand a single byte control code
                     BRA done
 
                     ; State: ESCAPE... we've seen an ESC character
@@ -496,12 +496,12 @@ csi_next_arg        INC A
                     STA #S_ANSI_VARS.ARGC,D     ; Set the new argument count
                     BRA done                    ; And we're done with this character
 
-csi_not_sep         CMP #'A'
+csi_not_sep         CMP #'@'
                     BLT csi_not_upper
                     CMP #'Z'+1
                     BGE csi_not_upper
 
-                    JSR ANSI_ANSI_UPPER         ; Process an ANSI upper case code
+                    JSL ANSI_ANSI_UPPER         ; Process an ANSI upper case code
                     BRA done
 
 csi_not_upper       CMP #'a'
@@ -509,7 +509,7 @@ csi_not_upper       CMP #'a'
                     CMP #'z'+1
                     BGE csi_not_lower
 
-                    JSR ANSI_ANSI_LOWER         ; Process an ANSI lower case code
+                    JSL ANSI_ANSI_LOWER         ; Process an ANSI lower case code
                     BRA done
 
 csi_not_lower       BRL pr_and_reset            ; Invalid sequence: print it and reset
@@ -518,7 +518,7 @@ done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -532,9 +532,9 @@ ANSI_INVALID        .proc
                     PHP
                     setas
                     STZ #S_ANSI_VARS.STATE,D    ; If invalid, reset to 0 and print the character
-                    JSR ANSI_PUTRAWC            ; Print the character
+                    JSL ANSI_PUTRAWC            ; Print the character
                     PLP
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -556,10 +556,10 @@ ANSI_ANSI_UPPER     .proc
                     TAX
                     JSR (ansi_table,X)
                     PLP
-                    RTS
+                    RTL
 
                     ; Table mapping character to operations 
-ansi_table          .word <>ANSI_INVALID    ; '@' -- ICH -- Insert Character
+ansi_table          .word <>ANSI_ICH        ; '@' -- ICH -- Insert Character
                     .word <>ANSI_CUU        ; 'A' -- CUU -- Cursor Up
                     .word <>ANSI_CUD        ; 'B' -- CUD -- Cursor Down
                     .word <>ANSI_CUF        ; 'C' -- CUF -- Cursor Forward
@@ -575,7 +575,7 @@ ansi_table          .word <>ANSI_INVALID    ; '@' -- ICH -- Insert Character
                     .word <>ANSI_INVALID    ; 'M'
                     .word <>ANSI_INVALID    ; 'N'
                     .word <>ANSI_INVALID    ; 'O'
-                    .word <>ANSI_INVALID    ; 'P' -- DCH -- Delete Character
+                    .word <>ANSI_DCH        ; 'P' -- DCH -- Delete Character
                     .word <>ANSI_INVALID    ; 'Q'
                     .word <>ANSI_INVALID    ; 'R'
                     .word <>ANSI_INVALID    ; 'S' -- SU -- Scroll Up
@@ -607,7 +607,7 @@ ANSI_ANSI_LOWER     .proc
                     TAX
                     JSR (ansi_table,X)
                     PLP
-                    RTS
+                    RTL
 
                     ; Table mapping character to operations
 ansi_table          .word <>ANSI_INVALID    ; 'a'
@@ -617,11 +617,11 @@ ansi_table          .word <>ANSI_INVALID    ; 'a'
                     .word <>ANSI_INVALID    ; 'e'
                     .word <>ANSI_INVALID    ; 'f' -- HVP -- Horizontal Vertical Position
                     .word <>ANSI_INVALID    ; 'g'
-                    .word <>ANSI_INVALID    ; 'h'
+                    .word <>ANSI_SET_MODE   ; 'h'
                     .word <>ANSI_INVALID    ; 'i'
                     .word <>ANSI_INVALID    ; 'j'
                     .word <>ANSI_INVALID    ; 'k'
-                    .word <>ANSI_INVALID    ; 'l'
+                    .word <>ANSI_RESET_MODE ; 'l'
                     .word <>ANSI_SGR        ; 'm' -- SGR -- Select Graphics Rendition
                     .word <>ANSI_INVALID    ; 'n'
                     .word <>ANSI_INVALID    ; 'o'
@@ -658,34 +658,34 @@ ANSI_PR_CONTROL     .proc
                     CMP #CHAR_TAB               ; Handle TAB
                     BEQ do_tab
 
-                    JSR ANSI_PUTRAWC            ; Otherwise, just print it raw and wriggling!
+                    JSL ANSI_PUTRAWC            ; Otherwise, just print it raw and wriggling!
                     BRA done
                                         
 do_cr               LDX #0                      ; Move to the beginning of the next line
                     LDY #S_ANSI_VARS.CURSORY,D
                     INY
-                    JSR ANSI_LOCATE
+                    JSL ANSI_LOCATE
                     BRA done
 
-do_lf               JSR ANSI_CSRDOWN            ; Move the cursor down a line
+do_lf               JSL ANSI_CSRDOWN            ; Move the cursor down a line
                     BRA done
 
-do_bs               JSR ANSI_CSRLEFT            ; Move the cursor to the left (TODO: delete to the left?)
+do_bs               JSL ANSI_CSRLEFT            ; Move the cursor to the left (TODO: delete to the left?)
                     BRA done
 
-do_tab              setal
+do_tab              setaxl
                     LDA #S_ANSI_VARS.CURSORX,D  ; Move to the next power 8th column
-                    AND #$FFF7
+                    AND #$FFF8
                     CLC
                     ADC #$0008
                     TAX
                     setas
 
                     LDY #S_ANSI_VARS.CURSORY,D
-                    JSR ANSI_LOCATE
+                    JSL ANSI_LOCATE
 
 done                PLP
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -701,7 +701,7 @@ ANSI_PUTRAWC        .proc
                     PHP
 
                     setas
-                    JSR ANSI_SETDEVICE              ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE              ; Look at the current output channel and point
                                                     ; Point to the correct control registers for it
                     BCS done                        ; If invalid, just return
 
@@ -710,13 +710,13 @@ ANSI_PUTRAWC        .proc
                     LDA #S_ANSI_VARS.CURCOLOR,D     ; Set the color based on CURCOLOR
                     STA [#S_ANSI_VARS.COLORPOS,D]
 
-                    JSR ANSI_CSRRIGHT              ; And advance the cursor
+                    JSL ANSI_CSRRIGHT              ; And advance the cursor
 
 done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -732,7 +732,7 @@ ANSI_CUU            .proc
 default             LDA #1                          ; Otherwise: treat it as 1
 
 loop                PHA                             ; Save the count
-                    JSR ANSI_CSRUP                  ; Cursor Up
+                    JSL ANSI_CSRUP                  ; Cursor Up
                     PLA                             ; Restore the count
 
                     DEC A                           ; Count down and repeat if not done
@@ -753,7 +753,7 @@ ANSI_CUD            .proc
                     INC A
 
 loop                PHA                             ; Save the count
-                    JSR ANSI_CSRDOWN                ; Cursor Down
+                    JSL ANSI_CSRDOWN                ; Cursor Down
                     PLA                             ; Restore the count
 
                     DEC A                           ; Count down and repeat if not done
@@ -774,7 +774,7 @@ ANSI_CUF            .proc
                     INC A
 
 loop                PHA                             ; Save the count
-                    JSR ANSI_CSRRIGHT               ; Cursor right
+                    JSL ANSI_CSRRIGHT               ; Cursor right
                     PLA                             ; Restore the count
 
                     DEC A                           ; Count down and repeat if not done
@@ -795,7 +795,7 @@ ANSI_CUB            .proc
                     INC A
 
 loop                PHA                             ; Save the count
-                    JSR ANSI_CSRLEFT                ; Cursor left
+                    JSL ANSI_CSRLEFT                ; Cursor left
                     PLA                             ; Restore the count
 
                     DEC A                           ; Count down and repeat if not done
@@ -824,9 +824,97 @@ adjust_coords       DEX                             ; Translate from base 1 to b
                     DEY
 
                     setaxl
-                    JSR ANSI_LOCATE                 ; Set the cursor position
+                    JSL ANSI_LOCATE                 ; Set the cursor position
 
                     PLP
+                    RTS
+                    .pend
+
+;
+; Handle the ANSI set mode operation
+; We will only support two modes: enable the cursor (25), and enable BREAK processing (28)
+;
+ANSI_SET_MODE       .proc
+                    PHP
+
+                    setaxs
+                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
+                    CMP #25
+                    BNE chk_break
+
+                    ; Show cursor
+
+                    LDA @l CHAN_OUT                 ; Check to see if we're going to screen 0
+                    CMP #CHAN_CONSOLE
+                    BNE check_evid
+
+                    LDA @l VKY_TXT_CURSOR_CTRL_REG  ; Yes: enable screen 0's cursor
+                    ORA #Vky_Cursor_Enable
+                    LDA @l VKY_TXT_CURSOR_CTRL_REG
+                    BRA done
+
+check_evid          CMP #CHAN_EVID                  ; Check to see if we're going to screen 1
+                    BNE done
+
+                    LDA @l EVID_TXT_CURSOR_CTRL_REG ; Yes: enable screen 1's cursor
+                    ORA #EVID_Cursor_Enable
+                    LDA @l EVID_TXT_CURSOR_CTRL_REG
+                    BRA done
+
+chk_break           CMP #28
+                    BNE done
+
+                    ; Enable break
+
+                    JSL KBD_GET_CONTROL
+                    ORA #KBD_CTRL_BREAK
+                    JSL KBD_SET_CONTROL
+
+done                PLP
+                    RTS
+                    .pend
+
+;
+; Handle the ANSI reset mode operation
+; We will only support two modes: hide the cursor (25), and diable BREAK processing (28)
+;
+ANSI_RESET_MODE     .proc
+                    PHP
+
+                    setaxs
+                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
+                    CMP #25
+                    BNE chk_break
+
+                    ; Hide cursor
+
+                    LDA @l CHAN_OUT                 ; Check to see if we're going to screen 0
+                    CMP #CHAN_CONSOLE
+                    BNE check_evid
+
+                    LDA @l VKY_TXT_CURSOR_CTRL_REG  ; Yes: enable screen 0's cursor
+                    AND #~Vky_Cursor_Enable
+                    LDA @l VKY_TXT_CURSOR_CTRL_REG
+                    BRA done
+
+check_evid          CMP #CHAN_EVID                  ; Check to see if we're going to screen 1
+                    BNE done
+
+                    LDA @l EVID_TXT_CURSOR_CTRL_REG ; Yes: enable screen 1's cursor
+                    AND #~EVID_Cursor_Enable
+                    LDA @l EVID_TXT_CURSOR_CTRL_REG
+                    BRA done
+
+chk_break           CMP #28
+                    BNE done
+
+                    ; Disable break
+
+                    JSL KBD_GET_CONTROL
+                    AND #~KBD_CTRL_BREAK
+                    JSL KBD_SET_CONTROL
+
+done                PLP
                     RTS
                     .pend
 
@@ -1123,6 +1211,117 @@ done                PLP
                     .pend
 
 ;
+; ANSI ICH Operation -- Insert spaces at the cursor position
+; 
+ANSI_ICH            .proc
+                    PHY
+                    PHP
+
+                    setaxs
+                    LDA #S_ANSI_VARS.ARGC,D             ; Check how many arguments were passed
+                    BEQ default_1                       ; If 0, default to 1
+
+                    LDA #S_ANSI_VARS.ARG0,D             ; Check the argument
+                    BNE calc_src_dest                   ; If not 0, start calculating the indexes
+
+default_1           LDA #1                              ; Default the insert count to 1
+                    STA #S_ANSI_VARS.ARG0,D
+
+calc_src_dest       SEC
+                    LDA #S_ANSI_VARS.COLS_VISIBLE,D     ; TMPPTR1 := COLS_VISIBLE - CURSORX (destination index)
+                    SBC #S_ANSI_VARS.CURSORX,D
+                    STA #S_ANSI_VARS.TMPPTR1,D
+
+                    SEC
+                    SBC #S_ANSI_VARS.ARG0,D             ; TMPPTR1+1 := TMPPTR1 - n (source index)
+                    STA #S_ANSI_VARS.TMPPTR1+1,D
+
+insert_loop         LDY #S_ANSI_VARS.TMPPTR1+1,D        ; text[dest] := text[source]
+                    LDA [#S_ANSI_VARS.CURSORPOS,D],Y
+                    LDY #S_ANSI_VARS.TMPPTR1,D
+                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+
+                    LDY #S_ANSI_VARS.TMPPTR1+1,D        ; color[dest] := color[source]
+                    LDA [#S_ANSI_VARS.COLORPOS,D],Y
+                    LDY #S_ANSI_VARS.TMPPTR1,D
+                    STA [#S_ANSI_VARS.COLORPOS,D],Y
+
+                    DEC #S_ANSI_VARS.TMPPTR1,D          ; Move to the previous position
+                    DEC #S_ANSI_VARS.TMPPTR1+1,D
+                    BPL insert_loop                     ; Keep looping until we reach the end
+
+                    LDY #0
+fill_loop           LDA #CHAR_SP                        ; Replace the character with a space
+                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+                    LDA #S_ANSI_VARS.CURCOLOR,D
+                    STA [#S_ANSI_VARS.COLORPOS,D],Y     ; In the default color
+
+                    INY                                 ; Move to the next byte
+                    CPY #S_ANSI_VARS.ARG0,D             ; Until we reach the end
+                    BNE fill_loop
+
+                    PLP
+                    PLY
+                    RTS
+                    .pend
+
+;
+; ANSI DCH Operation -- Delete characters at the cursor position
+; 
+ANSI_DCH            .proc
+                    PHY
+                    PHP
+
+                    setaxs
+                    LDA #S_ANSI_VARS.ARGC,D             ; Check how many arguments were passed
+                    BEQ default_1                       ; If 0, default to 1
+
+                    LDA #S_ANSI_VARS.ARG0,D             ; Check the argument
+                    BNE calc_src_dest                   ; If not 0, start calculating the indexes
+
+default_1           LDA #1                              ; Default the insert count to 1
+                    STA #S_ANSI_VARS.ARG0,D
+
+calc_src_dest       LDA #0
+                    STA #S_ANSI_VARS.TMPPTR1+1,D        ; TMPPTR+1 := 0 (destination)
+
+                    LDA #S_ANSI_VARS.ARG0,D
+                    STA #S_ANSI_VARS.TMPPTR1,D          ; TMPPTR+1 := n (source)
+
+del_loop            LDY #S_ANSI_VARS.TMPPTR1,D          ; text[dest] := text[source]
+                    LDA [#S_ANSI_VARS.CURSORPOS,D],Y
+                    LDY #S_ANSI_VARS.TMPPTR1+1,D
+                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+
+                    LDY #S_ANSI_VARS.TMPPTR1,D          ; color[dest] := color[source]
+                    LDA [#S_ANSI_VARS.COLORPOS,D],Y
+                    LDY #S_ANSI_VARS.TMPPTR1+1,D
+                    STA [#S_ANSI_VARS.COLORPOS,D],Y
+
+                    INC #S_ANSI_VARS.TMPPTR1,D          ; Move to the next position
+                    INC #S_ANSI_VARS.TMPPTR1+1,D
+
+                    LDA #S_ANSI_VARS.TMPPTR1,D
+                    CMP #S_ANSI_VARS.COLS_VISIBLE,D
+                    BLT del_loop                        ; Keep looping until we reach the end                
+
+                    LDY #S_ANSI_VARS.TMPPTR1+1,D
+                    DEY
+fill_loop           LDA #CHAR_SP                        ; Replace the character with a space
+                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+                    LDA #S_ANSI_VARS.CURCOLOR,D
+                    STA [#S_ANSI_VARS.COLORPOS,D],Y     ; In the default color
+
+                    INY                                 ; Move to the next byte
+                    CPY #S_ANSI_VARS.COLS_VISIBLE,D     ; Until we reach the end
+                    BLT fill_loop
+
+                    PLP
+                    PLY
+                    RTS
+                    .pend
+
+;
 ; ICSRRIGHT
 ; Move the cursor right one space
 ; Modifies: none
@@ -1135,7 +1334,7 @@ ANSI_CSRRIGHT       .proc
 
                     setaxl
 
-                    JSR ANSI_SETDEVICE                  ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
                                                         ; Point to the correct control registers for it
                     BCS done                            ; If invalid, just return
 
@@ -1152,15 +1351,15 @@ ANSI_CSRRIGHT       .proc
                     BCC nowrap                          ; No: just set the position
 
                     DEY                                 ; Yes: lock to the last row
-                    JSR ANSI_SCROLLUP                   ; But scroll the screen up
+                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
 
-nowrap              JSR ANSI_LOCATE                     ; Set the cursor position     
+nowrap              JSL ANSI_LOCATE                     ; Set the cursor position     
 
 done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1176,7 +1375,7 @@ ANSI_CSRLEFT        .proc
 
                     setaxl
 
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
                     BCS done                    ; If invalid, just return
 
@@ -1186,13 +1385,13 @@ ANSI_CSRLEFT        .proc
                     DEX
                     STX #S_ANSI_VARS.CURSORX,D
                     LDY #S_ANSI_VARS.CURSORY,D
-                    JSR ANSI_LOCATE
+                    JSL ANSI_LOCATE
 
 done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1208,7 +1407,7 @@ ANSI_CSRUP          .proc
                     PHP
 
                     setaxl
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
                     BCS done                    ; If invalid, just return
 
@@ -1217,13 +1416,13 @@ ANSI_CSRUP          .proc
                     DEY
                     STY #S_ANSI_VARS.CURSORY,D
                     LDX #S_ANSI_VARS.CURSORX,D
-                    JSR ANSI_LOCATE
+                    JSL ANSI_LOCATE
 
 done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1240,7 +1439,7 @@ ANSI_CSRDOWN        .proc
                     PHP
 
                     setaxl
-                    JSR ANSI_SETDEVICE                  ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
                                                         ; Point to the correct control registers for it
                     BCS done                            ; If invalid, just return
 
@@ -1251,15 +1450,15 @@ ANSI_CSRDOWN        .proc
                     BCC noscroll                        ; No: go ahead and set the position
 
                     DEY                                 ; Yes: go back to the last row
-                    JSR ANSI_SCROLLUP                   ; But scroll the screen up
+                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
 
-noscroll            JSR ANSI_LOCATE                     ; And set the cursor position
+noscroll            JSL ANSI_LOCATE                     ; And set the cursor position
 
 done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1277,7 +1476,7 @@ ANSI_LOCATE         .proc
                     PHD
                     PHP
 
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
                     BCS done                    ; If invalid, just return
 
@@ -1287,7 +1486,7 @@ locate_scroll       ; If the cursor is below the bottom row of the screen
                     ; the cursor is visible.
                     CPY #S_ANSI_VARS.LINES_VISIBLE,D
                     BCC locate_scrolldone
-                    JSR ANSI_SCROLLUP
+                    JSL ANSI_SCROLLUP
                     DEY
                     ; repeat until the cursor is visible again
                     BRA locate_scroll
@@ -1343,7 +1542,7 @@ done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1360,7 +1559,7 @@ ANSI_SCROLLUP       .proc
                     PHD
                     PHP
 
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
+                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
                                                 ; Point to the correct control registers for it
                     BCC calc_size
                     BRL done                    ; If invalid, just return
@@ -1454,7 +1653,7 @@ done                PLP
                     PLB
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 ;
@@ -1468,15 +1667,15 @@ ANSI_CLRSCREEN      .proc
                     PHD
                     PHP
 
-                    JSR ANSI_SETDEVICE          ; Look at the current output channel and point
-                                                ; Point to the correct control registers for it
-                    BCS done                    ; If invalid, just return
+                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
+                                                        ; Point to the correct control registers for it
+                    BCS done                            ; If invalid, just return
 
                     setas
                     setxl
 
                     LDY #0
-                    LDA #$20		            ; Fill the Entire Screen with Space
+                    LDA #$20		                    ; Fill the Entire Screen with Space
 iclearloop0	        STA [#S_ANSI_VARS.SCREENBEGIN,D],Y
                     INY
                     CPY #$2000
@@ -1484,7 +1683,7 @@ iclearloop0	        STA [#S_ANSI_VARS.SCREENBEGIN,D],Y
 
                     ; Now Set the Colors so we can see the text
                     LDY	#0
-                    LDA #CURCOLOR,D             ; Fill the current color
+                    LDA #S_ANSI_VARS.CURCOLOR,D         ; Fill the current color
 evid_clearloop1     STA [#S_ANSI_VARS.COLORBEGIN,D],Y
                     INY
                     CPY #$2000
@@ -1494,7 +1693,7 @@ done                PLP
                     PLD
                     PLY
                     PLX
-                    RTS
+                    RTL
                     .pend
 
 

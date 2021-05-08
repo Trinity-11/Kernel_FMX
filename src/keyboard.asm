@@ -2,6 +2,143 @@
 ;;; Code to support keyboard entry from the PS/2 port
 ;;;
 
+KBD_PROCESS_BYTE
+                PHP
+                JSR KEYBOARD_INTERRUPT
+                PLP
+                RTL
+
+;
+; IINITKEYBOARD
+; Author: Stefany
+; Note: We assume that A & X are 16Bits Wide when entering here.
+; Initialize the Keyboard Controler (8042) in the SuperIO.
+; Inputs:
+;   None
+; Affects:
+;   Carry (c)
+IINITKEYBOARD	PHD
+		PHP
+		PHA
+		PHX
+
+                setas				;just make sure we are in 8bit mode
+                setxl 					; Set 8bits
+
+				        ; Setup Foreground LUT First
+                CLC
+
+                JSR Poll_Inbuf ;
+;; Test AA
+		LDA #$AA			;Send self test command
+		STA KBD_CMD_BUF
+								;; Sent Self-Test Code and Waiting for Return value, it ought to be 0x55.
+                JSR Poll_Outbuf ;
+
+                LDA KBD_OUT_BUF		;Check self test result
+                CMP #$55
+                BEQ	passAAtest
+
+                BRL initkb_loop_out
+
+passAAtest
+.if TEST_KEYBOARD
+  LDX #<>pass_tst0xAAmsg
+  JSL IPRINT      ; print Message
+.endif
+;; Test AB
+		LDA #$AB			;Send test Interface command
+                STA KBD_CMD_BUF
+                JSR Poll_Outbuf ;
+		LDA KBD_OUT_BUF		;Display Interface test results
+		CMP #$00			;Should be 00
+		BEQ	passABtest
+                BRL initkb_loop_out
+
+passABtest      
+.if TEST_KEYBOARD
+  LDX #<>pass_tst0xABmsg
+  JSL IPRINT       ; print Message
+.endif
+
+;; Program the Keyboard & Enable Interrupt with Cmd 0x60
+                LDA #$60            ; Send Command 0x60 so to Enable Interrupt
+                STA KBD_CMD_BUF
+                JSR Poll_Inbuf ;
+;.if TARGET_SYS == SYS_C256_FMX
+                ;LDA #%01100001      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable
+                LDA #%01000011      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable                
+;.else
+                ;LDA #%00101001      ; Enable Interrupt
+;.endif
+                ;LDA #%01001011      ; Enable Interrupt for Mouse and Keyboard
+                STA KBD_DATA_BUF
+                JSR Poll_Inbuf ;
+.if TEST_KEYBOARD                
+                LDX #<>pass_cmd0x60msg
+                JSL IPRINT       ; print Message
+.endif
+; Reset Keyboard
+                LDA #$FF      ; Send Keyboard Reset command
+                STA KBD_DATA_BUF
+                ; Must wait here;
+                LDX #$FFFF
+DLY_LOOP1       DEX
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                NOP
+                CPX #$0000
+                BNE DLY_LOOP1
+                JSR Poll_Outbuf ;
+
+                LDA KBD_OUT_BUF   ; Read Output Buffer
+
+.if TEST_KEYBOARD
+                LDX #<>pass_cmd0xFFmsg
+                JSL IPRINT       ; print Message
+.endif
+DO_CMD_F4_AGAIN
+                JSR Poll_Inbuf ;
+				        LDA #$F4			; Enable the Keyboard
+				        STA KBD_DATA_BUF
+                JSR Poll_Outbuf ;
+
+				        LDA KBD_OUT_BUF		; Clear the Output buffer
+                CMP #$FA
+                BNE DO_CMD_F4_AGAIN
+                ; Till We Reach this point, the Keyboard is setup Properly
+
+
+                ; Unmask the Keyboard interrupt
+                ; Clear Any Pending Interrupt
+                LDA @lINT_PENDING_REG1  ; Read the Pending Register &
+                AND #FNX1_INT00_KBD
+                STA @lINT_PENDING_REG1  ; Writing it back will clear the Active Bit
+                ; Disable the Mask
+                LDA @lINT_MASK_REG1
+                AND #~FNX1_INT00_KBD
+                STA @lINT_MASK_REG1
+
+                LDX #<>Success_kb_init
+                SEC
+                BCS InitKbSuccess
+
+initkb_loop_out ;LDX #<>Failed_kb_init
+InitKbSuccess   JSL IPRINT       ; print Message
+                setal 					; Set 16bits
+                setxl 					; Set 16bits
+
+                PLX
+                PLA
+				        PLP
+				        PLD
+                RTL
+
 ; Interrupt handler for the keyboard
 KEYBOARD_INTERRUPT
                 setdp KEY_BUFFER

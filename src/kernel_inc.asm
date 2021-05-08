@@ -11,8 +11,8 @@ PUTC             = $001018 ; Print a character to the currently selected channel
 PUTS             = $00101C ; Print a string to the currently selected channel
 PUTB             = $001020 ; Output a byte to the currently selected channel
 PUTBLOCK         = $001024 ; Ouput a binary block to the currently selected channel
-SETLFS           = $001028 ; Obsolete (done in OPEN)
-SETNAM           = $00102C ; Obsolete (done in OPEN)
+GETSCANCODE      = $001028 ; Get the next scancode from the keyboard (A = scancode, 0 if none available)
+GETLOCKS         = $00102C ; Get the state of the lock keys on the keyboard (A[2] = CAPS, A[1] = NUM, A[0] = SCROLL)
 OPEN             = $001030 ; Open a channel for reading and/or writing. Use SETLFS and SETNAM to set the channels and filename first.
 CLOSE            = $001034 ; Close a channel
 SETIN            = $001038 ; Set the current input channel
@@ -75,9 +75,10 @@ F_MOUNT          = $001128 ; Mount the designated block device
 F_COPY           = $001130 ; Copy a file
 F_ALLOCFD        = $001134 ; Allocate a file descriptor
 F_FREEFD         = $001138 ; Free a file descriptor
+TESTBREAK        = $00113C ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
 
 ;
-; Interrupt Jump Table
+; Interrupt Vector Table
 ;
 
 VEC_INT00_SOF   = $001700 ; Interrupt routine for Start Of Frame interrupt

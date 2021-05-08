@@ -55,13 +55,13 @@ START_OF_FONT := 0
 ; Others
 ;
 .include "kernel_jumptable.asm"
-.include "Interrupt_Handler.asm"            ; Interrupt Handler Routines
-.include "keyboard.asm"                     ; Include the keyboard reading code
+.include "Interrupt_Handler.asm"                    ; Interrupt Handler Routines
+
 ;
 ; Defines
 ;
 .include "Defines/Math_def.asm"                     ; Math Co_processor Definition
-.include "Defines/timer_def.asm"                     ; Timer Block
+.include "Defines/timer_def.asm"                    ; Timer Block
 .include "Defines/interrupt_def.asm"                ; Interrupr Controller Registers Definitions
 .include "Defines/super_io_def.asm"                 ; SuperIO Registers Definitions
 .include "Defines/keyboard_def.asm"                 ; Keyboard 8042 Controller (in SuperIO) bit Field definitions
@@ -133,7 +133,7 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG3
 
                 JSL INITRTC               ; Initialize the RTC
-                JSR ANSI_INIT             ; Initialize the ANSI screen driver
+                JSL ANSI_INIT             ; Initialize the ANSI screen driver
 
                 setas
                 ; Here we check for Expansion Card and Init them soon in the process
@@ -232,7 +232,7 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setal
                 setdp 0
                 ; Init the Keyboard used by the SuperIO
-                JSL INITKEYBOARD
+                JSL INITKEYBOARD      ; INITKEYBOARD  ; KBD_INIT
                 JSL INITMOUSE
 
                 setas
@@ -730,7 +730,7 @@ putc_uart       JSL UART_SELECT     ; Point to the correct UART
                 BRA done
 
 putc_ansi       PLA                 ; Recover the character to send
-                JSR ANSI_PUTC       ; Print to the current selected ANSI screen
+                JSL ANSI_PUTC       ; Print to the current selected ANSI screen
 
 done            PLP
                 PLB
@@ -911,7 +911,7 @@ ICSRRIGHT       PHX
                 PHD
                 PHP
 
-                JSR ANSI_CSRRIGHT
+                JSL ANSI_CSRRIGHT
 
                 PLP
                 PLD
@@ -932,7 +932,7 @@ ICSRLEFT
                 PHD
                 PHP
 
-                JSR ANSI_CSRLEFT
+                JSL ANSI_CSRLEFT
 
                 PLP
                 PLD
@@ -953,7 +953,7 @@ ICSRUP
                 PHD
                 PHP
 
-                JSR ANSI_CSRUP
+                JSL ANSI_CSRUP
 
                 PLP
                 PLD
@@ -973,7 +973,7 @@ ICSRDOWN        PHX
                 PHY
                 PHD
 
-                JSR ANSI_CSRDOWN
+                JSL ANSI_CSRDOWN
 
                 PLD
                 PLY
@@ -991,53 +991,7 @@ ILOCATE         PHA
                 PHD
                 PHP
 
-                JSR ANSI_LOCATE
-
-;                 setdp 0
-;                 setaxl
-
-; ilocate_scroll  ; If the cursor is below the bottom row of the screen
-;                 ; scroll the screen up one line. Keep doing this until
-;                 ; the cursor is visible.
-;                 CPY LINES_VISIBLE
-;                 BCC ilocate_scrolldone
-;                 JSL ISCROLLUP
-;                 DEY
-;                 ; repeat until the cursor is visible again
-;                 BRA ilocate_scroll
-
-; ilocate_scrolldone
-;                 ; done scrolling store the resultant cursor positions.
-;                 STX CURSORX
-;                 STY CURSORY
-;                 LDA SCREENBEGIN
-
-; ilocate_row     ; compute the row
-;                 CPY #$0
-;                 BEQ ilocate_right
-
-;                 ; move down the number of rows in Y
-; ilocate_down    CLC
-;                 ADC COLS_PER_LINE
-;                 DEY
-;                 BEQ ilocate_right
-;                 BRA ilocate_down
-
-;                 ; compute the column
-; ilocate_right   CLC
-;                 ADC CURSORX             ; move the cursor right X columns
-;                 STA CURSORPOS
-;                 LDY CURSORY
-;                 TYA
-;                 STA @lVKY_TXT_CURSOR_Y_REG_L  ;Store in Vicky's registers
-;                 TXA
-;                 STA @lVKY_TXT_CURSOR_X_REG_L  ;Store in Vicky's register
-
-;                 setal
-;                 CLC
-;                 LDA CURSORPOS
-;                 ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
-;                 STA COLORPOS
+                JSL ANSI_LOCATE
 
 ilocate_done    PLP
                 PLD
@@ -1060,69 +1014,7 @@ ISCROLLUP       ; Scroll the screen up by one row
                 PHD
                 PHP
 
-                setdp 0
-
-                setaxl
-                ; Calculate the number of bytes to move
-                LDA COLS_PER_LINE
-                STA @l UNSIGNED_MULT_A_LO
-
-                LDA LINES_VISIBLE
-                STA @l UNSIGNED_MULT_B_LO
-                
-                LDA @l UNSIGNED_MULT_AL_LO
-                STA TMPPTR1
-
-                ; Scroll Text Up
-                CLC
-                LDA #$A000
-                TAY
-                ADC COLS_PER_LINE
-                TAX
-                LDA TMPPTR1
-                ; Move the data
-                MVN $AF,$AF
-
-                ; Scroll Color Up
-                setaxl
-                CLC
-                LDA #$C000
-                TAY
-                ADC COLS_PER_LINE
-                TAX
-                ; for now, should be 8064 or $1f80 bytes
-                LDA TMPPTR1
-                ; Move the data
-                MVN $AF,$AF
-
-                ; Clear the last line of text on the screen
-                LDA TMPPTR1
-                PHA
-
-                CLC
-                ADC #<>CS_TEXT_MEM_PTR
-                STA TMPPTR1
-
-                LDY #0
-                LDA #' '
-clr_text        STA [TMPPTR1],Y
-                INY
-                CPY COLS_VISIBLE
-                BNE clr_text
-
-                ; Set the last line of color on the screen to the current color
-                PLA
-
-                CLC
-                ADC #<>CS_COLOR_MEM_PTR
-                STA TMPPTR1
-
-                LDY #0
-                LDA CURCOLOR
-clr_color       STA [TMPPTR1],Y
-                INY
-                CPY COLS_VISIBLE
-                BNE clr_color
+                JSL ANSI_SCROLLUP
 
                 PLP
                 PLD
@@ -1226,23 +1118,7 @@ ICLRSCREEN	    PHA
                 PHX
                 PHP
 
-                setas
-                setxl 			            ; Set 16bits
-
-                LDX #$0000		          ; Only Use One Pointer
-                LDA #$20		            ; Fill the Entire Screen with Space
-iclearloop0	STA CS_TEXT_MEM_PTR, x	;
-                inx
-                cpx #$2000
-                bne iclearloop0
-
-                ; Now Set the Colors so we can see the text
-                LDX	#$0000		          ; Only Use One Pointer
-                LDA @lCURCOLOR          ; Fill the Color Memory with the current color
-iclearloop1     STA CS_COLOR_MEM_PTR, x	;
-                inx
-                cpx #$2000
-                bne iclearloop1
+                JSL ANSI_CLRSCREEN
 
                 PLP
                 PLX
@@ -1373,26 +1249,8 @@ IINITCHLUT		  PHD
                 PHA
                 PHX
 
-                JSR ANSI_INIT_LUTS
-;                 setas
-;                 setxs 					; Set 8bits
-; 				        ; Setup Foreground LUT First
-; 				        LDX	#$00
-; lutinitloop0	LDA @lfg_color_lut,x		; get Local Data
-;                 STA FG_CHAR_LUT_PTR,x	; Write in LUT Memory
-;                 inx
-;                 cpx #$40
-;                 bne lutinitloop0
-;                 ; Set Background LUT Second
-;                 LDX	#$00
-; lutinitloop1	  LDA @lbg_color_lut,x		; get Local Data
-;                 STA BG_CHAR_LUT_PTR,x	; Write in LUT Memory
-;                 INX
-;                 CPX #$40
-;                 bne lutinitloop1
+                JSL ANSI_INIT_LUTS
 
-;                 setal
-;                 setxl 					; Set 8bits
                 PLX
                 PLA
                 PLP
@@ -1850,58 +1708,53 @@ IINITSUPERIO	  PHD
                 STA GP11_REG
                 LDA #$01		;Default Value - C256 Doesn't use this IO Pin
                 STA GP12_REG
-        	LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-        	STA GP13_REG
-        	LDA #$05		;(C256 - POT A Analog BX) Bit[0] = 1, Bit[2] = 1
-        	STA GP14_REG
-        	LDA #$05		;(C256 - POT A Analog BY) Bit[0] = 1, Bit[2] = 1
-        	STA GP15_REG
-        	LDA #$05		;(C256 - POT B Analog BX) Bit[0] = 1, Bit[2] = 1
-        	STA GP16_REG
-        	LDA #$05		;(C256 - POT B Analog BY) Bit[0] = 1, Bit[2] = 1
-        	STA GP17_REG
-        	LDA #$00		;(C256 - HEADPHONE MUTE) - Output GPIO - Push-Pull (1 - Headphone On, 0 - HeadPhone Off)
-        	STA GP20_REG
+                LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+                STA GP13_REG
+                LDA #$05		;(C256 - POT A Analog BX) Bit[0] = 1, Bit[2] = 1
+                STA GP14_REG
+                LDA #$05		;(C256 - POT A Analog BY) Bit[0] = 1, Bit[2] = 1
+                STA GP15_REG
+                LDA #$05		;(C256 - POT B Analog BX) Bit[0] = 1, Bit[2] = 1
+                STA GP16_REG
+                LDA #$05		;(C256 - POT B Analog BY) Bit[0] = 1, Bit[2] = 1
+                STA GP17_REG
+                LDA #$00		;(C256 - HEADPHONE MUTE) - Output GPIO - Push-Pull (1 - Headphone On, 0 - HeadPhone Off)
+                STA GP20_REG
 
-                ;LDA #$00		;(C256 - FLOPPY - DS1) - TBD Later, Floppy Stuff (JIM DREW)
-                ;STA GP21_REG
-                ;LDA #$00		;(C256 - FLOPPY - DMTR1) - TBD Later, Floppy Stuff (JIM DREW)
-                ;STA GP22_REG
+                LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+                STA GP24_REG
+                LDA #$05		;(C256 - MIDI IN) Bit[0] = 1, Bit[2] = 1 (Page 132 Manual)
+                STA GP25_REG
+                LDA #$84		;(C256 - MIDI OUT) Bit[2] = 1, Bit[7] = 1 (Open Drain - To be Checked)
+                STA GP26_REG
 
-		LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-		STA GP24_REG
-		LDA #$05		;(C256 - MIDI IN) Bit[0] = 1, Bit[2] = 1 (Page 132 Manual)
-		STA GP25_REG
-		LDA #$84		;(C256 - MIDI OUT) Bit[2] = 1, Bit[7] = 1 (Open Drain - To be Checked)
-		STA GP26_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 1) Setup as GPIO Input for now
+                STA GP30_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 4) Setup as GPIO Input for now
+                STA GP31_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 3) Setup as GPIO Input for now
+                STA GP32_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 6) Setup as GPIO Input for now
+                STA GP33_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 5) Setup as GPIO Input for now
+                STA GP34_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 8) Setup as GPIO Input for now
+                STA GP35_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 7) Setup as GPIO Input for now
+                STA GP36_REG
+                LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 10) Setup as GPIO Input for now
+                STA GP37_REG
 
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 1) Setup as GPIO Input for now
-		STA GP30_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 4) Setup as GPIO Input for now
-		STA GP31_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 3) Setup as GPIO Input for now
-		STA GP32_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 6) Setup as GPIO Input for now
-		STA GP33_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 5) Setup as GPIO Input for now
-		STA GP34_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 8) Setup as GPIO Input for now
-		STA GP35_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 7) Setup as GPIO Input for now
-		STA GP36_REG
-		LDA #$01		;Default Value - (C256 - JP1 Fanout Pin 10) Setup as GPIO Input for now
-		STA GP37_REG
-
-		;LDA #$01		;(C256 - FLOPPY - DRVDEN0) - TBD Later, Floppy Stuff (JIM DREW)
-		 ;STA GP40_REG
-		;LDA #$01		;(C256 - FLOPPY - DRVDEN1) - TBD Later, Floppy Stuff (JIM DREW)
-		;STA GP41_REG
-		LDA #$01		;Default Value - C256 Doesn't use this IO Pin
-		STA GP42_REG
-		LDA #$01		;(C256 - INPUT PLL CLK INTERRUPT) Default Value - Will keep it as an input for now, no real usage for now
-		STA GP43_REG
-		LDA #$05		;(C256 - UART2 - RI2) - Input - Set Secondary Function
-		STA GP50_REG
+                ;LDA #$01		;(C256 - FLOPPY - DRVDEN0) - TBD Later, Floppy Stuff (JIM DREW)
+                ;STA GP40_REG
+                ;LDA #$01		;(C256 - FLOPPY - DRVDEN1) - TBD Later, Floppy Stuff (JIM DREW)
+                ;STA GP41_REG
+                LDA #$01		;Default Value - C256 Doesn't use this IO Pin
+                STA GP42_REG
+                LDA #$01		;(C256 - INPUT PLL CLK INTERRUPT) Default Value - Will keep it as an input for now, no real usage for now
+                STA GP43_REG
+                LDA #$05		;(C256 - UART2 - RI2) - Input - Set Secondary Function
+                STA GP50_REG
                 LDA #$05		;(C256 - UART2 - DCD2) - Input - Set Secondary Function
                 STA GP51_REG
                 LDA #$05		;(C256 - UART2 - RXD2) - Input - Set Secondary Function
@@ -1938,139 +1791,8 @@ IINITSUPERIO	  PHD
                 STA LED2_REG
                 setal
                 PLA
-	        PLP
-		PLD
-                RTL
-
-;
-; IINITKEYBOARD
-; Author: Stefany
-; Note: We assume that A & X are 16Bits Wide when entering here.
-; Initialize the Keyboard Controler (8042) in the SuperIO.
-; Inputs:
-;   None
-; Affects:
-;   Carry (c)
-IINITKEYBOARD	PHD
-		PHP
-		PHA
-		PHX
-
-                setas				;just make sure we are in 8bit mode
-                setxl 					; Set 8bits
-
-				        ; Setup Foreground LUT First
-                CLC
-
-                JSR Poll_Inbuf ;
-;; Test AA
-		LDA #$AA			;Send self test command
-		STA KBD_CMD_BUF
-								;; Sent Self-Test Code and Waiting for Return value, it ought to be 0x55.
-                JSR Poll_Outbuf ;
-
-                LDA KBD_OUT_BUF		;Check self test result
-                CMP #$55
-                BEQ	passAAtest
-
-                BRL initkb_loop_out
-
-passAAtest
-.if TEST_KEYBOARD
-  LDX #<>pass_tst0xAAmsg
-  JSL IPRINT      ; print Message
-.endif
-;; Test AB
-		LDA #$AB			;Send test Interface command
-                STA KBD_CMD_BUF
-                JSR Poll_Outbuf ;
-		LDA KBD_OUT_BUF		;Display Interface test results
-		CMP #$00			;Should be 00
-		BEQ	passABtest
-                BRL initkb_loop_out
-
-passABtest      
-.if TEST_KEYBOARD
-  LDX #<>pass_tst0xABmsg
-  JSL IPRINT       ; print Message
-.endif
-
-;; Program the Keyboard & Enable Interrupt with Cmd 0x60
-                LDA #$60            ; Send Command 0x60 so to Enable Interrupt
-                STA KBD_CMD_BUF
-                JSR Poll_Inbuf ;
-;.if TARGET_SYS == SYS_C256_FMX
-                ;LDA #%01100001      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable
-                LDA #%01000011      ; Enable Interrupt - Translation from CODE 2 to CODE 1 Scan code is enable                
-;.else
-                ;LDA #%00101001      ; Enable Interrupt
-;.endif
-                ;LDA #%01001011      ; Enable Interrupt for Mouse and Keyboard
-                STA KBD_DATA_BUF
-                JSR Poll_Inbuf ;
-.if TEST_KEYBOARD                
-                LDX #<>pass_cmd0x60msg
-                JSL IPRINT       ; print Message
-.endif
-; Reset Keyboard
-                LDA #$FF      ; Send Keyboard Reset command
-                STA KBD_DATA_BUF
-                ; Must wait here;
-                LDX #$FFFF
-DLY_LOOP1       DEX
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                NOP
-                CPX #$0000
-                BNE DLY_LOOP1
-                JSR Poll_Outbuf ;
-
-                LDA KBD_OUT_BUF   ; Read Output Buffer
-
-.if TEST_KEYBOARD
-                LDX #<>pass_cmd0xFFmsg
-                JSL IPRINT       ; print Message
-.endif
-DO_CMD_F4_AGAIN
-                JSR Poll_Inbuf ;
-				        LDA #$F4			; Enable the Keyboard
-				        STA KBD_DATA_BUF
-                JSR Poll_Outbuf ;
-
-				        LDA KBD_OUT_BUF		; Clear the Output buffer
-                CMP #$FA
-                BNE DO_CMD_F4_AGAIN
-                ; Till We Reach this point, the Keyboard is setup Properly
-
-
-                ; Unmask the Keyboard interrupt
-                ; Clear Any Pending Interrupt
-                LDA @lINT_PENDING_REG1  ; Read the Pending Register &
-                AND #FNX1_INT00_KBD
-                STA @lINT_PENDING_REG1  ; Writing it back will clear the Active Bit
-                ; Disable the Mask
-                LDA @lINT_MASK_REG1
-                AND #~FNX1_INT00_KBD
-                STA @lINT_MASK_REG1
-
-                LDX #<>Success_kb_init
-                SEC
-                BCS InitKbSuccess
-
-initkb_loop_out ;LDX #<>Failed_kb_init
-InitKbSuccess   JSL IPRINT       ; print Message
-                setal 					; Set 16bits
-                setxl 					; Set 16bits
-
-                PLX
-                PLA
-				        PLP
-				        PLD
+	              PLP
+		            PLD
                 RTL
 
 Poll_Inbuf	    .as
@@ -2086,104 +1808,7 @@ Poll_Outbuf	    .as
                 CMP #OUT_BUF_FULL
                 BNE Poll_Outbuf
                 RTS
-;
-; IINIT_MOUSE
-; Author: Stefany
-; Note: We assume that A & X are 16Bits Wide when entering here.
-; Initialize the Keyboard Controler (8042) in the SuperIO.
-; Inputs:
-;   None
-; Affects:
-;   Carry (c)
-IINITMOUSE      PHD
-				        PHP
-				        PHA
-				        PHX
 
-                setas				;Set A 8Bits
-                setxl 			;Set XY 16Bits
-                CLC
-                LDX #$FFFF 
-DO_CMD_A9_AGAIN
-                JSR Poll_Inbuf
-                LDA #$A9          ; Tests second PS2 Channel
-                STA KBD_CMD_BUF
-                JSR Poll_Outbuf_Mouse_TimeOut ;
-                
-				        LDA KBD_OUT_BUF		; Clear the Output buffer
-                CMP #$00
-                BNE DO_CMD_A9_AGAIN
-            
-                LDA #$F6        ;Tell the mouse to use default settings
-                JSR MOUSE_WRITE
-                JSR MOUSE_READ ;***
-                ; Set the Mouse Resolution 1 Clicks for 1mm - For a 640 x 480, it needs to be the slowest
-                LDA #$E8
-                JSR MOUSE_WRITE
-                JSR MOUSE_READ ;***
-                LDA #$00
-                JSR MOUSE_WRITE
-                JSR MOUSE_READ ;***
-
-                LDA #$F4        ; Enable the Mouse
-                JSR MOUSE_WRITE
-                JSR MOUSE_READ ;***
-                ; Let's Clear all the Variables Necessary to Computer the Absolute Position of the Mouse
-                LDA #$00
-                STA MOUSE_PTR
-
-                LDA @lINT_PENDING_REG0  ; Read the Pending Register &
-                AND #FNX0_INT07_MOUSE
-                STA @lINT_PENDING_REG0  ; Writing it back will clear the Active Bit
-                LDA @lINT_MASK_REG0
-                AND #~FNX0_INT07_MOUSE
-                STA @lINT_MASK_REG0
-                setxl 					; Set 16bits
-                LDX #<>Success_ms_init                 
-                BRA InitMsSuccess
-
-initms_loop_out LDX #<>Failed_ms_init
-InitMsSuccess   ;JSL IPRINT       ; print Message                   
-                setal 					; Set 16bits
-                PLX
-                PLA
-		PLP
-		PLD
-                RTL
-
-MOUSE_WRITE     .as
-                PHA
-                JSR Poll_Inbuf    ; Test bit $01 (if 2, Full)
-                LDA #$D4
-                STA KBD_CMD_BUF   ; KBD_CMD_BUF		= $AF1064
-                JSR Poll_Inbuf
-                PLA
-                STA KBD_DATA_BUF  ; KBD_DATA_BUF	= $AF1060
-                RTS
-
-MOUSE_READ      .as
-                JSR Poll_Outbuf_Mouse   ; Test bit $01 (if 1, Full)
-                LDA KBD_INPT_BUF  ; KBD_INPT_BUF	= $AF1060
-                RTS
-
-Poll_Outbuf_Mouse	    .as
-                LDA STATUS_PORT
-                AND #OUT_BUF_FULL ; Test bit $01 (if 1, Full)
-                CMP #OUT_BUF_FULL
-                BNE Poll_Outbuf_Mouse
-                RTS
-
-Poll_Outbuf_Mouse_TimeOut .as
-                LDA STATUS_PORT
-                AND #OUT_BUF_FULL ; Test bit $01 (if 1, Full)
-                CMP #OUT_BUF_FULL
-                BEQ Poll_OutbufWeAreDone
-                DEX 
-                CPX #$0000
-                BNE Poll_Outbuf_Mouse_TimeOut
-                BRA initms_loop_out
-Poll_OutbufWeAreDone:
-                RTS
 
 
 ; Author: Stefany
@@ -2769,7 +2394,10 @@ IRQHANDLESTUB   RTL
 .include "Libraries/ide_library.asm"              ; Library code for the IDE interface
 .include "Libraries/Ethernet_Init_library.asm"    ; This is a simple Init of the Controller, by Seting the MAC and enabling the RX and TX
 .include "Libraries/EXP-C200_EVID_Library.asm"
-.include "ansi_screens.asm"                       ; Include the ANSI text screen common code
+.include "drivers/ansi_screens.asm"               ; Include the ANSI text screen common code
+.include "drivers/kbd_driver.asm"                 ; Include the keyboard reading code
+.include "drivers/mouse_driver.asm"               ; Include the mouse driver code
+;.include "keyboard.asm"
 
 ;
 ; Greeting message and other kernel boot data
@@ -3479,6 +3107,7 @@ SS_U_TXT
 ;
 * = START_OF_FONT
 FONT_4_BANK0
+;.binary "FONT/CBM-ASCII_new_8x8.bin", 0, 2048
 .binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
 FONT_4_SPLASH 
 .binary "FONT/quadrotextFONT.bin"

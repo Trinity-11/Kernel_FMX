@@ -5,348 +5,191 @@
 ;////////////////////////////////////////////////////////////////////////////
 ;////////////////////////////////////////////////////////////////////////////
 ;////////////////////////////////////////////////////////////////////////////
-IRQ_HANDLER
-;                LDX #<>irq_Msg
-;                JSL IPRINT       ; print the Init
+
+;
+; Macro to test the accumulator for a bit. If it is set, clear the bit in
+; the pending interrupt register provided, and JSL to the provided handler
+;
+; NOTE: Accumulator must be 8-bits only!
+;
+IRQ_DISPATCH    .macro irq_bit, irq_pending, handler
+                .as
+                BIT #\irq_bit           ; Check to see if the bit is set
+                BEQ continue            ; If not: skip the rest of this macro
+
+                AND #\irq_bit           ; Mask out all other pending interrupts
+                STA @l \irq_pending     ; Drop the pending bit for this interrupt
+                JSL \handler            ; And call its handler
+                setas                   ; Make sure the accumulator is 8-bits in case the handler screwed it up
+continue
+                .endm
+
+;
+; Set the handler for an interrupt vector
+;
+; Inputs:
+;   A = the number of the interrupt vector to change:
+;       A[7]..A[4] = the interrupt block (0, 1, 2)
+;       A[3]..A[0] = the interrupt number within the block (0 -- 7)
+;   Y:X = the address of the interrupt handler:
+;       Y[7]..Y[0] = the program bank
+;       X[15]..X[0] = the address within the bank
+;
+; Outputs: nothing
+;
+ISETHANDLER     .proc
+                PHB
+                PHP
+
+                setdbr 0                ; We will work in bank 0
+
+                setas
+                setxl
+                PHA                     ; Save the interrupt number
+                PHY                     ; Save the handler's bank
+                PHX                     ; Save the handler's address
+                PEA #0                  ; Make room for the offset to the vector
+
+LOCALS          .virtual 1,S
+l_vector        .word ?                 ; Address of vector in bank 0
+l_handler       .dword ?                ; The address of the handler (only 24 bits, really)
+l_number        .byte ?                 ; The interrupt number
+                .endv
+
+                AND #$30                ; Isolate the block #
+                ASL A                   ; Multiply by 2 to get the offset to the first vector of the block
+                STA l_vector
+
+                LDA l_number            ; Get the number bank
+                AND #$07                ; Isolate the interrupt number
+                ASL A                   ; Multiply by four to get the first byte of that interrupt's vector
+                ASL A
+                ORA l_vector            ; Add it to the offset to the block
+                STA l_vector            ; Store back to the vector address
+
+                CLC                     ; Add the address of the start of the interrupt vector table
+                LDA #<VEC_INT_START
+                ADC l_vector
+                STA l_vector
+                LDA #>VEC_INT_START
+                ADC l_vector+1
+                STA l_vector+1
+
+                SEI                     ; Disable the interrupts while we update the vector
+
+                LDY #0
+                LDA #$5C                ; Opcode for JML
+                STA (l_vector),Y        ; Make sure the first byte is a JML instruction
+
+                INY                     ; Move to the low byte of the vector address
+                LDA l_handler
+                STA (l_vector),Y        ; And save it to the vector
+
+                INY                     ; Move to the high byte of the vector address
+                LDA l_handler+1
+                STA (l_vector),Y        ; And save it to the vector
+
+                INY                     ; Move to the bank of the vector address
+                LDA l_handler+2
+                STA (l_vector),Y        ; And save it to the vector
+
+                setal
+                CLC                     ; Clean up the locals off the stack
+                TSC
+                ADC #SIZE(LOCALS)
+                TCS
+
+                PLP
+                PLB
+                RTL
+                .pend
+
+;
+; Handler for IRQs... this checks for pending interrupt status bits in the interrupt controller.
+; If it finds a particular interrupt has been triggered, it clears the interrupt pending flag
+; for that interrupt and calls it associated interrupt handler through the interrupt handler vector
+; table located in page $0017xx near the kernel routine jump table.
+;
+; Programs wanting to take control of an interrupt, should patch their handlers into that vector
+; table, although of course they can just replace this handler routine, if they desire.
+;
+IRQ_HANDLER     .proc
+                PHP
                 setas 					; Set 8bits
-                ; Go Service the Start of Frame Interrupt Interrupt
-                ; IRQ0
-                ; Start of Frame Interrupt
-                LDA @lINT_PENDING_REG0
-                CMP #$00
-                BEQ CHECK_PENDING_REG1
 
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT00_SOF
-                CMP #FNX0_INT00_SOF
-                BNE SERVICE_NEXT_IRQ1
-                STA @lINT_PENDING_REG0
-                ; Start of Frame Interrupt
-                JSR SOF_INTERRUPT
+                ;
+                ; Interrupt Block 0
+                ;
 
-                ;IRQ3 - Not Implemented Yet
-                ;IRQ5 - Not Tested Yet
-                ;IRQ6
-                setas
+                LDA @l INT_PENDING_REG0     ; Get the block 0 pending interrupts
+                BNE process_reg0
+                BRL CHECK_PENDING_REG1      ; If nothing: skip to block 1
 
-SERVICE_NEXT_IRQ1
-                ; SOL Interrupt
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT01_SOL
-                CMP #FNX0_INT01_SOL
-                BNE SERVICE_NEXT_IRQ2
-                STA @lINT_PENDING_REG0
-                ; Timer 0
-                JSR SOL_INTERRUPT
+process_reg0    IRQ_DISPATCH FNX0_INT00_SOF, INT_PENDING_REG0, VEC_INT00_SOF
+                IRQ_DISPATCH FNX0_INT01_SOL, INT_PENDING_REG0, VEC_INT01_SOL
+                IRQ_DISPATCH FNX0_INT02_TMR0, INT_PENDING_REG0, VEC_INT02_TMR0
+                IRQ_DISPATCH FNX0_INT03_TMR1, INT_PENDING_REG0, VEC_INT03_TMR1
+                IRQ_DISPATCH FNX0_INT04_TMR2, INT_PENDING_REG0, VEC_INT04_TMR2
+                IRQ_DISPATCH FNX0_INT05_RTC, INT_PENDING_REG0, VEC_INT05_RTC
+                IRQ_DISPATCH FNX0_INT06_FDC, INT_PENDING_REG0, VEC_INT06_FDC
+                IRQ_DISPATCH FNX0_INT07_MOUSE, INT_PENDING_REG0, VEC_INT07_MOUSE
 
-SERVICE_NEXT_IRQ2
-                ; Timer0 Interrupt
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT02_TMR0
-                CMP #FNX0_INT02_TMR0
-                BNE SERVICE_NEXT_IRQ3
-                STA @lINT_PENDING_REG0
-                ; Timer 0
-                JSR TIMER0_INTERRUPT
+                ;
+                ; Interrupt Block 1
+                ;
 
-SERVICE_NEXT_IRQ3
-                ; Timer1 Interrupt
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT03_TMR1
-                CMP #FNX0_INT03_TMR1
-                BNE SERVICE_NEXT_IRQ4
-                STA @lINT_PENDING_REG0
-                ; Timer 1
-                JSR TIMER1_INTERRUPT
-
-SERVICE_NEXT_IRQ4
-                ; Timer2 Interrupt
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT04_TMR2
-                CMP #FNX0_INT04_TMR2
-                BNE SERVICE_NEXT_IRQ6
-                STA @lINT_PENDING_REG0
-                ; Timer 2
-                JSR TIMER2_INTERRUPT
-
-                ;IRQ6
-                setas
-SERVICE_NEXT_IRQ6 ; FDC Interrupt
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT06_FDC
-                CMP #FNX0_INT06_FDC
-                BNE SERVICE_NEXT_IRQ7
-                STA @lINT_PENDING_REG0
-                ; Floppy Disk Controller
-                JSR FDC_INTERRUPT
-
-                ;IRQ7
-                setas
-SERVICE_NEXT_IRQ7 ; Mouse IRQ
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT07_MOUSE
-                CMP #FNX0_INT07_MOUSE
-                BNE CHECK_PENDING_REG1
-                STA @lINT_PENDING_REG0
-                ; Mouse Interrupt
-                JSR MOUSE_INTERRUPT
-
-; Second Block of 8 Interrupts
-                ;IRQ8
 CHECK_PENDING_REG1
-                setas
-                LDA @lINT_PENDING_REG1
-                CMP #$00
+                LDA @l INT_PENDING_REG1
+                BNE process_reg1
+                BRL CHECK_PENDING_REG2
+
+process_reg1    IRQ_DISPATCH FNX1_INT00_KBD, INT_PENDING_REG1, VEC_INT10_KBD
+                IRQ_DISPATCH FNX1_INT01_COL0, INT_PENDING_REG1, VEC_INT11_COL0
+                IRQ_DISPATCH FNX1_INT02_COL1, INT_PENDING_REG1, VEC_INT12_COL1
+                IRQ_DISPATCH FNX1_INT03_COM2, INT_PENDING_REG1, VEC_INT13_COM2
+                IRQ_DISPATCH FNX1_INT04_COM1, INT_PENDING_REG1, VEC_INT14_COM1
+                IRQ_DISPATCH FNX1_INT05_MPU401, INT_PENDING_REG1, VEC_INT15_MIDI
+                IRQ_DISPATCH FNX1_INT06_LPT, INT_PENDING_REG1, VEC_INT16_LPT
+                IRQ_DISPATCH FNX1_INT07_SDCARD, INT_PENDING_REG1, VEC_INT17_SDC
+
+                ;
+                ; Interrupt Block 2
+                ;
+
+CHECK_PENDING_REG2
+                LDA @l INT_PENDING_REG2
+                BNE process_reg2
+                BRL CHECK_PENDING_REG3
+
+process_reg2    IRQ_DISPATCH FNX2_INT00_OPL3, INT_PENDING_REG1, VEC_INT20_OPL
+                IRQ_DISPATCH FNX2_INT01_GABE_INT0, INT_PENDING_REG1, VEC_INT21_GABE0
+                IRQ_DISPATCH FNX2_INT02_GABE_INT1, INT_PENDING_REG1, VEC_INT22_GABE1
+                IRQ_DISPATCH FNX2_INT03_VDMA, INT_PENDING_REG1, VEC_INT23_VDMA
+                IRQ_DISPATCH FNX2_INT04_COL2, INT_PENDING_REG1, VEC_INT24_COL2
+                IRQ_DISPATCH FNX2_INT05_GABE_INT2, INT_PENDING_REG1, VEC_INT25_GABE2
+                IRQ_DISPATCH FNX2_INT06_EXT, INT_PENDING_REG1, VEC_INT26_EXT
+                IRQ_DISPATCH FNX2_INT07_SDCARD_INS, INT_PENDING_REG1, VEC_INT17_SDINS
+
+                ;
+                ; Interrupt Block 3
+                ;
+
+CHECK_PENDING_REG3
+                LDA @l INT_PENDING_REG3
                 BEQ EXIT_IRQ_HANDLE
 
+                IRQ_DISPATCH FNX3_INT00_OPN2, INT_PENDING_REG1, VEC_INT30_OPN2
+                IRQ_DISPATCH FNX3_INT01_OPM, INT_PENDING_REG1, VEC_INT31_OPM
+                IRQ_DISPATCH FNX3_INT02_IDE, INT_PENDING_REG1, VEC_INT32_IDE
 
-SERVICE_NEXT_IRQ8 ; Keyboard Interrupt
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT00_KBD
-                CMP #FNX1_INT00_KBD
-                BNE SERVICE_NEXT_IRQ11
-                STA @lINT_PENDING_REG1
-                ; Keyboard Interrupt
-
-                PHB
-                PHD
-                JSR KEYBOARD_INTERRUPT
-                PLD
-                PLB
-
-                ;IRQ9 - Not Implemented Yet
-                ;IRQ10 - Not Implemented Yet
-                ;IRQ11
-                setas
-SERVICE_NEXT_IRQ11
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT03_COM2
-                CMP #FNX1_INT03_COM2
-                BNE SERVICE_NEXT_IRQ12
-                STA @lINT_PENDING_REG1
-                ; Serial Port Com2 Interrupt
-                JSR COM2_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
-                ;IRQ12
-                setas
-SERVICE_NEXT_IRQ12
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT04_COM1
-                CMP #FNX1_INT04_COM1
-                BNE SERVICE_NEXT_IRQ13
-                STA @lINT_PENDING_REG1
-                ; Serial Port Com1 Interrupt
-                JSR COM1_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
-                ;IRQ13
-                setas
-SERVICE_NEXT_IRQ13
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT05_MPU401
-                CMP #FNX1_INT05_MPU401
-                BNE SERVICE_NEXT_IRQ14
-                STA @lINT_PENDING_REG1
-                ; Serial Port Com1 Interrupt
-                JSR MPU401_INTERRUPT
-                ;BRA EXIT_IRQ_HANDLE
-                ;IRQ14
-                setas
-SERVICE_NEXT_IRQ14
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT06_LPT
-                CMP #FNX1_INT06_LPT
-                BNE EXIT_IRQ_HANDLE
-                STA @lINT_PENDING_REG1
-                ; Serial Port Com1 Interrupt
-                JSR LPT1_INTERRUPT
 EXIT_IRQ_HANDLE
                 ; Exit Interrupt Handler
-                setaxl
+                PLP
                 RTL
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Start of Frame Interrupt
-; /// 60Hz, 16ms Cyclical Interrupt
-; ///
-; ///////////////////////////////////////////////////////////////////
-SOF_INTERRUPT
-                setas
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT00_SOF
-                STA @lINT_PENDING_REG0
-                JSL VEC_INT00_SOF
-                RTS
+                .pend
 
 ;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Start of Line Interrupt
-; /// 60Hz, 16ms Cyclical Interrupt
-; ///
-; ///////////////////////////////////////////////////////////////////
-SOL_INTERRUPT
-                
-                setas
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT01_SOL
-                STA @lINT_PENDING_REG0
+; Handler for NMI... we don't do anything here at the moment
+; 
+NMI_HANDLER     RTL
 
-                JSL VEC_INT01_SOL
-
-                RTS
-
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Timer 0 Interrupt
-; ///
-; ///////////////////////////////////////////////////////////////////
-TIMER0_INTERRUPT
-                setas
-
-                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-                ORA #TIMER0TRIGGER
-                STA @l TIMERFLAGS
-                
-                JSL VEC_INT02_TMR0
-
-                RTS
-
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Timer 1 Interrupt
-; ///
-; ///////////////////////////////////////////////////////////////////
-TIMER1_INTERRUPT
-                setas
-
-                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-                ORA #TIMER1TRIGGER
-                STA @l TIMERFLAGS
-                
-                JSL VEC_INT03_TMR1
-
-                RTS
-                
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Timer 2 Interrupt
-; ///
-; ///////////////////////////////////////////////////////////////////
-TIMER2_INTERRUPT
-                setas
-
-                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-                ORA #TIMER2TRIGGER
-                STA @l TIMERFLAGS
-
-                JSL VEC_INT04_TMR2
-                
-                RTS
-
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Mouse Interrupt
-; /// Desc: Basically Assigning the 3Bytes Packet to Vicky's Registers
-; ///       Vicky does the rest
-; ///////////////////////////////////////////////////////////////////
-MOUSE_INTERRUPT .as
-                setaxs
-
-                LDA @l MOUSE_PTR
-                TAX
-
-                LDA @l KBD_INPT_BUF
-                STA @lMOUSE_PTR_BYTE0, X
-                INX
-                CPX #$03
-                BNE EXIT_FOR_NEXT_VALUE
-                ; Create Absolute Count from Relative Input
-                LDA @l MOUSE_PTR_X_POS_L
-                STA @l MOUSE_POS_X_LO
-                LDA @l MOUSE_PTR_X_POS_H
-                STA @l MOUSE_POS_X_HI
-
-                LDA @l MOUSE_PTR_Y_POS_L
-                STA @l MOUSE_POS_Y_LO
-                LDA @l MOUSE_PTR_Y_POS_H
-                STA @l MOUSE_POS_Y_HI
-
-                setas
-                LDX #$00
-EXIT_FOR_NEXT_VALUE
-                TXA
-                STA @l MOUSE_PTR
-
-                setxl
-                RTS
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Floppy Controller
-; /// Desc: Interrupt for Data Rx/Tx or Process Commencement or Termination
-; ///
-; ///////////////////////////////////////////////////////////////////
-FDC_INTERRUPT   .as
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT06_FDC
-                STA @lINT_PENDING_REG0
-;; PUT YOUR CODE HERE
-                RTS
-;
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Serial Port COM2
-; /// Desc: Interrupt for Data Rx/Tx or Process Commencement or Termination
-; ///
-; ///////////////////////////////////////////////////////////////////
-COM2_INTERRUPT  .as
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT03_COM2
-                STA @lINT_PENDING_REG1
-;; PUT YOUR CODE HERE
-                RTS
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Serial Port COM1
-; /// Desc: Interrupt for Data Rx/Tx or Process Commencement or Termination
-; ///
-; ///////////////////////////////////////////////////////////////////
-COM1_INTERRUPT  .as
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT04_COM1
-                STA @lINT_PENDING_REG1
-;; PUT YOUR CODE HERE
-                RTS
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// MPU-401 (MIDI)
-; /// Desc: Interrupt for Data Rx/Tx
-; ///
-; ///////////////////////////////////////////////////////////////////
-MPU401_INTERRUPT  .as
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT05_MPU401
-                STA @lINT_PENDING_REG1
-;; PUT YOUR CODE HERE
-                RTS
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Parallel Port LPT1
-; /// Desc: Interrupt for Data Rx/Tx or Process Commencement or Termination
-; ///
-; ///////////////////////////////////////////////////////////////////
-LPT1_INTERRUPT  .as
-                LDA @lINT_PENDING_REG1
-                AND #FNX1_INT06_LPT
-                STA @lINT_PENDING_REG1
-;; PUT YOUR CODE HERE
-                RTS
-
-NMI_HANDLER
-                RTL
