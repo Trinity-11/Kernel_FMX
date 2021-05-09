@@ -1271,6 +1271,71 @@ ENCODE_CODE     .byte 1, 2, 3, 4, 5, 6      ; Insert, etc...
                 .byte 23, 24                ; F11 - F12
                 .pend
 
+;
+; Set the scan code translation tables.
+;
+; There are six translation tables. Each table is 128 bytes long, and they
+; must be arranged consecutively. Each table maps the make scan code (0 - 127) to an
+; ASCII or ISO-8859 character. For instance, the second position of a table will provide the
+; character for scan code $01 (ESC, usually), the third position will provide the character for
+; scan code $02 ('1', on US keyboards), and so on. The tables must be provided in the following
+; order:
+;
+;   UNMOD -- used when no lock key or modifier is in use
+;   SHIFT -- used when SHIFT is the only modifier
+;   CONTROL -- used when CONTROL is the only modifier
+;   LOCK -- used when CAPSLOCK is down but SHIFT is not
+;   LOCK+SHIFT -- used when CAPSLOCK is down and SHIFT is pressed
+;   CONTROL+SHIFT -- used when CONTROL and SHIFT are pressed together
+;
+; Note: for scan codes < $38, LOCK and LOCK+SHIFT will be consulted if CAPS lock is down.
+;       For scan codes >= $38, LOCK and LOCK+SHIFT will be consulted if NUM lock is down.
+;       Another way to look at that is that CAPS lock will be the LOCK modifier for keys on 
+;       the left side of the keyboard, and NUM lock will be the LOCK modifier for keys on the
+;       right side of the keyboard. Neither SHIFT nor CONTROL will be checked for the keys
+;       on the right side of the keyboard.
+;
+; Inputs:
+;   B:X = pointer to the first byte of the first translation table.
+;
+; Outputs:
+;   None
+;   
+KBD_SETTABLE    .proc
+                PHA
+                PHB
+                PHD
+                PHP
+
+                setdp <>KBD_VARS
+                setas
+
+                PHB                 ; Get the data bank into A
+                PLA
+
+                setal
+                AND #$00FF
+                STA #S_KBD_CONTROL.TBL_UNMOD+2,D
+                STA #S_KBD_CONTROL.TBL_SHIFT+2,D
+                STA #S_KBD_CONTROL.TBL_CTRL+2,D
+                STA #S_KBD_CONTROL.TBL_LOCK+2,D
+                STA #S_KBD_CONTROL.TBL_LOCK_SHIFT+2,D
+                STA #S_KBD_CONTROL.TBL_CTRL_SHIFT+2,D
+
+                STX #S_KBD_CONTROL.TBL_UNMOD,D
+                STX #S_KBD_CONTROL.TBL_SHIFT,D
+                STX #S_KBD_CONTROL.TBL_CTRL,D
+                STX #S_KBD_CONTROL.TBL_LOCK,D
+                STX #S_KBD_CONTROL.TBL_LOCK_SHIFT,D
+                STX #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
+
+                PLP
+                PLD
+                PLB
+                PLA
+                RTL
+                .pend
+
 ;;
 ;; Data
 ;;
@@ -1397,26 +1462,6 @@ SC_US_UNMOD     .byte $00, $1B, '1', '2', '3', '4', '5', '6'                    
                 .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
 
 ;
-; Table mapping keys modified by capslock (<=$37) or numlock (>$37)
-;
-SC_US_LOCK      .byte $00, $1B, '1', '2', '3', '4', '5', '6'                        ; $00 - $07
-                .byte '7', '8', '9', '0', '-', '=', $08, $09                        ; $08 - $0F
-                .byte 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I'                        ; $10 - $17
-                .byte 'O', 'P', '[', ']', $0D, $00, 'A', 'S'                        ; $18 - $1F
-                .byte 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';'                        ; $20 - $27
-                .byte $27, '`', $00, '\', 'Z', 'X', 'C', 'V'                        ; $28 - $2F
-                .byte 'B', 'N', 'M', ',', '.', '/', $00, $00                        ; $30 - $37
-                .byte $00, ' ', $00, $8A, $8B, $8C, $8D, $8E                        ; $38 - $3F
-                .byte $8F, $90, $91, $92, $93, $00, $00, '7'                        ; $40 - $47
-                .byte '8', '9', '-', '4', '5', '6', '+', '1'                        ; $48 - $4F
-                .byte '2', '3', '0', '.', $00, $00, $00, $94                        ; $50 - $57
-                .byte $95, $00, $00, $00, $00, $00, $00, $00                        ; $58 - $5F
-                .byte $00, $00, $81, $80, $84, $82, $83, $85                        ; $60 - $67
-                .byte $86, $89, $87, $88, '/', $0D, $00, $00                        ; $68 - $6F
-                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $70 - $77
-                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
-
-;
 ; Table mapping shifted scancodes to ASCII characters
 ;
 SC_US_SHFT      .byte $00, $1B, '!', '@', '#', '$', '%', '^'                        ; $00 - $07
@@ -1437,26 +1482,6 @@ SC_US_SHFT      .byte $00, $1B, '!', '@', '#', '$', '%', '^'                    
                 .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
 
 ;
-; Table mapping scancodes to ASCII characters when CAPSLOCK and SHIFT are both active
-;
-SC_US_LOCK_SHFT .byte $00, $1B, '!', '@', '#', '$', '%', '^'                        ; $00 - $07
-                .byte '&', '*', '(', ')', '_', '+', $08, $09                        ; $08 - $0F
-                .byte 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i'                        ; $10 - $17
-                .byte 'o', 'p', '{', '}', $0A, $00, 'a', 's'                        ; $18 - $1F
-                .byte 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':'                        ; $20 - $27
-                .byte $22, '~', $00, '|', 'z', 'x', 'c', 'v'                        ; $28 - $2F
-                .byte 'b', 'n', 'm', '<', '>', '?', $00, $00                        ; $30 - $37
-                .byte $00, ' ', $00, $00, $00, $00, $00, $00                        ; $38 - $3F
-                .byte $8F, $90, $91, $92, $93, $00, $00, '7'                        ; $40 - $47
-                .byte '8', '9', '-', '4', '5', '6', '+', '1'                        ; $48 - $4F
-                .byte '2', '3', '0', '.', $00, $00, $00, $94                        ; $50 - $57
-                .byte $95, $00, $00, $00, $00, $00, $00, $00                        ; $58 - $5F
-                .byte $00, $00, $81, $80, $84, $82, $83, $85                        ; $60 - $67
-                .byte $86, $89, $87, $88, '/', $0D, $00, $00                        ; $68 - $6F
-                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $70 - $77
-                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
-
-;
 ; Table mapping scancodes modified by CTRL to ASCII characters
 ;
 SC_US_CTRL      .byte $00, $1B, '1', '2', '3', '4', '5', $1E                        ; $00 - $07
@@ -1470,6 +1495,47 @@ SC_US_CTRL      .byte $00, $1B, '1', '2', '3', '4', '5', $1E                    
                 .byte $8F, $90, $91, $92, $93, $00, $00, $80                        ; $40 - $47
                 .byte $86, $84, '-', $89, '5', $88, '+', $83                        ; $48 - $4F
                 .byte $87, $85, $81, $82, $00, $00, $00, $94                        ; $50 - $57
+                .byte $95, $00, $00, $00, $00, $00, $00, $00                        ; $58 - $5F
+                .byte $00, $00, $81, $80, $84, $82, $83, $85                        ; $60 - $67
+                .byte $86, $89, $87, $88, '/', $0D, $00, $00                        ; $68 - $6F
+                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $70 - $77
+                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
+
+
+;
+; Table mapping keys modified by capslock (<=$37) or numlock (>$37)
+;
+SC_US_LOCK      .byte $00, $1B, '1', '2', '3', '4', '5', '6'                        ; $00 - $07
+                .byte '7', '8', '9', '0', '-', '=', $08, $09                        ; $08 - $0F
+                .byte 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I'                        ; $10 - $17
+                .byte 'O', 'P', '[', ']', $0D, $00, 'A', 'S'                        ; $18 - $1F
+                .byte 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';'                        ; $20 - $27
+                .byte $27, '`', $00, '\', 'Z', 'X', 'C', 'V'                        ; $28 - $2F
+                .byte 'B', 'N', 'M', ',', '.', '/', $00, $00                        ; $30 - $37
+                .byte $00, ' ', $00, $8A, $8B, $8C, $8D, $8E                        ; $38 - $3F
+                .byte $8F, $90, $91, $92, $93, $00, $00, '7'                        ; $40 - $47
+                .byte '8', '9', '-', '4', '5', '6', '+', '1'                        ; $48 - $4F
+                .byte '2', '3', '0', '.', $00, $00, $00, $94                        ; $50 - $57
+                .byte $95, $00, $00, $00, $00, $00, $00, $00                        ; $58 - $5F
+                .byte $00, $00, $81, $80, $84, $82, $83, $85                        ; $60 - $67
+                .byte $86, $89, $87, $88, '/', $0D, $00, $00                        ; $68 - $6F
+                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $70 - $77
+                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
+
+;
+; Table mapping scancodes to ASCII characters when CAPSLOCK and SHIFT are both active
+;
+SC_US_LOCK_SHFT .byte $00, $1B, '!', '@', '#', '$', '%', '^'                        ; $00 - $07
+                .byte '&', '*', '(', ')', '_', '+', $08, $09                        ; $08 - $0F
+                .byte 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i'                        ; $10 - $17
+                .byte 'o', 'p', '{', '}', $0A, $00, 'a', 's'                        ; $18 - $1F
+                .byte 'd', 'f', 'g', 'h', 'j', 'k', 'l', ':'                        ; $20 - $27
+                .byte $22, '~', $00, '|', 'z', 'x', 'c', 'v'                        ; $28 - $2F
+                .byte 'b', 'n', 'm', '<', '>', '?', $00, $00                        ; $30 - $37
+                .byte $00, ' ', $00, $00, $00, $00, $00, $00                        ; $38 - $3F
+                .byte $8F, $90, $91, $92, $93, $00, $00, '7'                        ; $40 - $47
+                .byte '8', '9', '-', '4', '5', '6', '+', '1'                        ; $48 - $4F
+                .byte '2', '3', '0', '.', $00, $00, $00, $94                        ; $50 - $57
                 .byte $95, $00, $00, $00, $00, $00, $00, $00                        ; $58 - $5F
                 .byte $00, $00, $81, $80, $84, $82, $83, $85                        ; $60 - $67
                 .byte $86, $89, $87, $88, '/', $0D, $00, $00                        ; $68 - $6F

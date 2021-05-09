@@ -107,7 +107,8 @@ F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
 F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 
 TESTBREAK       JML KBD_TEST_BREAK  ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
-
+SETTABLE        JML KBD_SETTABLE    ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
+READVRAM        JML IREADVRAM       ; Read a byte from video RAM at B:X
 .here
 
 ;

@@ -1617,6 +1617,33 @@ IINITTILEMODE
 
                 RTL
 
+;
+; Read a byte out of video RAM.
+; Waits until the byte is available in Vicky's video RAM queue
+;
+; Inputs:
+;   B:X = pointer to the address to read
+;
+; Outputs:
+;   A = the data at that address in video RAM.
+;
+IREADVRAM       .proc
+                PHP
+                setas
+
+                LDA #0,B,X                      ; Request the byte
+
+                setal
+wait_loop       LDA @l VMEM2CPU_Fifo_Count_LO   ; Wait for the FIFO to have data
+                BIT #$8000
+                BNE wait_loop
+
+                setas
+                LDA @l VMEM2CPU_Data_Port
+
+                PLP
+                RTL
+                .pend
 
 INOP            RTL  
 

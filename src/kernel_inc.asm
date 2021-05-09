@@ -76,6 +76,8 @@ F_COPY           = $001130 ; Copy a file
 F_ALLOCFD        = $001134 ; Allocate a file descriptor
 F_FREEFD         = $001138 ; Free a file descriptor
 TESTBREAK        = $00113C ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
+SETTABLE         = $001140 ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
+READVRAM         = $001144 ; Read a byte from video RAM at B:X
 
 ;
 ; Interrupt Vector Table
