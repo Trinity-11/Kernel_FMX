@@ -210,6 +210,7 @@ LetsMoveOn:
             BEQ Erase_2Lines;
             CMP #$02
             BEQ Erase_2Lines;
+
             RTS
 
 HighNibblerBCD: .proc 

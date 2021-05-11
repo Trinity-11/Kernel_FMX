@@ -22,6 +22,7 @@ CURCOLOR            .byte ?     ; Color of next character to be printed to the s
 COLORPOS            .long ?     ; Address of cursor's position in the color matrix
 COLORBEGIN          .long ?     ; Address of the first byte of the color matrix for this screen
 TMPPTR1             .dword ?    ; Temporary pointer
+PRESENT             .byte ?     ; Screen is present on the machine (EVID only)
 STATE               .byte ?     ; State of the escape code parser
 CONTROL             .byte ?     ; Control bit
 ARGC                .byte ?     ; The number of arguments provided by the escape sequence (max 2)
@@ -81,6 +82,8 @@ ANSI_INIT           .proc
                     LDY #1
                     JSL INIT_SCREEN_Y               ; Initialize the EVID screen variables
                     BRA done
+
+                    BRK
 
 no_evid             setas
                     LDA #0                          ; Mark that there is no EVID present
@@ -211,29 +214,37 @@ color_address       .dword CS_COLOR_MEM_PTR, EVID_COLOR_MEM
 ; Set the sizes of the text screens based on their Vicky and EVID (if installed) registers
 ;
 ANSI_SETSIZES       .proc
+                    PHA
+                    PHX
+                    PHY
                     PHD
+                    PHP
 
-                    setasx
+                    setaxs
                     LDA @l CHAN_OUT                 ; Save the current output channel
                     PHA
 
                     LDA #CHAN_CONSOLE               ; Set the sizes for the main screen
                     STA @l CHAN_OUT
                     JSL ANSI_SETDEVICE              ; Set the DP to the device's record
-                    LDY #CHAN_CONSOLE
+                    LDY #0
                     JSL ANSI_SETSIZE_Y              ; Set the sizes for that device
 
                     LDA #CHAN_EVID                  ; Set the sizes for the EVID screen
                     STA @l CHAN_OUT
                     JSL ANSI_SETDEVICE              ; Set the DP to the device's record
                     BCS done                        ; Not present, just return
-                    LDY #CHAN_EVID
+                    LDY #1
                     JSL ANSI_SETSIZE_Y              ; Set the sizes for that device
 
 done                PLA
                     STA @l CHAN_OUT                 ; Restore the output channel
 
+                    PLP
                     PLD
+                    PLY
+                    PLX
+                    PLA
                     RTL
                     .pend
 
@@ -259,11 +270,11 @@ resolution          AND #$03                            ; Mask off the resolutio
                     TAX                                 ; Index to the col/line count in X
 
                     setal
-                    LDA cols_by_res,X                   ; Get the number of columns
+                    LDA @l cols_by_res,X                ; Get the number of columns
                     STA #S_ANSI_VARS.COLS_PER_LINE,D    ; This is how many columns there are per line in the memory
                     STA #S_ANSI_VARS.COLS_VISIBLE,D     ; This is how many would be visible with no border
 
-                    LDA lines_by_res,X                  ; Get the number of lines
+                    LDA @l lines_by_res,X               ; Get the number of lines
                     STA #S_ANSI_VARS.LINES_MAX,D        ; This is the total number of lines in memory
                     STA #S_ANSI_VARS.LINES_VISIBLE,D    ; This is how many lines would be visible with no border
 
@@ -281,9 +292,9 @@ border              BIT #Border_Ctrl_Enable
                     CPY #0                              ; Is our target screen 0?
                     BEQ vky_border_size                 ; Yes: get the border size from Vicky
                     LDA @l EVID_BORDER_X_SIZE           ; No: Get the horizontal border width from EVID
-                    BRA border_size
+                    BRA get_border_x_size
 vky_border_size     LDA @l BORDER_X_SIZE                ; Get the horizontal border width from Vicky
-border_size         AND #$3F
+get_border_x_size   AND #$3F
                     BIT #$03                            ; Check the lower two bits... indicates a partial column is eaten
                     BNE frac_width
 
@@ -315,12 +326,14 @@ adjust_width        setal
                     SBC #S_ANSI_VARS.TMPPTR1,D
                     STA #S_ANSI_VARS.COLS_VISIBLE,D
 
+                    setas
                     CPY #0                              ; Is our target screen 0?
                     BEQ vky_border_y_size               ; Yes: get the border Y size from Vicky
-                    LDA @l EVID_BORDER_X_SIZE           ; No: Get the vertical border width from EVID
-                    BRA border_y_size
+                    LDA @l EVID_BORDER_Y_SIZE           ; No: Get the vertical border width from EVID
+                    BRA get_border_y_size
 vky_border_y_size   LDA @l BORDER_Y_SIZE                ; Get the vertical border width from Vicky
-border_y_size       AND #$3F
+
+get_border_y_size   AND #$3F
                     BIT #$03                            ; Check the lower two bits... indicates a partial column is eaten
                     BNE frac_height
 

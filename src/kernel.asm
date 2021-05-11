@@ -133,7 +133,6 @@ CLEAR_MEM_LOOP
                 STA @lINT_MASK_REG3
 
                 JSL INITRTC               ; Initialize the RTC
-                JSL ANSI_INIT             ; Initialize the ANSI screen driver
 
                 setas
                 ; Here we check for Expansion Card and Init them soon in the process
@@ -197,6 +196,52 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 AND #$FC
                 STA @L MASTER_CTRL_REG_H ; Set it to 640x480 for real
 
+                ; Set the default I/O devices to the screen and keyboard
+                LDA #0
+                JSL SETIN
+                JSL SETOUT
+
+                ; Initialize the ANSI screen driver
+                JSL ANSI_INIT
+
+                JSL SETSIZES
+
+;                 setas
+;                 LDA @l SCREENBEGIN+2
+;                 JSL PRINTAH
+;                 setal
+;                 LDA @l SCREENBEGIN
+;                 JSL PRINTAH
+
+;                 LDA #' '
+;                 JSL PUTC
+
+;                 LDA @l COLS_VISIBLE
+;                 JSL PRINTAH
+
+;                 LDA #' '
+;                 JSL PUTC
+                
+;                 LDA @l COLS_PER_LINE
+;                 JSL PRINTAH 
+
+;                 LDA #' '
+;                 JSL PUTC 
+
+;                 LDA @l LINES_VISIBLE
+;                 JSL PRINTAH
+
+;                 LDA #' '
+;                 JSL PUTC 
+                
+;                 LDA @l LINES_MAX
+;                 JSL PRINTAH  
+
+;                 JSL PRINTCR
+
+; lock            NOP
+;                 BRA lock
+
                 ;Init CODEC
                 JSL INITCODEC
                 ; Init Suprt IO (Keyboard/Floppy/Etc...)
@@ -206,12 +251,13 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
 .endif 
                 ; Init GAMMA Table
                 JSL INITGAMMATABLE
+                
                 ; Init All the Graphic Mode Look-up Table (by default they are all Zero)
                 JSL INITALLLUT
-                ; Initialize the Character Color Foreground/Background LUT First
-                JSL INITCHLUT
+
                 ; Initialize the Mouse Pointer Graphic
                 JSL INITMOUSEPOINTER  
+                
                 ; Go Enable and Setup the Cursor's Position
                 JSL INITCURSOR
 
@@ -224,10 +270,6 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 JSL UART_SELECT
                 JSL UART_INIT
 .endif
-                ; Set the default I/O devices to the screen and keyboard
-                LDA #0
-                JSL SETIN
-                JSL SETOUT
 
                 setal
                 setdp 0
@@ -235,26 +277,27 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 JSL INITKEYBOARD      ; INITKEYBOARD  ; KBD_INIT
                 JSL INITMOUSE
 
-                setas
-                setxl
-                LDA #$9F              ; Channel Two - No Atteniation
-                STA $AFF100
-                LDA #$BF              ; Channel Two - No Atteniation
-                STA $AFF100
-                LDA #$DF              ; Channel Two - No Atteniation
-                STA $AFF100
-                LDA #$FF              ; Channel Two - No Atteniation
-                STA $AFF100
-                LDA #$83              ; Channel Zero - No Atteniation
-                STA $AFF100
-                LDA #$12              ; Channel Zero - No Atteniation
-                STA $AFF100
-                LDA #$90              ; Channel One - No Atteniation
-                STA $AFF100
-                LDX #16384            ; 400ms
-                JSL ILOOP_MS
-                LDA #$9F              ; Channel Two - No Atteniation
-                STA $AFF100
+                ; setas
+                ; setxl
+                ; LDA #$9F              ; Channel Two - No Atteniation
+                ; STA $AFF100
+                ; LDA #$BF              ; Channel Two - No Atteniation
+                ; STA $AFF100
+                ; LDA #$DF              ; Channel Two - No Atteniation
+                ; STA $AFF100
+                ; LDA #$FF              ; Channel Two - No Atteniation
+                ; STA $AFF100
+                ; LDA #$83              ; Channel Zero - No Atteniation
+                ; STA $AFF100
+                ; LDA #$12              ; Channel Zero - No Atteniation
+                ; STA $AFF100
+                ; LDA #$90              ; Channel One - No Atteniation
+                ; STA $AFF100
+                ; LDX #16384            ; 400ms
+                ; JSL ILOOP_MS
+                ; LDA #$9F              ; Channel Two - No Atteniation
+                ; STA $AFF100
+
                 CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
                 setas
                 setxl
@@ -270,19 +313,24 @@ jmpcopy         LDA @l BOOT,X
                 BNE jmpcopy
 retry_boot
                 JSL DOS_INIT            ; Initialize the "disc operating system"
+                JSL BOOT_SOUND          ; Play the boot sound
                 JSL BOOT_MENU           ; Show the splash screen / boot menu and wait for key presses
                                         ; Coming back from the Splash Screen the Value of the Keyboard has been pushed in the stack
                                         ; This is the balance of House Keeping that needs to be done to put it back the way it was
                                      
                 ; Now, clear the screen and Setup Foreground/Background Bytes, so we can see the Text on screen
+
                 JSL CLRSCREEN           ; Clear Screen and Set a standard color in Color Memory
-                setaxl
                 JSL CSRHOME             ; Move to the home position
 
-greet           setdbr `greet_msg       ; Set data bank to ROM
+greet           setaxl
+                setdbr `greet_msg       ; Set data bank to ROM
                 LDX #<>greet_msg
                 JSL IPRINT              ; print the first line           
                 JSL ICOLORFLAG          ; This is to set the color memory for the text logo
+                JSL EVID_GREET          ; Print the EVID greeting, if the EVID card is installed
+
+                ; Set up the stack
 
                 setaxl 
                 LDA #STACK_END          ; We are the root, let's make sure from now on, that we start clean
@@ -1473,108 +1521,8 @@ INITVICKYMODEHIRES
 ;   COLS_PER_LINE, COLS_VISIBLE, LINES_MAX, LINES_VISIBLE
 ;
 ISETSIZES       .proc
-                PHA
-                PHX
-                PHY
-                PHB
-                PHD
-                PHP
-
-                setdp <>BANK0_BEGIN
-                setdbr 0
-
-                setaxs
-                LDA @l MASTER_CTRL_REG_H
-                AND #$03                    ; Mask off the resolution bits
-                ASL A
-                TAX                         ; Index to the col/line count in X
-
-                setal
-                LDA cols_by_res,X           ; Get the number of columns
-                STA COLS_PER_LINE           ; This is how many columns there are per line in the memory
-                STA COLS_VISIBLE            ; This is how many would be visible with no border
-
-                LDA lines_by_res,X          ; Get the number of lines
-                STA LINES_MAX               ; This is the total number of lines in memory
-                STA LINES_VISIBLE           ; This is how many lines would be visible with no border
-
-                setas
-                LDA @l BORDER_CTRL_REG      ; Check to see if we have a border
-                BIT #Border_Ctrl_Enable
-                BEQ done                    ; No border... the sizes are correct now
-
-                ; There is a border...adjust the column count down based on the border size
-                LDA @l BORDER_X_SIZE        ; Get the horizontal border width
-                AND #$3F
-                BIT #$03                    ; Check the lower two bits... indicates a partial column is eaten
-                BNE frac_width
-
-                LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 4
-                LSR A
-                BRA store_width
-
-frac_width      LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 4 + 1
-                LSR A                       ; because a column is partially hidden
-                INC A
-
-store_width     STA TMPPTR1
-                STZ TMPPTR1+1
-
-                setas
-                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-                BIT #Mstr_Ctrl_Video_Mode1
-                BEQ adjust_width            ; No... just adjust the width of the screen
-
-                setal
-                LSR TMPPTR1                 ; Yes... cut the adjustment in half
-
-adjust_width    setal
-                SEC
-                LDA COLS_PER_LINE
-                SBC TMPPTR1
-                STA COLS_VISIBLE
-
-                LDA @l BORDER_Y_SIZE        ; Get the horizontal border width
-                AND #$3F
-                BIT #$03                    ; Check the lower two bits... indicates a partial column is eaten
-                BNE frac_height
-
-                LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 4
-                LSR A
-                BRA store_height
-
-frac_height     LSR A                       ; COLUMNS_HIDDEN := BORDER_X_SIZE / 4 + 1
-                LSR A                       ; because a column is partially hidden
-                INC A
-
-store_height    STA TMPPTR1
-                STZ TMPPTR1+1
-
-                setas
-                LDA @l MASTER_CTRL_REG_H    ; Check if we're pixel doubling
-                BIT #Mstr_Ctrl_Video_Mode1
-                BEQ adjust_height           ; No... just adjust the height of the screen
-
-                setal
-                LSR TMPPTR1                 ; Yes... cut the adjustment in half
-
-adjust_height   setal
-                SEC
-                LDA LINES_MAX
-                SBC TMPPTR1
-                STA LINES_VISIBLE
-
-                setaxl
-
-done            PLP
-                PLD
-                PLB
-                PLY
-                PLX
-                PLA
+                JSL ANSI_SETSIZES
                 RTL
-cols_by_res     .word 80,100,40,50
-lines_by_res    .word 60,75,30,37
                 .pend
 
 ; IINITVKYGRPMODE
@@ -2425,6 +2373,7 @@ IRQHANDLESTUB   RTL
 .include "drivers/kbd_driver.asm"                 ; Include the keyboard reading code
 .include "drivers/mouse_driver.asm"               ; Include the mouse driver code
 ;.include "keyboard.asm"
+.include "SplashScreenCode/boot_sound.asm"        ; Include the code to play the boot sound
 
 ;
 ; Greeting message and other kernel boot data
@@ -2782,6 +2731,7 @@ SplashScreenMain:
 ;
 ;
 HAVE_FUN:
+                JSL BOOT_SOUND_OFF
                 JSL Splash_Moniker_Color_Rolling  ; Go Move The Colors on the Logo
                 LDX LINE_INDEX
                 CPX #NumberOfEntry
