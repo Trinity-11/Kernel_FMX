@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=1 -D TARGET_SYS=1 --long-address --flat -b -o kernel_FMX.bin --list kernel_FMX.lst --labels=kernel_FMX.lbl src\kernel.asm
-; Tue May 11 19:29:46 2021
+; Wed May 12 14:04:10 2021
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -541,8 +541,8 @@
 .38101c	101c	5c 2f 07 39	jmp $39072f	PUTS            JML IPUTS
 .381020	1020	5c ea 07 39	jmp $3907ea	PUTB            JML IPUTB
 .381024	1024	5c 99 3b 39	jmp $393b99	PUTBLOCK        JML IPUTBLOCK
-.381028	1028	5c fa 76 39	jmp $3976fa	GETSCANCODE     JML KBD_GET_SCANCODE    ; Get the next 8-bit scan code from the keyboard: A = 0 if no scancode present, contains the scancode otherwise
-.38102c	102c	5c b0 77 39	jmp $3977b0	GETLOCKS        JML KBD_GETLOCKS        ; Get the state of the lock keys on the keyboard
+.381028	1028	5c 04 77 39	jmp $397704	GETSCANCODE     JML KBD_GET_SCANCODE    ; Get the next 8-bit scan code from the keyboard: A = 0 if no scancode present, contains the scancode otherwise
+.38102c	102c	5c ba 77 39	jmp $3977ba	GETLOCKS        JML KBD_GETLOCKS        ; Get the state of the lock keys on the keyboard
 .381030	1030	5c b8 10 39	jmp $3910b8	OPEN            JML IOPEN
 .381034	1034	5c b9 10 39	jmp $3910b9	CLOSE           JML ICLOSE
 .381038	1038	5c a5 06 39	jmp $3906a5	SETIN           JML ISETIN
@@ -576,7 +576,7 @@
 .3810a8	10a8	5c 0a 09 39	jmp $39090a	CLRSCREEN       JML ICLRSCREEN
 .3810ac	10ac	5c b5 09 39	jmp $3909b5	INITCHLUT	    JML IINITCHLUT
 .3810b0	10b0	5c d2 0b 39	jmp $390bd2	INITSUPERIO	    JML IINITSUPERIO
-.3810b4	10b4	5c 46 74 39	jmp $397446	INITKEYBOARD    JML IINITKEYBOARD
+.3810b4	10b4	5c 50 74 39	jmp $397450	INITKEYBOARD    JML IINITKEYBOARD
 .3810b8	10b8	5c 00 7f 39	jmp $397f00	INITMOUSE       JML IINITMOUSE
 .3810bc	10bc	5c b3 0b 39	jmp $390bb3	INITCURSOR      JML IINITCURSOR
 .3810c0	10c0	5c 7b 0b 39	jmp $390b7b	INITFONTSET     JML IINITFONTSET
@@ -610,8 +610,8 @@
 .381130	1130	5c 33 56 39	jmp $395633	F_COPY          JML IF_COPY         ; Copy a file
 .381134	1134	5c 7d 55 39	jmp $39557d	F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
 .381138	1138	5c d1 55 39	jmp $3955d1	F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
-.38113c	113c	5c 5b 77 39	jmp $39775b	TESTBREAK       JML KBD_TEST_BREAK  ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
-.381140	1140	5c 9b 79 39	jmp $39799b	SETTABLE        JML KBD_SETTABLE    ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
+.38113c	113c	5c 65 77 39	jmp $397765	TESTBREAK       JML KBD_TEST_BREAK  ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
+.381140	1140	5c a5 79 39	jmp $3979a5	SETTABLE        JML KBD_SETTABLE    ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
 .381144	1144	5c 61 0b 39	jmp $390b61	READVRAM        JML IREADVRAM       ; Read a byte from video RAM at B:X
 =$001700					VEC_INT_START = *                           ; Label for the start of the IRQ vectors
 .381700	1700	5c ae 65 39	jmp $3965ae	VEC_INT00_SOF   JML FDC_TIME_HANDLE         ; IRQ 0, 0 --- Start Of Frame interrupt
@@ -622,7 +622,7 @@
 .381714	1714	5c c8 10 39	jmp $3910c8	VEC_INT05_RTC   JML IRQHANDLESTUB           ; IRQ 0, 5 --- Real Time Clock interrupt
 .381718	1718	5c c8 10 39	jmp $3910c8	VEC_INT06_FDC   JML IRQHANDLESTUB           ; IRQ 0, 6 --- Floppy Drive Controller interrupt
 .38171c	171c	5c ac 7f 39	jmp $397fac	VEC_INT07_MOUSE JML MOUSE_INTERRUPT         ; IRQ 0, 7 --- Mouse interrupt
-.381720	1720	5c ae 75 39	jmp $3975ae	VEC_INT10_KBD   JML KBD_PROCESS_BYTE        ; IRQ 1, 0 --- Keyboard interrupt
+.381720	1720	5c b8 75 39	jmp $3975b8	VEC_INT10_KBD   JML KBD_PROCESS_BYTE        ; IRQ 1, 0 --- Keyboard interrupt
 .381724	1724	5c c8 10 39	jmp $3910c8	VEC_INT11_COL0  JML IRQHANDLESTUB           ; IRQ 1, 1 --- VICKY_II (INT2) Sprite Collision
 .381728	1728	5c c8 10 39	jmp $3910c8	VEC_INT12_COL1  JML IRQHANDLESTUB           ; IRQ 1, 2 --- VICKY_II (INT3) Bitmap Collision
 .38172c	172c	5c c8 10 39	jmp $3910c8	VEC_INT13_COM2  JML IRQHANDLESTUB           ; IRQ 1, 3 --- Serial port #2 interrupt
@@ -2740,7 +2740,7 @@
 .3906de		22 4b 57 39	jsl $39574b	getc_uart       JSL UART_SELECT     ; Select the correct COM port
 .3906e2		22 ff 57 39	jsl $3957ff	                JSL UART_GETC       ; Get the charater from the COM port
 .3906e6		80 04		bra $3906ec	                BRA done
-.3906e8		22 03 78 39	jsl $397803	getc_keyboard   JSL KBD_GETCW       ; Get the character from the keyboard
+.3906e8		22 0d 78 39	jsl $39780d	getc_keyboard   JSL KBD_GETCW       ; Get the character from the keyboard
 .3906ec		28		plp		done            PLP
 .3906ed		18		clc		                CLC                 ; Return carry clear for valid data
 .3906ee		2b		pld		                PLD
@@ -2772,7 +2772,7 @@
 .390711		22 4b 57 39	jsl $39574b	getc_uart       JSL UART_SELECT     ; Select the correct COM port
 .390715		22 ff 57 39	jsl $3957ff	                JSL UART_GETC       ; Get the charater from the COM port
 .390719		80 04		bra $39071f	                BRA done
-.39071b		22 0f 78 39	jsl $39780f	getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
+.39071b		22 19 78 39	jsl $397819	getc_keyboard   JSL KBD_GETC        ; Get the character from the keyboard
 .39071f		28		plp		done            PLP
 .390720		18		clc		                CLC                 ; Return carry clear for valid data
 .390721		2b		pld		                PLD
@@ -2970,7 +2970,7 @@
 .39084d		48		pha		                PHA
 .39084e		0b		phd		                PHD
 .39084f		08		php		                PHP
-.390850		22 96 72 39	jsl $397296	                JSL ANSI_CSRRIGHT
+.390850		22 a0 72 39	jsl $3972a0	                JSL ANSI_CSRRIGHT
 .390854		28		plp		                PLP
 .390855		2b		pld		                PLD
 .390856		68		pla		                PLA
@@ -2983,7 +2983,7 @@
 .39085c		48		pha		                PHA
 .39085d		0b		phd		                PHD
 .39085e		08		php		                PHP
-.39085f		22 c1 72 39	jsl $3972c1	                JSL ANSI_CSRLEFT
+.39085f		22 cb 72 39	jsl $3972cb	                JSL ANSI_CSRLEFT
 .390863		28		plp		                PLP
 .390864		2b		pld		                PLD
 .390865		68		pla		                PLA
@@ -2996,7 +2996,7 @@
 .39086b		48		pha		                PHA
 .39086c		0b		phd		                PHD
 .39086d		08		php		                PHP
-.39086e		22 df 72 39	jsl $3972df	                JSL ANSI_CSRUP
+.39086e		22 e9 72 39	jsl $3972e9	                JSL ANSI_CSRUP
 .390872		28		plp		                PLP
 .390873		2b		pld		                PLD
 .390874		68		pla		                PLA
@@ -3006,7 +3006,7 @@
 .390878		da		phx		ICSRDOWN        PHX
 .390879		5a		phy		                PHY
 .39087a		0b		phd		                PHD
-.39087b		22 fd 72 39	jsl $3972fd	                JSL ANSI_CSRDOWN
+.39087b		22 07 73 39	jsl $397307	                JSL ANSI_CSRDOWN
 .39087f		2b		pld		                PLD
 .390880		7a		ply		                PLY
 .390881		fa		plx		                PLX
@@ -3014,7 +3014,7 @@
 .390883		48		pha		ILOCATE         PHA
 .390884		0b		phd		                PHD
 .390885		08		php		                PHP
-.390886		22 20 73 39	jsl $397320	                JSL ANSI_LOCATE
+.390886		22 2a 73 39	jsl $39732a	                JSL ANSI_LOCATE
 .39088a		28		plp		ilocate_done    PLP
 .39088b		2b		pld		                PLD
 .39088c		68		pla		                PLA
@@ -3026,7 +3026,7 @@
 .390891		8b		phb		                PHB
 .390892		0b		phd		                PHD
 .390893		08		php		                PHP
-.390894		22 84 73 39	jsl $397384	                JSL ANSI_SCROLLUP
+.390894		22 8e 73 39	jsl $39738e	                JSL ANSI_SCROLLUP
 .390898		28		plp		                PLP
 .390899		2b		pld		                PLD
 .39089a		ab		plb		                PLB
@@ -3093,7 +3093,7 @@
 .39090a		48		pha		ICLRSCREEN	    PHA
 .39090b		da		phx		                PHX
 .39090c		08		php		                PHP
-.39090d		22 19 74 39	jsl $397419	                JSL ANSI_CLRSCREEN
+.39090d		22 23 74 39	jsl $397423	                JSL ANSI_CLRSCREEN
 .390911		28		plp		                PLP
 .390912		fa		plx		                PLX
 .390913		68		pla		                PLA
@@ -13964,11 +13964,11 @@
 .396f6b		a2 00 00	ldx #$0000	do_cr               LDX #0                      ; Move to the beginning of the next line
 .396f6e		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
 .396f70		c8		iny		                    INY
-.396f71		22 20 73 39	jsl $397320	                    JSL ANSI_LOCATE
+.396f71		22 2a 73 39	jsl $39732a	                    JSL ANSI_LOCATE
 .396f75		80 20		bra $396f97	                    BRA done
-.396f77		22 fd 72 39	jsl $3972fd	do_lf               JSL ANSI_CSRDOWN            ; Move the cursor down a line
+.396f77		22 07 73 39	jsl $397307	do_lf               JSL ANSI_CSRDOWN            ; Move the cursor down a line
 .396f7b		80 1a		bra $396f97	                    BRA done
-.396f7d		22 c1 72 39	jsl $3972c1	do_bs               JSL ANSI_CSRLEFT            ; Move the cursor to the left (TODO: delete to the left?)
+.396f7d		22 cb 72 39	jsl $3972cb	do_bs               JSL ANSI_CSRLEFT            ; Move the cursor to the left (TODO: delete to the left?)
 .396f81		80 14		bra $396f97	                    BRA done
 .396f83						do_tab
 .396f83		c2 30		rep #$30	                REP #$30        ; set A&X long
@@ -13979,7 +13979,7 @@
 .396f8e		aa		tax		                    TAX
 .396f8f		e2 20		sep #$20	                SEP #$20        ; set A short
 .396f91		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
-.396f93		22 20 73 39	jsl $397320	                    JSL ANSI_LOCATE
+.396f93		22 2a 73 39	jsl $39732a	                    JSL ANSI_LOCATE
 .396f97		28		plp		done                PLP
 .396f98		6b		rtl		                    RTL
 .396f99						ANSI_PUTRAWC
@@ -13993,7 +13993,7 @@
 .396fa5		87 0b		sta [$032b]	                    STA [#S_ANSI_VARS.CURSORPOS,D]  ; Save the character on the screen
 .396fa7		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D     ; Set the color based on CURCOLOR
 .396fa9		87 13		sta [$0333]	                    STA [#S_ANSI_VARS.COLORPOS,D]
-.396fab		22 96 72 39	jsl $397296	                    JSL ANSI_CSRRIGHT              ; And advance the cursor
+.396fab		22 a0 72 39	jsl $3972a0	                    JSL ANSI_CSRRIGHT              ; And advance the cursor
 .396faf		28		plp		done                PLP
 .396fb0		2b		pld		                    PLD
 .396fb1		7a		ply		                    PLY
@@ -14006,7 +14006,7 @@
 .396fb9		1a		inc a		                    INC A
 .396fba		a9 01		lda #$01	default             LDA #1                          ; Otherwise: treat it as 1
 .396fbc		48		pha		loop                PHA                             ; Save the count
-.396fbd		22 df 72 39	jsl $3972df	                    JSL ANSI_CSRUP                  ; Cursor Up
+.396fbd		22 e9 72 39	jsl $3972e9	                    JSL ANSI_CSRUP                  ; Cursor Up
 .396fc1		68		pla		                    PLA                             ; Restore the count
 .396fc2		3a		dec a		                    DEC A                           ; Count down and repeat if not done
 .396fc3		d0 f7		bne $396fbc	                    BNE loop
@@ -14018,7 +14018,7 @@
 .396fca		a5 21		lda $0341	                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
 .396fcc		1a		inc a		                    INC A
 .396fcd		48		pha		loop                PHA                             ; Save the count
-.396fce		22 fd 72 39	jsl $3972fd	                    JSL ANSI_CSRDOWN                ; Cursor Down
+.396fce		22 07 73 39	jsl $397307	                    JSL ANSI_CSRDOWN                ; Cursor Down
 .396fd2		68		pla		                    PLA                             ; Restore the count
 .396fd3		3a		dec a		                    DEC A                           ; Count down and repeat if not done
 .396fd4		d0 f7		bne $396fcd	                    BNE loop
@@ -14030,7 +14030,7 @@
 .396fdb		a5 21		lda $0341	                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
 .396fdd		1a		inc a		                    INC A
 .396fde		48		pha		loop                PHA                             ; Save the count
-.396fdf		22 96 72 39	jsl $397296	                    JSL ANSI_CSRRIGHT               ; Cursor right
+.396fdf		22 a0 72 39	jsl $3972a0	                    JSL ANSI_CSRRIGHT               ; Cursor right
 .396fe3		68		pla		                    PLA                             ; Restore the count
 .396fe4		3a		dec a		                    DEC A                           ; Count down and repeat if not done
 .396fe5		d0 f7		bne $396fde	                    BNE loop
@@ -14042,7 +14042,7 @@
 .396fec		a5 21		lda $0341	                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
 .396fee		1a		inc a		                    INC A
 .396fef		48		pha		loop                PHA                             ; Save the count
-.396ff0		22 c1 72 39	jsl $3972c1	                    JSL ANSI_CSRLEFT                ; Cursor left
+.396ff0		22 cb 72 39	jsl $3972cb	                    JSL ANSI_CSRLEFT                ; Cursor left
 .396ff4		68		pla		                    PLA                             ; Restore the count
 .396ff5		3a		dec a		                    DEC A                           ; Count down and repeat if not done
 .396ff6		d0 f7		bne $396fef	                    BNE loop
@@ -14060,7 +14060,7 @@
 .397009		ca		dex		adjust_coords       DEX                             ; Translate from base 1 to base 0 coordinates
 .39700a		88		dey		                    DEY
 .39700b		c2 30		rep #$30	                REP #$30        ; set A&X long
-.39700d		22 20 73 39	jsl $397320	                    JSL ANSI_LOCATE                 ; Set the cursor position
+.39700d		22 2a 73 39	jsl $39732a	                    JSL ANSI_LOCATE                 ; Set the cursor position
 .397011		28		plp		                    PLP
 .397012		60		rts		                    RTS
 .397013						ANSI_SET_MODE
@@ -14084,9 +14084,9 @@
 .39703e		80 0e		bra $39704e	                    BRA done
 .397040		c9 1c		cmp #$1c	chk_break           CMP #28
 .397042		d0 0a		bne $39704e	                    BNE done
-.397044		22 dd 77 39	jsl $3977dd	                    JSL KBD_GET_CONTROL
+.397044		22 e7 77 39	jsl $3977e7	                    JSL KBD_GET_CONTROL
 .397048		09 80		ora #$80	                    ORA #KBD_CTRL_BREAK
-.39704a		22 f0 77 39	jsl $3977f0	                    JSL KBD_SET_CONTROL
+.39704a		22 fa 77 39	jsl $3977fa	                    JSL KBD_SET_CONTROL
 .39704e		28		plp		done                PLP
 .39704f		60		rts		                    RTS
 .397050						ANSI_RESET_MODE
@@ -14110,9 +14110,9 @@
 .39707b		80 0e		bra $39708b	                    BRA done
 .39707d		c9 1c		cmp #$1c	chk_break           CMP #28
 .39707f		d0 0a		bne $39708b	                    BNE done
-.397081		22 dd 77 39	jsl $3977dd	                    JSL KBD_GET_CONTROL
+.397081		22 e7 77 39	jsl $3977e7	                    JSL KBD_GET_CONTROL
 .397085		29 7f		and #$7f	                    AND #~KBD_CTRL_BREAK
-.397087		22 f0 77 39	jsl $3977f0	                    JSL KBD_SET_CONTROL
+.397087		22 fa 77 39	jsl $3977fa	                    JSL KBD_SET_CONTROL
 .39708b		28		plp		done                PLP
 .39708c		60		rts		                    RTS
 .39708d						ANSI_SGR
@@ -14377,282 +14377,288 @@
 .397263		85 1a		sta $033a	                    STA #S_ANSI_VARS.TMPPTR1+1,D        ; TMPPTR+1 := 0 (destination)
 .397265		a5 21		lda $0341	                    LDA #S_ANSI_VARS.ARG0,D
 .397267		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D          ; TMPPTR+1 := n (source)
-.397269		a4 19		ldy $0339	del_loop            LDY #S_ANSI_VARS.TMPPTR1,D          ; text[dest] := text[source]
-.39726b		b7 0b		lda [$032b],y	                    LDA [#S_ANSI_VARS.CURSORPOS,D],Y
-.39726d		a4 1a		ldy $033a	                    LDY #S_ANSI_VARS.TMPPTR1+1,D
-.39726f		97 0b		sta [$032b],y	                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
-.397271		a4 19		ldy $0339	                    LDY #S_ANSI_VARS.TMPPTR1,D          ; color[dest] := color[source]
-.397273		b7 13		lda [$0333],y	                    LDA [#S_ANSI_VARS.COLORPOS,D],Y
-.397275		a4 1a		ldy $033a	                    LDY #S_ANSI_VARS.TMPPTR1+1,D
-.397277		97 13		sta [$0333],y	                    STA [#S_ANSI_VARS.COLORPOS,D],Y
-.397279		e6 19		inc $0339	                    INC #S_ANSI_VARS.TMPPTR1,D          ; Move to the next position
-.39727b		e6 1a		inc $033a	                    INC #S_ANSI_VARS.TMPPTR1+1,D
-.39727d		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.39727f		c5 03		cmp $0323	                    CMP #S_ANSI_VARS.COLS_VISIBLE,D
-.397281		90 e6		bcc $397269	                    BLT del_loop                        ; Keep looping until we reach the end
-.397283		a4 1a		ldy $033a	                    LDY #S_ANSI_VARS.TMPPTR1+1,D
-.397285		88		dey		                    DEY
-.397286		a9 20		lda #$20	fill_loop           LDA #CHAR_SP                        ; Replace the character with a space
-.397288		97 0b		sta [$032b],y	                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
-.39728a		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D
-.39728c		97 13		sta [$0333],y	                    STA [#S_ANSI_VARS.COLORPOS,D],Y     ; In the default color
-.39728e		c8		iny		                    INY                                 ; Move to the next byte
-.39728f		c4 03		cpy $0323	                    CPY #S_ANSI_VARS.COLS_VISIBLE,D     ; Until we reach the end
-.397291		90 f3		bcc $397286	                    BLT fill_loop
-.397293		28		plp		                    PLP
-.397294		7a		ply		                    PLY
-.397295		60		rts		                    RTS
-.397296						ANSI_CSRRIGHT
-.397296		da		phx		                    PHX
-.397297		5a		phy		                    PHY
-.397298		0b		phd		                    PHD
-.397299		08		php		                    PHP
-.39729a		c2 30		rep #$30	                REP #$30        ; set A&X long
-.39729c		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
-.3972a0		b0 1a		bcs $3972bc	                    BCS done                            ; If invalid, just return
-.3972a2		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D          ; Get the new column
-.3972a4		e8		inx		                    INX
-.3972a5		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D          ; Get the current row
-.3972a7		e4 03		cpx $0323	                    CPX #S_ANSI_VARS.COLS_VISIBLE,D     ; Are we off screen?
-.3972a9		90 0d		bcc $3972b8	                    BCC nowrap                          ; No: just set the position
-.3972ab		a2 00 00	ldx #$0000	                    LDX #0                              ; Yes: move to the first column
-.3972ae		c8		iny		                    INY                                 ; And move to the next row
-.3972af		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D    ; Are we still off screen?
-.3972b1		90 05		bcc $3972b8	                    BCC nowrap                          ; No: just set the position
-.3972b3		88		dey		                    DEY                                 ; Yes: lock to the last row
-.3972b4		22 84 73 39	jsl $397384	                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
-.3972b8		22 20 73 39	jsl $397320	nowrap              JSL ANSI_LOCATE                     ; Set the cursor position
-.3972bc		28		plp		done                PLP
-.3972bd		2b		pld		                    PLD
-.3972be		7a		ply		                    PLY
-.3972bf		fa		plx		                    PLX
-.3972c0		6b		rtl		                    RTL
-.3972c1						ANSI_CSRLEFT
-.3972c1		da		phx		                    PHX
-.3972c2		5a		phy		                    PHY
-.3972c3		0b		phd		                    PHD
-.3972c4		08		php		                    PHP
-.3972c5		c2 30		rep #$30	                REP #$30        ; set A&X long
-.3972c7		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
-.3972cb		b0 0d		bcs $3972da	                    BCS done                    ; If invalid, just return
-.3972cd		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D  ; Check that we are not already @ Zero
-.3972cf		f0 09		beq $3972da	                    BEQ done                    ; If so, just ignore this call
-.3972d1		ca		dex		                    DEX
-.3972d2		86 0e		stx $032e	                    STX #S_ANSI_VARS.CURSORX,D
-.3972d4		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
-.3972d6		22 20 73 39	jsl $397320	                    JSL ANSI_LOCATE
-.3972da		28		plp		done                PLP
-.3972db		2b		pld		                    PLD
-.3972dc		7a		ply		                    PLY
-.3972dd		fa		plx		                    PLX
-.3972de		6b		rtl		                    RTL
-.3972df						ANSI_CSRUP
-.3972df		da		phx		                    PHX
-.3972e0		5a		phy		                    PHY
-.3972e1		0b		phd		                    PHD
-.3972e2		08		php		                    PHP
-.3972e3		c2 30		rep #$30	                REP #$30        ; set A&X long
-.3972e5		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
-.3972e9		b0 0d		bcs $3972f8	                    BCS done                    ; If invalid, just return
-.3972eb		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D  ; Check if we are not already @ Zero
-.3972ed		f0 09		beq $3972f8	                    BEQ done                    ; If we are, just ignore the call
-.3972ef		88		dey		                    DEY
-.3972f0		84 10		sty $0330	                    STY #S_ANSI_VARS.CURSORY,D
-.3972f2		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D
-.3972f4		22 20 73 39	jsl $397320	                    JSL ANSI_LOCATE
-.3972f8		28		plp		done                PLP
-.3972f9		2b		pld		                    PLD
-.3972fa		7a		ply		                    PLY
-.3972fb		fa		plx		                    PLX
-.3972fc		6b		rtl		                    RTL
-.3972fd						ANSI_CSRDOWN
-.3972fd		da		phx		                    PHX
-.3972fe		5a		phy		                    PHY
-.3972ff		0b		phd		                    PHD
-.397300		08		php		                    PHP
-.397301		c2 30		rep #$30	                REP #$30        ; set A&X long
-.397303		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
-.397307		b0 12		bcs $39731b	                    BCS done                            ; If invalid, just return
-.397309		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D          ; Get the current column
-.39730b		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D          ; Get the new row
-.39730d		c8		iny		                    INY
-.39730e		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D    ; Check to see if we're off screen
-.397310		90 05		bcc $397317	                    BCC noscroll                        ; No: go ahead and set the position
-.397312		88		dey		                    DEY                                 ; Yes: go back to the last row
-.397313		22 84 73 39	jsl $397384	                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
-.397317		22 20 73 39	jsl $397320	noscroll            JSL ANSI_LOCATE                     ; And set the cursor position
-.39731b		28		plp		done                PLP
-.39731c		2b		pld		                    PLD
-.39731d		7a		ply		                    PLY
-.39731e		fa		plx		                    PLX
-.39731f		6b		rtl		                    RTL
-.397320						ANSI_LOCATE
-.397320		da		phx		                    PHX
-.397321		5a		phy		                    PHY
-.397322		0b		phd		                    PHD
-.397323		08		php		                    PHP
-.397324		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
-.397328		b0 55		bcs $39737f	                    BCS done                    ; If invalid, just return
-.39732a		c2 30		rep #$30	                REP #$30        ; set A&X long
-.39732c						locate_scroll
-.39732c		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D
-.39732e		90 07		bcc $397337	                    BCC locate_scrolldone
-.397330		22 84 73 39	jsl $397384	                    JSL ANSI_SCROLLUP
-.397334		88		dey		                    DEY
-.397335		80 f5		bra $39732c	                    BRA locate_scroll
-.397337						locate_scrolldone
-.397337		86 0e		stx $032e	                    STX #S_ANSI_VARS.CURSORX,D
-.397339		84 10		sty $0330	                    STY #S_ANSI_VARS.CURSORY,D
-.39733b		a5 00		lda $0320	                    LDA #S_ANSI_VARS.SCREENBEGIN,D
-.39733d						locate_row
-.39733d		c0 00 00	cpy #$0000	                    CPY #$0
-.397340		f0 08		beq $39734a	                    BEQ locate_right
-.397342		18		clc		locate_down         CLC
-.397343		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
-.397345		88		dey		                    DEY
-.397346		f0 02		beq $39734a	                    BEQ locate_right
-.397348		80 f8		bra $397342	                    BRA locate_down
-.39734a		18		clc		locate_right        CLC
-.39734b		65 0e		adc $032e	                    ADC #S_ANSI_VARS.CURSORX,D      ; move the cursor right X columns
-.39734d		85 0b		sta $032b	                    STA #S_ANSI_VARS.CURSORPOS,D
-.39734f		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
-.397351		e2 20		sep #$20	                SEP #$20        ; set A short
-.397353		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT
-.397357		c9 04		cmp #$04	                    CMP #CHAN_EVID
-.397359		f0 0e		beq $397369	                    beq locate_evid
-.39735b		c2 20		rep #$20	                REP #$20        ; set A long
-.39735d		98		tya		                    TYA
-.39735e		8f 16 00 af	sta $af0016	                    STA @l VKY_TXT_CURSOR_Y_REG_L
-.397362		8a		txa		                    TXA
-.397363		8f 14 00 af	sta $af0014	                    STA @l VKY_TXT_CURSOR_X_REG_L
-.397367		80 0c		bra $397375	                    BRA update_colorpos
-.397369						locate_evid
-.397369		c2 20		rep #$20	                REP #$20        ; set A long
-.39736b		98		tya		                    TYA
-.39736c		8f 16 1e ae	sta $ae1e16	                    STA @l EVID_TXT_CURSOR_Y_REG_L
-.397370		8a		txa		                    TXA
-.397371		8f 14 1e ae	sta $ae1e14	                    STA @l EVID_TXT_CURSOR_X_REG_L
-.397375						update_colorpos
-.397375		c2 20		rep #$20	                REP #$20        ; set A long
-.397377		18		clc		                    CLC
-.397378		a5 0b		lda $032b	                    LDA #S_ANSI_VARS.CURSORPOS,D
-.39737a		69 00 20	adc #$2000	                    ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
-.39737d		85 13		sta $0333	                    STA #S_ANSI_VARS.COLORPOS,D
-.39737f		28		plp		done                PLP
-.397380		2b		pld		                    PLD
-.397381		7a		ply		                    PLY
-.397382		fa		plx		                    PLX
-.397383		6b		rtl		                    RTL
-.397384						ANSI_SCROLLUP
-.397384		da		phx		                    PHX
-.397385		5a		phy		                    PHY
-.397386		8b		phb		                    PHB
-.397387		0b		phd		                    PHD
-.397388		08		php		                    PHP
-.397389		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
-.39738d		90 03		bcc $397392	                    BCC calc_size
-.39738f		82 81 00	brl $397413	                    BRL done                    ; If invalid, just return
-.397392						calc_size
-.397392		c2 30		rep #$30	                REP #$30        ; set A&X long
-.397394		a5 05		lda $0325	                    LDA #S_ANSI_VARS.COLS_PER_LINE,D
-.397396		8f 00 01 00	sta $000100	                    STA @l UNSIGNED_MULT_A_LO
-.39739a		a5 07		lda $0327	                    LDA #S_ANSI_VARS.LINES_VISIBLE,D
-.39739c		8f 02 01 00	sta $000102	                    STA @l UNSIGNED_MULT_B_LO
-.3973a0		af 04 01 00	lda $000104	                    LDA @l UNSIGNED_MULT_AL_LO
-.3973a4		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
-.3973a6		18		clc		                    CLC
-.3973a7		a5 00		lda $0320	                    LDA #S_ANSI_VARS.SCREENBEGIN,D
-.3973a9		a8		tay		                    TAY
-.3973aa		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
-.3973ac		aa		tax		                    TAX
-.3973ad		e2 20		sep #$20	                SEP #$20        ; set A short
-.3973af		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID
-.3973b3		c9 04		cmp #$04	                    CMP #CHAN_EVID
-.3973b5		f0 09		beq $3973c0	                    BEQ move_text_1                             ; Yes: do the move on the EVID memory
-.3973b7						move_text_0
-.3973b7		c2 20		rep #$20	                REP #$20        ; set A long
-.3973b9		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.3973bb		54 af af	mvn $af,$af	                    MVN `CS_TEXT_MEM_PTR,`CS_TEXT_MEM_PTR       ; Move the data on the main screen
-.3973be		80 07		bra $3973c7	                    BRA scroll_color
-.3973c0						move_text_1
-.3973c0		c2 20		rep #$20	                REP #$20        ; set A long
-.3973c2		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.3973c4		54 ae ae	mvn $ae,$ae	                    MVN `EVID_TEXT_MEM,`EVID_TEXT_MEM           ; Move the data on the EVID screen
-.3973c7						scroll_color
-.3973c7		c2 30		rep #$30	                REP #$30        ; set A&X long
-.3973c9		18		clc		                    CLC
-.3973ca		a5 16		lda $0336	                    LDA #S_ANSI_VARS.COLORBEGIN,D
-.3973cc		a8		tay		                    TAY
-.3973cd		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
-.3973cf		aa		tax		                    TAX
-.3973d0		e2 20		sep #$20	                SEP #$20        ; set A short
-.3973d2		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID?
-.3973d6		c9 04		cmp #$04	                    CMP #CHAN_EVID
-.3973d8		f0 09		beq $3973e3	                    BEQ move_color_1                            ; Yes: scroll the EVID color matrix
-.3973da						move_color_0
-.3973da		c2 20		rep #$20	                REP #$20        ; set A long
-.3973dc		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.3973de		54 af af	mvn $af,$af	                    MVN `CS_COLOR_MEM_PTR,`CS_COLOR_MEM_PTR     ; Move the data on the main screen
-.3973e1		80 07		bra $3973ea	                    BRA vicky_lastline
-.3973e3						move_color_1
-.3973e3		c2 20		rep #$20	                REP #$20        ; set A long
-.3973e5		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.3973e7		54 ae ae	mvn $ae,$ae	                    MVN `EVID_COLOR_MEM,`EVID_COLOR_MEM         ; Move the data on the EVID screen
-.3973ea						vicky_lastline
-.3973ea		c2 20		rep #$20	                REP #$20        ; set A long
-.3973ec		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
-.3973ee		48		pha		                    PHA
-.3973ef		18		clc		                    CLC
-.3973f0		65 00		adc $0320	                    ADC #S_ANSI_VARS.SCREENBEGIN,D
-.3973f2		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
-.3973f4		a0 00 00	ldy #$0000	start_clear         LDY #0
-.3973f7		a9 20 00	lda #$0020	                    LDA #' '
-.3973fa		97 19		sta [$0339],y	clr_text            STA [#S_ANSI_VARS.TMPPTR1,D],Y
-.3973fc		c8		iny		                    INY
-.3973fd		c4 0f		cpy $032f	                    CPY #COLS_VISIBLE,D
-.3973ff		d0 f9		bne $3973fa	                    BNE clr_text
-.397401		68		pla		vicky_lastcolor     PLA
-.397402		18		clc		                    CLC
-.397403		65 16		adc $0336	                    ADC #S_ANSI_VARS.COLORBEGIN,D
-.397405		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
-.397407		a0 00 00	ldy #$0000	start_color         LDY #0
-.39740a		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D
-.39740c		97 19		sta [$0339],y	clr_color           STA [#S_ANSI_VARS.TMPPTR1,D],Y
-.39740e		c8		iny		                    INY
-.39740f		c4 05		cpy $0325	                    CPY #S_ANSI_VARS.COLS_PER_LINE,D
-.397411		d0 f9		bne $39740c	                    BNE clr_color
-.397413		28		plp		done                PLP
-.397414		2b		pld		                    PLD
-.397415		ab		plb		                    PLB
-.397416		7a		ply		                    PLY
-.397417		fa		plx		                    PLX
-.397418		6b		rtl		                    RTL
-.397419						ANSI_CLRSCREEN
-.397419		da		phx		                    PHX
-.39741a		5a		phy		                    PHY
-.39741b		0b		phd		                    PHD
-.39741c		08		php		                    PHP
-.39741d		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
-.397421		b0 1e		bcs $397441	                    BCS done                            ; If invalid, just return
-.397423		e2 20		sep #$20	                SEP #$20        ; set A short
-.397425		c2 10		rep #$10	                REP #$10        ; set X long
-.397427		a0 00 00	ldy #$0000	                    LDY #0
-.39742a		a9 20		lda #$20	                    LDA #$20		                    ; Fill the Entire Screen with Space
-.39742c		97 00		sta [$0320],y	iclearloop0	        STA [#S_ANSI_VARS.SCREENBEGIN,D],Y
-.39742e		c8		iny		                    INY
-.39742f		c0 00 20	cpy #$2000	                    CPY #$2000
-.397432		d0 f8		bne $39742c	                    BNE iclearloop0
-.397434		a0 00 00	ldy #$0000	                    LDY	#0
-.397437		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D         ; Fill the current color
-.397439		97 16		sta [$0336],y	evid_clearloop1     STA [#S_ANSI_VARS.COLORBEGIN,D],Y
-.39743b		c8		iny		                    INY
-.39743c		c0 00 20	cpy #$2000	                    CPY #$2000
-.39743f		d0 f8		bne $397439	                    BNE evid_clearloop1
-.397441		28		plp		done                PLP
-.397442		2b		pld		                    PLD
-.397443		7a		ply		                    PLY
-.397444		fa		plx		                    PLX
-.397445		6b		rtl		                    RTL
+.397269		38		sec		                    SEC                                 ; Calculate end offset
+.39726a		a5 03		lda $0323	                    LDA #S_ANSI_VARS.COLS_VISIBLE,D
+.39726c		e5 0e		sbc $032e	                    SBC #S_ANSI_VARS.CURSORX,D
+.39726e		85 22		sta $0342	                    STA #S_ANSI_VARS.ARG1,D
+.397270		a4 19		ldy $0339	del_loop            LDY #S_ANSI_VARS.TMPPTR1,D          ; text[dest] := text[source]
+.397272		b7 0b		lda [$032b],y	                    LDA [#S_ANSI_VARS.CURSORPOS,D],Y
+.397274		a4 1a		ldy $033a	                    LDY #S_ANSI_VARS.TMPPTR1+1,D
+.397276		97 0b		sta [$032b],y	                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+.397278		a4 19		ldy $0339	                    LDY #S_ANSI_VARS.TMPPTR1,D          ; color[dest] := color[source]
+.39727a		b7 13		lda [$0333],y	                    LDA [#S_ANSI_VARS.COLORPOS,D],Y
+.39727c		a4 1a		ldy $033a	                    LDY #S_ANSI_VARS.TMPPTR1+1,D
+.39727e		97 13		sta [$0333],y	                    STA [#S_ANSI_VARS.COLORPOS,D],Y
+.397280		e6 19		inc $0339	                    INC #S_ANSI_VARS.TMPPTR1,D          ; Move to the next position
+.397282		e6 1a		inc $033a	                    INC #S_ANSI_VARS.TMPPTR1+1,D
+.397284		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.397286		c5 22		cmp $0342	                    CMP #S_ANSI_VARS.ARG1,D
+.397288		90 e6		bcc $397270	                    BLT del_loop                        ; Keep looping until we reach the end
+.39728a		38		sec		                    SEC                                 ; Calculate the starting point to fill with blanks
+.39728b		a5 1a		lda $033a	                    LDA #S_ANSI_VARS.TMPPTR1+1,D
+.39728d		e5 21		sbc $0341	                    SBC #S_ANSI_VARS.ARG0,D
+.39728f		a8		tay		                    TAY
+.397290		a9 20		lda #$20	fill_loop           LDA #CHAR_SP                        ; Replace the character with a space
+.397292		97 0b		sta [$032b],y	                    STA [#S_ANSI_VARS.CURSORPOS,D],Y
+.397294		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D
+.397296		97 13		sta [$0333],y	                    STA [#S_ANSI_VARS.COLORPOS,D],Y     ; In the default color
+.397298		c8		iny		                    INY                                 ; Move to the next byte
+.397299		c4 22		cpy $0342	                    CPY #S_ANSI_VARS.ARG1,D             ; Until we reach the end
+.39729b		90 f3		bcc $397290	                    BLT fill_loop
+.39729d		28		plp		                    PLP
+.39729e		7a		ply		                    PLY
+.39729f		60		rts		                    RTS
+.3972a0						ANSI_CSRRIGHT
+.3972a0		da		phx		                    PHX
+.3972a1		5a		phy		                    PHY
+.3972a2		0b		phd		                    PHD
+.3972a3		08		php		                    PHP
+.3972a4		c2 30		rep #$30	                REP #$30        ; set A&X long
+.3972a6		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
+.3972aa		b0 1a		bcs $3972c6	                    BCS done                            ; If invalid, just return
+.3972ac		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D          ; Get the new column
+.3972ae		e8		inx		                    INX
+.3972af		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D          ; Get the current row
+.3972b1		e4 03		cpx $0323	                    CPX #S_ANSI_VARS.COLS_VISIBLE,D     ; Are we off screen?
+.3972b3		90 0d		bcc $3972c2	                    BCC nowrap                          ; No: just set the position
+.3972b5		a2 00 00	ldx #$0000	                    LDX #0                              ; Yes: move to the first column
+.3972b8		c8		iny		                    INY                                 ; And move to the next row
+.3972b9		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D    ; Are we still off screen?
+.3972bb		90 05		bcc $3972c2	                    BCC nowrap                          ; No: just set the position
+.3972bd		88		dey		                    DEY                                 ; Yes: lock to the last row
+.3972be		22 8e 73 39	jsl $39738e	                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
+.3972c2		22 2a 73 39	jsl $39732a	nowrap              JSL ANSI_LOCATE                     ; Set the cursor position
+.3972c6		28		plp		done                PLP
+.3972c7		2b		pld		                    PLD
+.3972c8		7a		ply		                    PLY
+.3972c9		fa		plx		                    PLX
+.3972ca		6b		rtl		                    RTL
+.3972cb						ANSI_CSRLEFT
+.3972cb		da		phx		                    PHX
+.3972cc		5a		phy		                    PHY
+.3972cd		0b		phd		                    PHD
+.3972ce		08		php		                    PHP
+.3972cf		c2 30		rep #$30	                REP #$30        ; set A&X long
+.3972d1		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
+.3972d5		b0 0d		bcs $3972e4	                    BCS done                    ; If invalid, just return
+.3972d7		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D  ; Check that we are not already @ Zero
+.3972d9		f0 09		beq $3972e4	                    BEQ done                    ; If so, just ignore this call
+.3972db		ca		dex		                    DEX
+.3972dc		86 0e		stx $032e	                    STX #S_ANSI_VARS.CURSORX,D
+.3972de		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
+.3972e0		22 2a 73 39	jsl $39732a	                    JSL ANSI_LOCATE
+.3972e4		28		plp		done                PLP
+.3972e5		2b		pld		                    PLD
+.3972e6		7a		ply		                    PLY
+.3972e7		fa		plx		                    PLX
+.3972e8		6b		rtl		                    RTL
+.3972e9						ANSI_CSRUP
+.3972e9		da		phx		                    PHX
+.3972ea		5a		phy		                    PHY
+.3972eb		0b		phd		                    PHD
+.3972ec		08		php		                    PHP
+.3972ed		c2 30		rep #$30	                REP #$30        ; set A&X long
+.3972ef		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
+.3972f3		b0 0d		bcs $397302	                    BCS done                    ; If invalid, just return
+.3972f5		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D  ; Check if we are not already @ Zero
+.3972f7		f0 09		beq $397302	                    BEQ done                    ; If we are, just ignore the call
+.3972f9		88		dey		                    DEY
+.3972fa		84 10		sty $0330	                    STY #S_ANSI_VARS.CURSORY,D
+.3972fc		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D
+.3972fe		22 2a 73 39	jsl $39732a	                    JSL ANSI_LOCATE
+.397302		28		plp		done                PLP
+.397303		2b		pld		                    PLD
+.397304		7a		ply		                    PLY
+.397305		fa		plx		                    PLX
+.397306		6b		rtl		                    RTL
+.397307						ANSI_CSRDOWN
+.397307		da		phx		                    PHX
+.397308		5a		phy		                    PHY
+.397309		0b		phd		                    PHD
+.39730a		08		php		                    PHP
+.39730b		c2 30		rep #$30	                REP #$30        ; set A&X long
+.39730d		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
+.397311		b0 12		bcs $397325	                    BCS done                            ; If invalid, just return
+.397313		a6 0e		ldx $032e	                    LDX #S_ANSI_VARS.CURSORX,D          ; Get the current column
+.397315		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D          ; Get the new row
+.397317		c8		iny		                    INY
+.397318		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D    ; Check to see if we're off screen
+.39731a		90 05		bcc $397321	                    BCC noscroll                        ; No: go ahead and set the position
+.39731c		88		dey		                    DEY                                 ; Yes: go back to the last row
+.39731d		22 8e 73 39	jsl $39738e	                    JSL ANSI_SCROLLUP                   ; But scroll the screen up
+.397321		22 2a 73 39	jsl $39732a	noscroll            JSL ANSI_LOCATE                     ; And set the cursor position
+.397325		28		plp		done                PLP
+.397326		2b		pld		                    PLD
+.397327		7a		ply		                    PLY
+.397328		fa		plx		                    PLX
+.397329		6b		rtl		                    RTL
+.39732a						ANSI_LOCATE
+.39732a		da		phx		                    PHX
+.39732b		5a		phy		                    PHY
+.39732c		0b		phd		                    PHD
+.39732d		08		php		                    PHP
+.39732e		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
+.397332		b0 55		bcs $397389	                    BCS done                    ; If invalid, just return
+.397334		c2 30		rep #$30	                REP #$30        ; set A&X long
+.397336						locate_scroll
+.397336		c4 07		cpy $0327	                    CPY #S_ANSI_VARS.LINES_VISIBLE,D
+.397338		90 07		bcc $397341	                    BCC locate_scrolldone
+.39733a		22 8e 73 39	jsl $39738e	                    JSL ANSI_SCROLLUP
+.39733e		88		dey		                    DEY
+.39733f		80 f5		bra $397336	                    BRA locate_scroll
+.397341						locate_scrolldone
+.397341		86 0e		stx $032e	                    STX #S_ANSI_VARS.CURSORX,D
+.397343		84 10		sty $0330	                    STY #S_ANSI_VARS.CURSORY,D
+.397345		a5 00		lda $0320	                    LDA #S_ANSI_VARS.SCREENBEGIN,D
+.397347						locate_row
+.397347		c0 00 00	cpy #$0000	                    CPY #$0
+.39734a		f0 08		beq $397354	                    BEQ locate_right
+.39734c		18		clc		locate_down         CLC
+.39734d		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
+.39734f		88		dey		                    DEY
+.397350		f0 02		beq $397354	                    BEQ locate_right
+.397352		80 f8		bra $39734c	                    BRA locate_down
+.397354		18		clc		locate_right        CLC
+.397355		65 0e		adc $032e	                    ADC #S_ANSI_VARS.CURSORX,D      ; move the cursor right X columns
+.397357		85 0b		sta $032b	                    STA #S_ANSI_VARS.CURSORPOS,D
+.397359		a4 10		ldy $0330	                    LDY #S_ANSI_VARS.CURSORY,D
+.39735b		e2 20		sep #$20	                SEP #$20        ; set A short
+.39735d		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT
+.397361		c9 04		cmp #$04	                    CMP #CHAN_EVID
+.397363		f0 0e		beq $397373	                    beq locate_evid
+.397365		c2 20		rep #$20	                REP #$20        ; set A long
+.397367		98		tya		                    TYA
+.397368		8f 16 00 af	sta $af0016	                    STA @l VKY_TXT_CURSOR_Y_REG_L
+.39736c		8a		txa		                    TXA
+.39736d		8f 14 00 af	sta $af0014	                    STA @l VKY_TXT_CURSOR_X_REG_L
+.397371		80 0c		bra $39737f	                    BRA update_colorpos
+.397373						locate_evid
+.397373		c2 20		rep #$20	                REP #$20        ; set A long
+.397375		98		tya		                    TYA
+.397376		8f 16 1e ae	sta $ae1e16	                    STA @l EVID_TXT_CURSOR_Y_REG_L
+.39737a		8a		txa		                    TXA
+.39737b		8f 14 1e ae	sta $ae1e14	                    STA @l EVID_TXT_CURSOR_X_REG_L
+.39737f						update_colorpos
+.39737f		c2 20		rep #$20	                REP #$20        ; set A long
+.397381		18		clc		                    CLC
+.397382		a5 0b		lda $032b	                    LDA #S_ANSI_VARS.CURSORPOS,D
+.397384		69 00 20	adc #$2000	                    ADC #<>(CS_COLOR_MEM_PTR - CS_TEXT_MEM_PTR)
+.397387		85 13		sta $0333	                    STA #S_ANSI_VARS.COLORPOS,D
+.397389		28		plp		done                PLP
+.39738a		2b		pld		                    PLD
+.39738b		7a		ply		                    PLY
+.39738c		fa		plx		                    PLX
+.39738d		6b		rtl		                    RTL
+.39738e						ANSI_SCROLLUP
+.39738e		da		phx		                    PHX
+.39738f		5a		phy		                    PHY
+.397390		8b		phb		                    PHB
+.397391		0b		phd		                    PHD
+.397392		08		php		                    PHP
+.397393		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE          ; Look at the current output channel and point
+.397397		90 03		bcc $39739c	                    BCC calc_size
+.397399		82 81 00	brl $39741d	                    BRL done                    ; If invalid, just return
+.39739c						calc_size
+.39739c		c2 30		rep #$30	                REP #$30        ; set A&X long
+.39739e		a5 05		lda $0325	                    LDA #S_ANSI_VARS.COLS_PER_LINE,D
+.3973a0		8f 00 01 00	sta $000100	                    STA @l UNSIGNED_MULT_A_LO
+.3973a4		a5 07		lda $0327	                    LDA #S_ANSI_VARS.LINES_VISIBLE,D
+.3973a6		8f 02 01 00	sta $000102	                    STA @l UNSIGNED_MULT_B_LO
+.3973aa		af 04 01 00	lda $000104	                    LDA @l UNSIGNED_MULT_AL_LO
+.3973ae		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
+.3973b0		18		clc		                    CLC
+.3973b1		a5 00		lda $0320	                    LDA #S_ANSI_VARS.SCREENBEGIN,D
+.3973b3		a8		tay		                    TAY
+.3973b4		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
+.3973b6		aa		tax		                    TAX
+.3973b7		e2 20		sep #$20	                SEP #$20        ; set A short
+.3973b9		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID
+.3973bd		c9 04		cmp #$04	                    CMP #CHAN_EVID
+.3973bf		f0 09		beq $3973ca	                    BEQ move_text_1                             ; Yes: do the move on the EVID memory
+.3973c1						move_text_0
+.3973c1		c2 20		rep #$20	                REP #$20        ; set A long
+.3973c3		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.3973c5		54 af af	mvn $af,$af	                    MVN `CS_TEXT_MEM_PTR,`CS_TEXT_MEM_PTR       ; Move the data on the main screen
+.3973c8		80 07		bra $3973d1	                    BRA scroll_color
+.3973ca						move_text_1
+.3973ca		c2 20		rep #$20	                REP #$20        ; set A long
+.3973cc		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.3973ce		54 ae ae	mvn $ae,$ae	                    MVN `EVID_TEXT_MEM,`EVID_TEXT_MEM           ; Move the data on the EVID screen
+.3973d1						scroll_color
+.3973d1		c2 30		rep #$30	                REP #$30        ; set A&X long
+.3973d3		18		clc		                    CLC
+.3973d4		a5 16		lda $0336	                    LDA #S_ANSI_VARS.COLORBEGIN,D
+.3973d6		a8		tay		                    TAY
+.3973d7		65 05		adc $0325	                    ADC #S_ANSI_VARS.COLS_PER_LINE,D
+.3973d9		aa		tax		                    TAX
+.3973da		e2 20		sep #$20	                SEP #$20        ; set A short
+.3973dc		af 03 07 00	lda $000703	                    LDA @l CHAN_OUT                             ; Are we scrolling the EVID?
+.3973e0		c9 04		cmp #$04	                    CMP #CHAN_EVID
+.3973e2		f0 09		beq $3973ed	                    BEQ move_color_1                            ; Yes: scroll the EVID color matrix
+.3973e4						move_color_0
+.3973e4		c2 20		rep #$20	                REP #$20        ; set A long
+.3973e6		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.3973e8		54 af af	mvn $af,$af	                    MVN `CS_COLOR_MEM_PTR,`CS_COLOR_MEM_PTR     ; Move the data on the main screen
+.3973eb		80 07		bra $3973f4	                    BRA vicky_lastline
+.3973ed						move_color_1
+.3973ed		c2 20		rep #$20	                REP #$20        ; set A long
+.3973ef		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.3973f1		54 ae ae	mvn $ae,$ae	                    MVN `EVID_COLOR_MEM,`EVID_COLOR_MEM         ; Move the data on the EVID screen
+.3973f4						vicky_lastline
+.3973f4		c2 20		rep #$20	                REP #$20        ; set A long
+.3973f6		a5 19		lda $0339	                    LDA #S_ANSI_VARS.TMPPTR1,D
+.3973f8		48		pha		                    PHA
+.3973f9		18		clc		                    CLC
+.3973fa		65 00		adc $0320	                    ADC #S_ANSI_VARS.SCREENBEGIN,D
+.3973fc		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
+.3973fe		a0 00 00	ldy #$0000	start_clear         LDY #0
+.397401		a9 20 00	lda #$0020	                    LDA #' '
+.397404		97 19		sta [$0339],y	clr_text            STA [#S_ANSI_VARS.TMPPTR1,D],Y
+.397406		c8		iny		                    INY
+.397407		c4 0f		cpy $032f	                    CPY #COLS_VISIBLE,D
+.397409		d0 f9		bne $397404	                    BNE clr_text
+.39740b		68		pla		vicky_lastcolor     PLA
+.39740c		18		clc		                    CLC
+.39740d		65 16		adc $0336	                    ADC #S_ANSI_VARS.COLORBEGIN,D
+.39740f		85 19		sta $0339	                    STA #S_ANSI_VARS.TMPPTR1,D
+.397411		a0 00 00	ldy #$0000	start_color         LDY #0
+.397414		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D
+.397416		97 19		sta [$0339],y	clr_color           STA [#S_ANSI_VARS.TMPPTR1,D],Y
+.397418		c8		iny		                    INY
+.397419		c4 05		cpy $0325	                    CPY #S_ANSI_VARS.COLS_PER_LINE,D
+.39741b		d0 f9		bne $397416	                    BNE clr_color
+.39741d		28		plp		done                PLP
+.39741e		2b		pld		                    PLD
+.39741f		ab		plb		                    PLB
+.397420		7a		ply		                    PLY
+.397421		fa		plx		                    PLX
+.397422		6b		rtl		                    RTL
+.397423						ANSI_CLRSCREEN
+.397423		da		phx		                    PHX
+.397424		5a		phy		                    PHY
+.397425		0b		phd		                    PHD
+.397426		08		php		                    PHP
+.397427		22 f2 6d 39	jsl $396df2	                    JSL ANSI_SETDEVICE                  ; Look at the current output channel and point
+.39742b		b0 1e		bcs $39744b	                    BCS done                            ; If invalid, just return
+.39742d		e2 20		sep #$20	                SEP #$20        ; set A short
+.39742f		c2 10		rep #$10	                REP #$10        ; set X long
+.397431		a0 00 00	ldy #$0000	                    LDY #0
+.397434		a9 20		lda #$20	                    LDA #$20		                    ; Fill the Entire Screen with Space
+.397436		97 00		sta [$0320],y	iclearloop0	        STA [#S_ANSI_VARS.SCREENBEGIN,D],Y
+.397438		c8		iny		                    INY
+.397439		c0 00 20	cpy #$2000	                    CPY #$2000
+.39743c		d0 f8		bne $397436	                    BNE iclearloop0
+.39743e		a0 00 00	ldy #$0000	                    LDY	#0
+.397441		a5 12		lda $0332	                    LDA #S_ANSI_VARS.CURCOLOR,D         ; Fill the current color
+.397443		97 16		sta [$0336],y	evid_clearloop1     STA [#S_ANSI_VARS.COLORBEGIN,D],Y
+.397445		c8		iny		                    INY
+.397446		c0 00 20	cpy #$2000	                    CPY #$2000
+.397449		d0 f8		bne $397443	                    BNE evid_clearloop1
+.39744b		28		plp		done                PLP
+.39744c		2b		pld		                    PLD
+.39744d		7a		ply		                    PLY
+.39744e		fa		plx		                    PLX
+.39744f		6b		rtl		                    RTL
 
 ;******  Return to file: src\kernel.asm
 
@@ -14731,802 +14737,802 @@
 >0033						TBL_LOCK            .dword ?                    ; Pointer to the scan code translation table for keys modified by CAPSLOCK or NUMLOCK
 >0037						TBL_LOCK_SHIFT      .dword ?                    ; Pointer to the scan code translation table for keys modified by CAPSLOCK and SHIFT
 >003b						TBL_CTRL_SHIFT      .dword ?                    ; Pointer to the scan code translation table for keys modified by CTRL and SHIFT
-.397446						IINITKEYBOARD
-.397446		da		phx		                    PHX
-.397447		5a		phy		                    PHY
-.397448		0b		phd		                    PHD
-.397449		08		php		                    PHP
-.39744a		48		pha		                PHA             ; begin setdp macro
-.39744b		08		php		                PHP
-.39744c		c2 20		rep #$20	                REP #$20        ; set A long
-.39744e		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397451		5b		tcd		                TCD
-.397452		28		plp		                PLP
-.397453		68		pla		                PLA             ; end setdp macro
-.397454		e2 20		sep #$20	                SEP #$20        ; set A short
-.397456		c2 10		rep #$10	                REP #$10        ; set X long
-.397458		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1                        ; Disable the keyboard interrupts while we get things started
-.39745c		09 01		ora #$01	                    ORA #FNX1_INT00_KBD
-.39745e		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1
-.397462		a9 00		lda #$00	                    LDA #KBD_STATE_IDLE                         ; Set the state machine to the starting IDLE state
-.397464		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D
-.397466		64 13		stz $0f13	                    STZ #S_KBD_CONTROL.SC_HEAD,D                ; Mark the scancode buffer as empty
-.397468		64 24		stz $0f24	                    STZ #S_KBD_CONTROL.CHAR_HEAD,D              ; Mark the character buffer as empty
-.39746a		64 25		stz $0f25	                    STZ #S_KBD_CONTROL.MODIFIERS,D              ; Default to modifiers being off
-.39746c		64 02		stz $0f02	                    STZ #S_KBD_CONTROL.STATUS,D                 ; Clear the status register
-.39746e		a9 80		lda #$80	                    LDA #KBD_CTRL_BREAK                         ; Enable BREAK processing
-.397470		85 01		sta $0f01	                    STA #S_KBD_CONTROL.CONTROL,D
-.397472		c2 20		rep #$20	                REP #$20        ; set A long
-.397474		a9 00 7c	lda #$7c00	                    LDA #<>SC_US_UNMOD
-.397477		85 27		sta $0f27	                    STA #S_KBD_CONTROL.TBL_UNMOD,D
-.397479		a9 80 7c	lda #$7c80	                    LDA #<>SC_US_SHFT
-.39747c		85 2b		sta $0f2b	                    STA #S_KBD_CONTROL.TBL_SHIFT,D
-.39747e		a9 00 7d	lda #$7d00	                    LDA #<>SC_US_CTRL
-.397481		85 2f		sta $0f2f	                    STA #S_KBD_CONTROL.TBL_CTRL,D
-.397483		a9 80 7d	lda #$7d80	                    LDA #<>SC_US_LOCK
-.397486		85 33		sta $0f33	                    STA #S_KBD_CONTROL.TBL_LOCK,D
-.397488		a9 00 7e	lda #$7e00	                    LDA #<>SC_US_LOCK_SHFT
-.39748b		85 37		sta $0f37	                    STA #S_KBD_CONTROL.TBL_LOCK_SHIFT,D
-.39748d		a9 80 7e	lda #$7e80	                    LDA #<>SC_US_CTRL_SHFT
-.397490		85 3b		sta $0f3b	                    STA #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
-.397492		e2 20		sep #$20	                SEP #$20        ; set A short
-.397494		a9 39		lda #$39	                    LDA #`SC_US_UNMOD
-.397496		85 29		sta $0f29	                    STA #S_KBD_CONTROL.TBL_UNMOD+2,D
-.397498		a9 39		lda #$39	                    LDA #`SC_US_SHFT
-.39749a		85 2d		sta $0f2d	                    STA #S_KBD_CONTROL.TBL_SHIFT+2,D
-.39749c		a9 39		lda #$39	                    LDA #`SC_US_CTRL
-.39749e		85 31		sta $0f31	                    STA #S_KBD_CONTROL.TBL_CTRL+2,D
-.3974a0		a9 39		lda #$39	                    LDA #`SC_US_LOCK
-.3974a2		85 35		sta $0f35	                    STA #S_KBD_CONTROL.TBL_LOCK+2,D
-.3974a4		a9 39		lda #$39	                    LDA #`SC_US_LOCK_SHFT
-.3974a6		85 39		sta $0f39	                    STA #S_KBD_CONTROL.TBL_LOCK_SHIFT+2,D
-.3974a8		a9 39		lda #$39	                    LDA #`SC_US_CTRL_SHFT
-.3974aa		85 3b		sta $0f3b	                    STA #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
-.3974ac		a9 ad		lda #$ad	                    LDA #KBD_CTRL_CMD_DISABLE1  ; Disable the keyboard sending data
-.3974ae		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN             ; Send the command to the controller
-.3974b2		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
-.3974b6		af 60 10 af	lda $af1060	flush_output        LDA @l KBD_DATA_BUF         ; We just throw that away
-.3974ba		a9 aa		lda #$aa	                    LDA #KBD_CTRL_CMD_SELFTEST  ; Send the self test command
-.3974bc		22 42 75 39	jsl $397542	                    JSL KBD_CTRL_SND_CMD
-.3974c0		c9 55		cmp #$55	                    CMP #KBD_RESP_OK            ; Did we get an OK?
-.3974c2		f0 05		beq $3974c9	                    BEQ test_AB
-.3974c4		a9 02		lda #$02	                    LDA #2                      ; Return error #2
-.3974c6		82 5e 00	brl $397527	                    BRL done
-.3974c9		a9 ab		lda #$ab	test_AB             LDA #KBD_CTRL_CMD_KBDTEST   ; Send the keyboard test command
-.3974cb		22 42 75 39	jsl $397542	                    JSL KBD_CTRL_SND_CMD
-.3974cf		c9 00		cmp #$00	                    CMP #0                      ; Did we get a good response?
-.3974d1		f0 05		beq $3974d8	                    BEQ write_command
-.3974d3		a9 03		lda #$03	                    LDA #3                      ; Return error #3
-.3974d5		82 4f 00	brl $397527	                    BRL done
-.3974d8		a9 60		lda #$60	write_command       LDA #KBD_CTRL_CMD_WRITECMD
-.3974da		a2 43 00	ldx #$0043	                    LDX #%01000011              ; Translate to set 1, no interrupts
-.3974dd		22 9c 75 39	jsl $39759c	                    JSL KBD_CTRL_SND_CMD_P
-.3974e1		a9 ae		lda #$ae	enable_dev1         LDA #KBD_CTRL_CMD_ENABLE1   ; Re-enable the keyboard sending data
-.3974e3		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN             ; Send the command to the controller
-.3974e7		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
-.3974eb		a9 ff		lda #$ff	reset_kbd           LDA #KBD_CMD_RESET          ; Send a reset command to the keyboard
-.3974ed		a2 ff ff	ldx #$ffff	                    LDX #$FFFF                  ; And wait a while for it to complete the reset
-.3974f0		22 53 75 39	jsl $397553	                    JSL KBD_SND_CMD
-.3974f4		a0 80 00	ldy #$0080	                    LDY #128                    ; Attemp enabling the keyboard 128 times
-.3974f7		a9 f4		lda #$f4	enable_loop         LDA #KBD_CMD_ENABLE         ; Try to enable the keyboard
-.3974f9		a2 00 00	ldx #$0000	                    LDX #0
-.3974fc		22 53 75 39	jsl $397553	                    JSL KBD_SND_CMD
-.397500		c9 fa		cmp #$fa	                    CMP #KBD_RESP_ACK           ; Did the keyboard acknowledge the command?
-.397502		f0 07		beq $39750b	                    BEQ set_led                 ; Yes: try to set the LEDs
-.397504		88		dey		                    DEY                         ; No: try again... counting down
-.397505		d0 f0		bne $3974f7	                    BNE enable_loop             ; If we are out of attempts...
-.397507		a9 05		lda #$05	                    LDA #5                      ; Return error #5
-.397509		80 1c		bra $397527	                    BRA done
-.39750b		a9 00		lda #$00	set_led             LDA #0                      ; Set the state of the locks
-.39750d		22 c3 77 39	jsl $3977c3	                    JSL KBD_SETLOCKS
-.397511		af 41 01 00	lda $000141	                    LDA @l INT_PENDING_REG1     ; Read the Pending Register &
-.397515		29 01		and #$01	                    AND #FNX1_INT00_KBD
-.397517		8f 41 01 00	sta $000141	                    STA @l INT_PENDING_REG1     ; Writing it back will clear the Active Bit
-.39751b		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1
-.39751f		29 fe		and #$fe	                    AND #~FNX1_INT00_KBD
-.397521		8f 4d 01 00	sta $00014d	                    STA @l INT_MASK_REG1
-.397525		a9 00		lda #$00	return_0            LDA #0                      ; Return status code for success
-.397527		28		plp		done                PLP
-.397528		2b		pld		                    PLD
-.397529		7a		ply		                    PLY
-.39752a		fa		plx		                    PLX
-.39752b		6b		rtl		                    RTL
-.39752c						KBD_WAIT_OUT
-.39752c		48		pha		                    PHA
-.39752d		af 64 10 af	lda $af1064	wait                LDA @l KBD_STATUS       ; Get the keyboard status
-.397531		89 01		bit #$01	                    BIT #KBD_STAT_OBF       ; Check to see if the output buffer is full
-.397533		f0 f8		beq $39752d	                    BEQ wait                ; If it isn't, keep waiting
-.397535		68		pla		                    PLA
-.397536		6b		rtl		                    RTL
-.397537						KBD_WAIT_IN
-.397537		48		pha		                    PHA
-.397538		af 64 10 af	lda $af1064	wait                LDA @l KBD_STATUS       ; Get the keyboard status
-.39753c		89 02		bit #$02	                    BIT #KBD_STAT_IBF       ; Check to see if the input buffer has data
-.39753e		d0 f8		bne $397538	                    BNE wait                ; If not, wait for it to have something
-.397540		68		pla		                    PLA
-.397541		6b		rtl		                    RTL
-.397542						KBD_CTRL_SND_CMD
-.397542		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN         ; Send the command to the controller
-.397546		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
-.39754a		22 2c 75 39	jsl $39752c	                    JSL KBD_WAIT_OUT        ; Wait for and read the response byte
-.39754e		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF
-.397552		6b		rtl		                    RTL
-.397553						KBD_SND_CMD
-.397553		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN         ; Send the command to the keyboard
-.397557		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
-.39755b		c2 10		rep #$10	                REP #$10        ; set X long
-.39755d		e0 00 00	cpx #$0000	delay               CPX #0                  ; Check how many delay loops are left to do
-.397560		f0 0b		beq $39756d	                    BEQ get_response        ; If 0, check for a response
-.397562		ca		dex		                    DEX                     ; Count down
-.397563		ea		nop		                    NOP                     ; And do a delay
-.397564		ea		nop		                    NOP
-.397565		ea		nop		                    NOP
-.397566		ea		nop		                    NOP
-.397567		ea		nop		                    NOP
-.397568		ea		nop		                    NOP
-.397569		ea		nop		                    NOP
-.39756a		ea		nop		                    NOP
-.39756b		80 f0		bra $39755d	                    BRA delay
-.39756d		22 2c 75 39	jsl $39752c	get_response        JSL KBD_WAIT_OUT        ; Wait for and read the response byte
-.397571		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF
-.397575		6b		rtl		                    RTL
-.397576						KBD_SND_CMD_P
-.397576		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN         ; Send the command to the keyboard
-.39757a		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
-.39757e		8a		txa		                    TXA                     ; Send the parameter to the keyboard
-.39757f		c2 10		rep #$10	                REP #$10        ; set X long
-.397581		a2 e8 03	ldx #$03e8	                    LDX #1000
-.397584		e0 00 00	cpx #$0000	delay               CPX #0                  ; Check how many delay loops are left to do
-.397587		f0 0a		beq $397593	                    BEQ send_data           ; If 0, check for a response
-.397589		ca		dex		                    DEX                     ; Count down
-.39758a		ea		nop		                    NOP                     ; And do a delay
-.39758b		ea		nop		                    NOP
-.39758c		ea		nop		                    NOP
-.39758d		ea		nop		                    NOP
-.39758e		ea		nop		                    NOP
-.39758f		ea		nop		                    NOP
-.397590		ea		nop		                    NOP
-.397591		80 f1		bra $397584	                    BRA delay
-.397593		22 37 75 39	jsl $397537	send_data           JSL KBD_WAIT_IN
-.397597		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
-.39759b						get_response
-.39759b		6b		rtl		                    RTL
-.39759c						KBD_CTRL_SND_CMD_P
-.39759c		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN         ; Send the command to the controller
-.3975a0		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
-.3975a4		8a		txa		                    TXA
-.3975a5		22 37 75 39	jsl $397537	                    JSL KBD_WAIT_IN         ; Send the parameter to the controller
-.3975a9		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
-.3975ad		6b		rtl		                    RTL
-.3975ae						KBD_PROCESS_BYTE
-.3975ae		8b		phb		                    PHB
-.3975af		0b		phd		                    PHD
-.3975b0		08		php		                    PHP
-.3975b1		48		pha		                PHA             ; begin setdbr macro
-.3975b2		08		php		                PHP
-.3975b3		e2 20		sep #$20	                SEP #$20        ; set A short
-.3975b5		a9 39		lda #$39	                LDA #`KBD_STATE_MACH
-.3975b7		48		pha		                PHA
-.3975b8		ab		plb		                PLB
-.3975b9		28		plp		                PLP
-.3975ba		68		pla		                PLA             ; end setdbr macro
-.3975bb		48		pha		                PHA             ; begin setdp macro
+.397450						IINITKEYBOARD
+.397450		da		phx		                    PHX
+.397451		5a		phy		                    PHY
+.397452		0b		phd		                    PHD
+.397453		08		php		                    PHP
+.397454		48		pha		                PHA             ; begin setdp macro
+.397455		08		php		                PHP
+.397456		c2 20		rep #$20	                REP #$20        ; set A long
+.397458		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.39745b		5b		tcd		                TCD
+.39745c		28		plp		                PLP
+.39745d		68		pla		                PLA             ; end setdp macro
+.39745e		e2 20		sep #$20	                SEP #$20        ; set A short
+.397460		c2 10		rep #$10	                REP #$10        ; set X long
+.397462		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1                        ; Disable the keyboard interrupts while we get things started
+.397466		09 01		ora #$01	                    ORA #FNX1_INT00_KBD
+.397468		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1
+.39746c		a9 00		lda #$00	                    LDA #KBD_STATE_IDLE                         ; Set the state machine to the starting IDLE state
+.39746e		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D
+.397470		64 13		stz $0f13	                    STZ #S_KBD_CONTROL.SC_HEAD,D                ; Mark the scancode buffer as empty
+.397472		64 24		stz $0f24	                    STZ #S_KBD_CONTROL.CHAR_HEAD,D              ; Mark the character buffer as empty
+.397474		64 25		stz $0f25	                    STZ #S_KBD_CONTROL.MODIFIERS,D              ; Default to modifiers being off
+.397476		64 02		stz $0f02	                    STZ #S_KBD_CONTROL.STATUS,D                 ; Clear the status register
+.397478		a9 80		lda #$80	                    LDA #KBD_CTRL_BREAK                         ; Enable BREAK processing
+.39747a		85 01		sta $0f01	                    STA #S_KBD_CONTROL.CONTROL,D
+.39747c		c2 20		rep #$20	                REP #$20        ; set A long
+.39747e		a9 00 7c	lda #$7c00	                    LDA #<>SC_US_UNMOD
+.397481		85 27		sta $0f27	                    STA #S_KBD_CONTROL.TBL_UNMOD,D
+.397483		a9 80 7c	lda #$7c80	                    LDA #<>SC_US_SHFT
+.397486		85 2b		sta $0f2b	                    STA #S_KBD_CONTROL.TBL_SHIFT,D
+.397488		a9 00 7d	lda #$7d00	                    LDA #<>SC_US_CTRL
+.39748b		85 2f		sta $0f2f	                    STA #S_KBD_CONTROL.TBL_CTRL,D
+.39748d		a9 80 7d	lda #$7d80	                    LDA #<>SC_US_LOCK
+.397490		85 33		sta $0f33	                    STA #S_KBD_CONTROL.TBL_LOCK,D
+.397492		a9 00 7e	lda #$7e00	                    LDA #<>SC_US_LOCK_SHFT
+.397495		85 37		sta $0f37	                    STA #S_KBD_CONTROL.TBL_LOCK_SHIFT,D
+.397497		a9 80 7e	lda #$7e80	                    LDA #<>SC_US_CTRL_SHFT
+.39749a		85 3b		sta $0f3b	                    STA #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
+.39749c		e2 20		sep #$20	                SEP #$20        ; set A short
+.39749e		a9 39		lda #$39	                    LDA #`SC_US_UNMOD
+.3974a0		85 29		sta $0f29	                    STA #S_KBD_CONTROL.TBL_UNMOD+2,D
+.3974a2		a9 39		lda #$39	                    LDA #`SC_US_SHFT
+.3974a4		85 2d		sta $0f2d	                    STA #S_KBD_CONTROL.TBL_SHIFT+2,D
+.3974a6		a9 39		lda #$39	                    LDA #`SC_US_CTRL
+.3974a8		85 31		sta $0f31	                    STA #S_KBD_CONTROL.TBL_CTRL+2,D
+.3974aa		a9 39		lda #$39	                    LDA #`SC_US_LOCK
+.3974ac		85 35		sta $0f35	                    STA #S_KBD_CONTROL.TBL_LOCK+2,D
+.3974ae		a9 39		lda #$39	                    LDA #`SC_US_LOCK_SHFT
+.3974b0		85 39		sta $0f39	                    STA #S_KBD_CONTROL.TBL_LOCK_SHIFT+2,D
+.3974b2		a9 39		lda #$39	                    LDA #`SC_US_CTRL_SHFT
+.3974b4		85 3b		sta $0f3b	                    STA #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
+.3974b6		a9 ad		lda #$ad	                    LDA #KBD_CTRL_CMD_DISABLE1  ; Disable the keyboard sending data
+.3974b8		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN             ; Send the command to the controller
+.3974bc		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
+.3974c0		af 60 10 af	lda $af1060	flush_output        LDA @l KBD_DATA_BUF         ; We just throw that away
+.3974c4		a9 aa		lda #$aa	                    LDA #KBD_CTRL_CMD_SELFTEST  ; Send the self test command
+.3974c6		22 4c 75 39	jsl $39754c	                    JSL KBD_CTRL_SND_CMD
+.3974ca		c9 55		cmp #$55	                    CMP #KBD_RESP_OK            ; Did we get an OK?
+.3974cc		f0 05		beq $3974d3	                    BEQ test_AB
+.3974ce		a9 02		lda #$02	                    LDA #2                      ; Return error #2
+.3974d0		82 5e 00	brl $397531	                    BRL done
+.3974d3		a9 ab		lda #$ab	test_AB             LDA #KBD_CTRL_CMD_KBDTEST   ; Send the keyboard test command
+.3974d5		22 4c 75 39	jsl $39754c	                    JSL KBD_CTRL_SND_CMD
+.3974d9		c9 00		cmp #$00	                    CMP #0                      ; Did we get a good response?
+.3974db		f0 05		beq $3974e2	                    BEQ write_command
+.3974dd		a9 03		lda #$03	                    LDA #3                      ; Return error #3
+.3974df		82 4f 00	brl $397531	                    BRL done
+.3974e2		a9 60		lda #$60	write_command       LDA #KBD_CTRL_CMD_WRITECMD
+.3974e4		a2 43 00	ldx #$0043	                    LDX #%01000011              ; Translate to set 1, no interrupts
+.3974e7		22 a6 75 39	jsl $3975a6	                    JSL KBD_CTRL_SND_CMD_P
+.3974eb		a9 ae		lda #$ae	enable_dev1         LDA #KBD_CTRL_CMD_ENABLE1   ; Re-enable the keyboard sending data
+.3974ed		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN             ; Send the command to the controller
+.3974f1		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
+.3974f5		a9 ff		lda #$ff	reset_kbd           LDA #KBD_CMD_RESET          ; Send a reset command to the keyboard
+.3974f7		a2 ff ff	ldx #$ffff	                    LDX #$FFFF                  ; And wait a while for it to complete the reset
+.3974fa		22 5d 75 39	jsl $39755d	                    JSL KBD_SND_CMD
+.3974fe		a0 80 00	ldy #$0080	                    LDY #128                    ; Attemp enabling the keyboard 128 times
+.397501		a9 f4		lda #$f4	enable_loop         LDA #KBD_CMD_ENABLE         ; Try to enable the keyboard
+.397503		a2 00 00	ldx #$0000	                    LDX #0
+.397506		22 5d 75 39	jsl $39755d	                    JSL KBD_SND_CMD
+.39750a		c9 fa		cmp #$fa	                    CMP #KBD_RESP_ACK           ; Did the keyboard acknowledge the command?
+.39750c		f0 07		beq $397515	                    BEQ set_led                 ; Yes: try to set the LEDs
+.39750e		88		dey		                    DEY                         ; No: try again... counting down
+.39750f		d0 f0		bne $397501	                    BNE enable_loop             ; If we are out of attempts...
+.397511		a9 05		lda #$05	                    LDA #5                      ; Return error #5
+.397513		80 1c		bra $397531	                    BRA done
+.397515		a9 00		lda #$00	set_led             LDA #0                      ; Set the state of the locks
+.397517		22 cd 77 39	jsl $3977cd	                    JSL KBD_SETLOCKS
+.39751b		af 41 01 00	lda $000141	                    LDA @l INT_PENDING_REG1     ; Read the Pending Register &
+.39751f		29 01		and #$01	                    AND #FNX1_INT00_KBD
+.397521		8f 41 01 00	sta $000141	                    STA @l INT_PENDING_REG1     ; Writing it back will clear the Active Bit
+.397525		af 4d 01 00	lda $00014d	                    LDA @l INT_MASK_REG1
+.397529		29 fe		and #$fe	                    AND #~FNX1_INT00_KBD
+.39752b		8f 4d 01 00	sta $00014d	                    STA @l INT_MASK_REG1
+.39752f		a9 00		lda #$00	return_0            LDA #0                      ; Return status code for success
+.397531		28		plp		done                PLP
+.397532		2b		pld		                    PLD
+.397533		7a		ply		                    PLY
+.397534		fa		plx		                    PLX
+.397535		6b		rtl		                    RTL
+.397536						KBD_WAIT_OUT
+.397536		48		pha		                    PHA
+.397537		af 64 10 af	lda $af1064	wait                LDA @l KBD_STATUS       ; Get the keyboard status
+.39753b		89 01		bit #$01	                    BIT #KBD_STAT_OBF       ; Check to see if the output buffer is full
+.39753d		f0 f8		beq $397537	                    BEQ wait                ; If it isn't, keep waiting
+.39753f		68		pla		                    PLA
+.397540		6b		rtl		                    RTL
+.397541						KBD_WAIT_IN
+.397541		48		pha		                    PHA
+.397542		af 64 10 af	lda $af1064	wait                LDA @l KBD_STATUS       ; Get the keyboard status
+.397546		89 02		bit #$02	                    BIT #KBD_STAT_IBF       ; Check to see if the input buffer has data
+.397548		d0 f8		bne $397542	                    BNE wait                ; If not, wait for it to have something
+.39754a		68		pla		                    PLA
+.39754b		6b		rtl		                    RTL
+.39754c						KBD_CTRL_SND_CMD
+.39754c		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN         ; Send the command to the controller
+.397550		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
+.397554		22 36 75 39	jsl $397536	                    JSL KBD_WAIT_OUT        ; Wait for and read the response byte
+.397558		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF
+.39755c		6b		rtl		                    RTL
+.39755d						KBD_SND_CMD
+.39755d		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN         ; Send the command to the keyboard
+.397561		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
+.397565		c2 10		rep #$10	                REP #$10        ; set X long
+.397567		e0 00 00	cpx #$0000	delay               CPX #0                  ; Check how many delay loops are left to do
+.39756a		f0 0b		beq $397577	                    BEQ get_response        ; If 0, check for a response
+.39756c		ca		dex		                    DEX                     ; Count down
+.39756d		ea		nop		                    NOP                     ; And do a delay
+.39756e		ea		nop		                    NOP
+.39756f		ea		nop		                    NOP
+.397570		ea		nop		                    NOP
+.397571		ea		nop		                    NOP
+.397572		ea		nop		                    NOP
+.397573		ea		nop		                    NOP
+.397574		ea		nop		                    NOP
+.397575		80 f0		bra $397567	                    BRA delay
+.397577		22 36 75 39	jsl $397536	get_response        JSL KBD_WAIT_OUT        ; Wait for and read the response byte
+.39757b		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF
+.39757f		6b		rtl		                    RTL
+.397580						KBD_SND_CMD_P
+.397580		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN         ; Send the command to the keyboard
+.397584		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
+.397588		8a		txa		                    TXA                     ; Send the parameter to the keyboard
+.397589		c2 10		rep #$10	                REP #$10        ; set X long
+.39758b		a2 e8 03	ldx #$03e8	                    LDX #1000
+.39758e		e0 00 00	cpx #$0000	delay               CPX #0                  ; Check how many delay loops are left to do
+.397591		f0 0a		beq $39759d	                    BEQ send_data           ; If 0, check for a response
+.397593		ca		dex		                    DEX                     ; Count down
+.397594		ea		nop		                    NOP                     ; And do a delay
+.397595		ea		nop		                    NOP
+.397596		ea		nop		                    NOP
+.397597		ea		nop		                    NOP
+.397598		ea		nop		                    NOP
+.397599		ea		nop		                    NOP
+.39759a		ea		nop		                    NOP
+.39759b		80 f1		bra $39758e	                    BRA delay
+.39759d		22 41 75 39	jsl $397541	send_data           JSL KBD_WAIT_IN
+.3975a1		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
+.3975a5						get_response
+.3975a5		6b		rtl		                    RTL
+.3975a6						KBD_CTRL_SND_CMD_P
+.3975a6		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN         ; Send the command to the controller
+.3975aa		8f 64 10 af	sta $af1064	                    STA @l KBD_CMD_BUF
+.3975ae		8a		txa		                    TXA
+.3975af		22 41 75 39	jsl $397541	                    JSL KBD_WAIT_IN         ; Send the parameter to the controller
+.3975b3		8f 60 10 af	sta $af1060	                    STA @l KBD_DATA_BUF
+.3975b7		6b		rtl		                    RTL
+.3975b8						KBD_PROCESS_BYTE
+.3975b8		8b		phb		                    PHB
+.3975b9		0b		phd		                    PHD
+.3975ba		08		php		                    PHP
+.3975bb		48		pha		                PHA             ; begin setdbr macro
 .3975bc		08		php		                PHP
-.3975bd		c2 20		rep #$20	                REP #$20        ; set A long
-.3975bf		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3975c2		5b		tcd		                TCD
+.3975bd		e2 20		sep #$20	                SEP #$20        ; set A short
+.3975bf		a9 39		lda #$39	                LDA #`KBD_STATE_MACH
+.3975c1		48		pha		                PHA
+.3975c2		ab		plb		                PLB
 .3975c3		28		plp		                PLP
-.3975c4		68		pla		                PLA             ; end setdp macro
-.3975c5		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.3975c7		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF                 ; Get the current scancode byte
-.3975cb		d0 03		bne $3975d0	                    BNE save_scancode
-.3975cd		82 67 00	brl $397637	                    BRL done                            ; If it's 0, just ignore it
-.3975d0						LOCALS
+.3975c4		68		pla		                PLA             ; end setdbr macro
+.3975c5		48		pha		                PHA             ; begin setdp macro
+.3975c6		08		php		                PHP
+.3975c7		c2 20		rep #$20	                REP #$20        ; set A long
+.3975c9		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3975cc		5b		tcd		                TCD
+.3975cd		28		plp		                PLP
+.3975ce		68		pla		                PLA             ; end setdp macro
+.3975cf		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.3975d1		af 60 10 af	lda $af1060	                    LDA @l KBD_DATA_BUF                 ; Get the current scancode byte
+.3975d5		d0 03		bne $3975da	                    BNE save_scancode
+.3975d7		82 67 00	brl $397641	                    BRL done                            ; If it's 0, just ignore it
+.3975da						LOCALS
 >0001						l_break             .byte ?                             ; The make/break bit of the scancode
 >0002						l_code              .byte ?                             ; The scancode
-.3975d0		48		pha		save_scancode       PHA
-.3975d1		48		pha		                    PHA
-.3975d2		29 80		and #$80	                    AND #$80
-.3975d4		83 01		sta $01,s	                    STA l_break                         ; Save the make/break bit
-.3975d6		a2 00		ldx #$00	                    LDX #0                              ; Start from the beginning
-.3975d8		bf 00 7b 39	lda $397b00,x	chk_transition      LDA @l KBD_STATE_MACH,X             ; Get the tranition's start state
-.3975dc		c9 ff		cmp #$ff	                    CMP #$FF
-.3975de		d0 03		bne $3975e3	                    BNE compare_state
-.3975e0		82 54 00	brl $397637	                    BRL done                            ; If $FF: we've reached the end... this is an error... just ignore it?
-.3975e3		c5 00		cmp $0f00	compare_state       CMP #S_KBD_CONTROL.STATE,D          ; Compare it to the current state
-.3975e5		d0 0e		bne $3975f5	                    BNE next_transition                 ; If they don't match, go to the next transition
-.3975e7		bf 01 7b 39	lda $397b01,x	                    LDA @l KBD_STATE_MACH+1,X           ; Get the tranition's test byte
-.3975eb		f0 0e		beq $3975fb	                    BEQ apply                           ; Is it 0? Yes: the default applies
-.3975ed		a3 02		lda $02,s	                    LDA l_code                          ; Otherwise: get the scan code back
-.3975ef		df 01 7b 39	cmp $397b01,x	                    CMP @l KBD_STATE_MACH+1,X           ; Compare it to the transition's test byte
-.3975f3		f0 06		beq $3975fb	                    BEQ apply                           ; If equal: this matches, apply the transition
-.3975f5		e8		inx		next_transition     INX                                 ; Move to the next transition
-.3975f6		e8		inx		                    INX
-.3975f7		e8		inx		                    INX
-.3975f8		e8		inx		                    INX
-.3975f9		80 dd		bra $3975d8	                    BRA chk_transition                  ; Check to see if the next transition applies
-.3975fb		bf 02 7b 39	lda $397b02,x	apply               LDA @l KBD_STATE_MACH+2,X           ; Get the tranition's destination state
-.3975ff		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D          ; And save it as our new state
-.397601		bf 03 7b 39	lda $397b03,x	                    LDA @l KBD_STATE_MACH+3,X           ; Get the tranition's action
-.397605		c9 00		cmp #$00	                    CMP #KBD_ACTION_IGNORE              ; Is it IGNORE?
-.397607		f0 2e		beq $397637	                    BEQ done                            ; Yes: we're done for now
-.397609		c9 01		cmp #$01	                    CMP #KBD_ACTION_EMIT_BASE           ; Is it EMIT_BASE?
-.39760b		f0 06		beq $397613	                    BEQ emit_base                       ; Yes: emit the translation of the base byte
-.39760d		c9 02		cmp #$02	                    CMP #KBD_ACTION_EMIT_E0             ; Is it EMIT_E0?
-.39760f		f0 0f		beq $397620	                    BEQ emit_e0                         ; Yes: emit the translation of the E0 prefixed byte
-.397611		80 18		bra $39762b	                    BRA emit_A                          ; Otherwise: just emit the action byte as the new scan code
-.397613		a3 02		lda $02,s	emit_base           LDA l_code
-.397615		29 7f		and #$7f	                    AND #$7F                            ; Strip off the make/break bit
-.397617		aa		tax		                    TAX
-.397618		bf 00 7a 39	lda $397a00,x	                    LDA @l TBL_SET1,X                   ; Get the translation of the base scan code
-.39761c		03 01		ora $01,s	                    ORA l_break                         ; Add the make/break bit back
-.39761e		80 0b		bra $39762b	                    BRA emit_A                          ; Emit the translation
-.397620		a3 02		lda $02,s	emit_e0             LDA l_code
-.397622		29 7f		and #$7f	                    AND #$7F                            ; Strip off any make/break bit
-.397624		aa		tax		                    TAX
-.397625		bf 80 7a 39	lda $397a80,x	                    LDA @l TBL_SET1_E0,X                ; Get the translation of the E0 prefixed scan code
-.397629		03 01		ora $01,s	                    ORA l_break                         ; Add in the make/break flag
-.39762b		c9 00		cmp #$00	emit_A              CMP #0                              ; Is the code NUL?
-.39762d		f0 08		beq $397637	                    BEQ done                            ; If so, skip enqueuing it
-.39762f		22 3f 76 39	jsl $39763f	enqueue             JSL KBD_SC_ENQUEUE                  ; Enqueue the scancode
-.397633		a9 00		lda #$00	                    LDA #KBD_STATE_IDLE                 ; Set the state machine to the initial state
-.397635		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D
-.397637						done
-.397637		e2 20		sep #$20	                SEP #$20        ; set A short
-.397639		68		pla		                    PLA                                 ; Clean the scan code byte from the stack
-.39763a		68		pla		                    PLA
-.39763b		28		plp		                    PLP
-.39763c		2b		pld		                    PLD
-.39763d		ab		plb		                    PLB
-.39763e		6b		rtl		                    RTL
-.39763f						KBD_SC_ENQUEUE
-.39763f		0b		phd		                    PHD
-.397640		08		php		                    PHP
-.397641		78		sei		                    SEI                             ; Disable IRQs for the duration of this routine to avoid race conditions
-.397642		48		pha		                PHA             ; begin setdp macro
-.397643		08		php		                PHP
-.397644		c2 20		rep #$20	                REP #$20        ; set A long
-.397646		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397649		5b		tcd		                TCD
-.39764a		28		plp		                PLP
-.39764b		68		pla		                PLA             ; end setdp macro
-.39764c		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.39764e		c9 00		cmp #$00	                    CMP #0                          ; Is the scan code a NUL?
-.397650		f0 2f		beq $397681	                    BEQ done                        ; Yes: just ignore
-.397652		c9 61		cmp #$61	                    CMP #KBD_SC_BREAK               ; Is it the BREAK key?
-.397654		d0 10		bne $397666	                    BNE chk_locks                   ; No: check the various lock keys
-.397656		a5 01		lda $0f01	                    LDA #S_KBD_CONTROL.CONTROL,D
-.397658		89 80		bit #$80	                    BIT #KBD_CTRL_BREAK                 ; Are we processing BREAK?
-.39765a		f0 08		beq $397664	                    BEQ enqueue_break                   ; No: enqueue it as normal
-.39765c		a9 80		lda #$80	                    LDA #KBD_STAT_BREAK                 ; Yes: turn on the BREAK bit
-.39765e		05 02		ora $0f02	                    ORA #S_KBD_CONTROL.STATUS,D
-.397660		85 02		sta $0f02	                    STA #S_KBD_CONTROL.STATUS,D
-.397662		80 1d		bra $397681	                    BRA done                            ; And we're done
-.397664		a9 61		lda #$61	enqueue_break       LDA #KBD_SC_BREAK
-.397666		c9 3a		cmp #$3a	chk_locks           CMP #KBD_SC_CAPSLOCK            ; Is it the CAPS lock?
-.397668		f0 1a		beq $397684	                    BEQ toggle_caps                 ; Yes: toggle the CAPS lock bits
-.39766a		c9 45		cmp #$45	                    CMP #KBD_SC_NUMLOCK             ; Is it the NUM lock?
-.39766c		f0 20		beq $39768e	                    BEQ toggle_num                  ; Yes: toggle the NUM lock bits
-.39766e		c9 46		cmp #$46	                    CMP #KBD_SC_SCROLL              ; Is it the SCROLL lock?
-.397670		f0 22		beq $397694	                    BEQ toggle_scroll               ; Yes: toggle the SCROLL lock bits
-.397672		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; Get the index of the next free spot
-.397674		e0 10		cpx #$10	                    CPX #KBD_INBUF_SIZE             ; Is it at the end?
-.397676		f0 09		beq $397681	                    BEQ done                        ; Yes: we're full... ignore the scancode
-.397678		95 03		sta $0f03,x	                    STA #S_KBD_CONTROL.SC_BUF,D,X   ; No: we have room, write the scan code to the buffer
-.39767a		e8		inx		                    INX                             ; Advance to the next location
-.39767b		86 13		stx $0f13	                    STX #S_KBD_CONTROL.SC_HEAD,D
-.39767d		a9 01		lda #$01	                    LDA #KBD_STAT_SCAN              ; Set the KBD_STAT_SCAN bit
-.39767f		04 02		tsb $0f02	                    TSB #S_KBD_CONTROL.STATUS,D
-.397681		28		plp		done                PLP
-.397682		2b		pld		                    PLD
-.397683		6b		rtl		                    RTL
-.397684		a5 26		lda $0f26	toggle_caps         LDA #S_KBD_CONTROL.LOCKS,D
-.397686		49 04		eor #$04	                    EOR #KBD_LOCK_CAPS              ; Toggle the CAPS lock
-.397688		22 c3 77 39	jsl $3977c3	save_locks          JSL KBD_SETLOCKS                ; Set the locks
-.39768c		80 f3		bra $397681	                    BRA done
-.39768e		a5 26		lda $0f26	toggle_num          LDA #S_KBD_CONTROL.LOCKS,D
-.397690		49 02		eor #$02	                    EOR #KBD_LOCK_NUMBER            ; Toggle the NUM lock
-.397692		80 f4		bra $397688	                    BRA save_locks
-.397694		a5 26		lda $0f26	toggle_scroll       LDA #S_KBD_CONTROL.LOCKS,D
-.397696		49 01		eor #$01	                    EOR #KBD_LOCK_SCROLL            ; Toggle the SCROLL lock
-.397698		80 ee		bra $397688	                    BRA save_locks
-.39769a						KBD_CHAR_ENQUEUE
-.39769a		0b		phd		                    PHD
-.39769b		08		php		                    PHP
-.39769c		78		sei		                    SEI                             ; Disable IRQs for the duration of this routine to avoid race conditions
-.39769d		48		pha		                PHA             ; begin setdp macro
-.39769e		08		php		                PHP
-.39769f		c2 20		rep #$20	                REP #$20        ; set A long
-.3976a1		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3976a4		5b		tcd		                TCD
-.3976a5		28		plp		                PLP
-.3976a6		68		pla		                PLA             ; end setdp macro
-.3976a7		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.3976a9		c9 00		cmp #$00	                    CMP #0                          ; Is the character a NUL?
-.3976ab		f0 0f		beq $3976bc	                    BEQ done                        ; Yes: just ignore
-.3976ad		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D  ; Get the index of the next free spot
-.3976af		e0 10		cpx #$10	                    CPX #KBD_INBUF_SIZE             ; Is it at the end?
-.3976b1		f0 09		beq $3976bc	                    BEQ done                        ; Yes: we're full... ignore the scancode
-.3976b3		95 14		sta $0f14,x	                    STA #S_KBD_CONTROL.CHAR_BUF,D,X ; No: we have room, write the scan code to the buffer
-.3976b5		e8		inx		                    INX                             ; Advance to the next location
-.3976b6		86 24		stx $0f24	                    STX #S_KBD_CONTROL.CHAR_HEAD,D
-.3976b8		a9 02		lda #$02	                    LDA #KBD_STAT_CHAR              ; Set the KBD_STAT_CHAR bit
-.3976ba		04 02		tsb $0f02	                    TSB #S_KBD_CONTROL.STATUS,D
-.3976bc		28		plp		done                PLP
-.3976bd		2b		pld		                    PLD
-.3976be		6b		rtl		                    RTL
-.3976bf						KBD_CHAR_DEQUEUE
-.3976bf		da		phx		                    PHX
-.3976c0		0b		phd		                    PHD
-.3976c1		08		php		                    PHP
-.3976c2		48		pha		                PHA             ; begin setdp macro
-.3976c3		08		php		                PHP
-.3976c4		c2 20		rep #$20	                REP #$20        ; set A long
-.3976c6		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3976c9		5b		tcd		                TCD
-.3976ca		28		plp		                PLP
-.3976cb		68		pla		                PLA             ; end setdp macro
-.3976cc		78		sei		                    SEI                                 ; Disable IRQ for the duration of this routine to avoid race conditions
-.3976cd		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.3976cf		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D      ; Get the index of the next free spot
-.3976d1		f0 21		beq $3976f4	                    BEQ return_empty                    ; If it's 0, we have no data
-.3976d3		a5 14		lda $0f14	                    LDA #S_KBD_CONTROL.CHAR_BUF,D       ; Get the character at the head of the queue
-.3976d5		48		pha		                    PHA                                 ; Save it
-.3976d6		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D      ; How many bytes were there?
-.3976d8		e0 01		cpx #$01	                    CPX #1                              ; Is it one?
-.3976da		d0 08		bne $3976e4	                    BNE copy_down                       ; No: we need to copy down the remaining bytes
-.3976dc		64 24		stz $0f24	                    STZ #S_KBD_CONTROL.CHAR_HEAD,D      ; Yes: mark that we have no data in the queue now
-.3976de		a9 02		lda #$02	                    LDA #KBD_STAT_CHAR                  ; Clear the KBD_STAT_CHAR bit
-.3976e0		14 02		trb $0f02	                    TRB #S_KBD_CONTROL.STATUS,D
-.3976e2		80 0d		bra $3976f1	                    BRA return_head                     ; And return the character we found
-.3976e4		a2 00		ldx #$00	copy_down           LDX #0                              ; Starting at the beginning of the buffer...
-.3976e6		b5 15		lda $0f15,x	loop                LDA #S_KBD_CONTROL.CHAR_BUF+1,D,X   ; Get the next byte
-.3976e8		95 14		sta $0f14,x	                    STA #S_KBD_CONTROL.CHAR_BUF,D,X     ; Move it down
-.3976ea		e8		inx		                    INX                                 ; And move to the next byte
-.3976eb		e4 24		cpx $0f24	                    CPX #S_KBD_CONTROL.CHAR_HEAD,D      ; Have we reached the end?
-.3976ed		d0 f7		bne $3976e6	                    BNE loop                            ; No: keep copying bytes
-.3976ef		c6 24		dec $0f24	                    DEC #S_KBD_CONTROL.CHAR_HEAD,D      ; Decrement the index
-.3976f1		68		pla		return_head         PLA                                 ; Get the character back
-.3976f2		80 02		bra $3976f6	                    BRA done                            ; And return it
-.3976f4		a9 00		lda #$00	return_empty        LDA #0                              ; Return: 0 for no character
-.3976f6		28		plp		done                PLP
-.3976f7		2b		pld		                    PLD
-.3976f8		fa		plx		                    PLX
-.3976f9		6b		rtl		                    RTL
-.3976fa						KBD_GET_SCANCODE
-.3976fa		da		phx		                    PHX
-.3976fb		0b		phd		                    PHD
-.3976fc		08		php		                    PHP
-.3976fd		48		pha		                PHA             ; begin setdp macro
-.3976fe		08		php		                PHP
-.3976ff		c2 20		rep #$20	                REP #$20        ; set A long
-.397701		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397704		5b		tcd		                TCD
-.397705		28		plp		                PLP
-.397706		68		pla		                PLA             ; end setdp macro
-.397707		78		sei		                    SEI                             ; Disable IRQ for the duration of this routine to avoid race conditions
-.397708		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.39770a		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; Get the index of the next free spot
-.39770c		f0 21		beq $39772f	                    BEQ return_empty                ; If it's 0, we have no data
-.39770e		a5 03		lda $0f03	                    LDA #S_KBD_CONTROL.SC_BUF,D     ; Get the scan code at the head of the queue
-.397710		48		pha		                    PHA                             ; Save it
-.397711		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; How many bytes were there?
-.397713		e0 01		cpx #$01	                    CPX #1                          ; Is it one?
-.397715		d0 08		bne $39771f	                    BNE copy_down                   ; No: we need to copy down the remaining bytes
-.397717		64 13		stz $0f13	                    STZ #S_KBD_CONTROL.SC_HEAD,D    ; Yes: mark that we have no data in the queue now
-.397719		a9 01		lda #$01	                    LDA #KBD_STAT_SCAN              ; Clear the KBD_STAT_SCAN bit
-.39771b		14 02		trb $0f02	                    TRB #S_KBD_CONTROL.STATUS,D
-.39771d		80 0d		bra $39772c	                    BRA return_head                 ; And return the scan code we found
-.39771f		a2 00		ldx #$00	copy_down           LDX #0                          ; Starting at the beginning of the buffer...
-.397721		b5 04		lda $0f04,x	loop                LDA #S_KBD_CONTROL.SC_BUF+1,D,X ; Get the next byte
-.397723		85 03		sta $0f03	                    STA #S_KBD_CONTROL.SC_BUF,D     ; Move it down
-.397725		e8		inx		                    INX                             ; And move to the next byte
-.397726		e4 13		cpx $0f13	                    CPX #S_KBD_CONTROL.SC_HEAD,D    ; Have we reached the end?
-.397728		d0 f7		bne $397721	                    BNE loop                        ; No: keep copying bytes
-.39772a		c6 13		dec $0f13	                    DEC #S_KBD_CONTROL.SC_HEAD,D    ; Reduce the index to the next free byte
-.39772c		68		pla		return_head         PLA                             ; Get the scan code back
-.39772d		80 02		bra $397731	                    BRA done                        ; And return it
-.39772f		a9 00		lda #$00	return_empty        LDA #0                          ; Return: 0 for no scan code
-.397731		28		plp		done                PLP
-.397732		2b		pld		                    PLD
-.397733		fa		plx		                    PLX
-.397734		6b		rtl		                    RTL
-.397735						KBD_GETMODS
-.397735		0b		phd		                PHD
-.397736		08		php		                PHP
-.397737		48		pha		                PHA             ; begin setdp macro
-.397738		08		php		                PHP
-.397739		c2 20		rep #$20	                REP #$20        ; set A long
-.39773b		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.39773e		5b		tcd		                TCD
-.39773f		28		plp		                PLP
-.397740		68		pla		                PLA             ; end setdp macro
-.397741		e2 20		sep #$20	                SEP #$20        ; set A short
-.397743		a5 25		lda $0f25	                LDA #S_KBD_CONTROL.MODIFIERS,D
-.397745		28		plp		                PLP
-.397746		2b		pld		                PLD
-.397747		6b		rtl		                RTL
-.397748						KBD_GET_STAT
-.397748		0b		phd		                PHD
-.397749		08		php		                PHP
-.39774a		48		pha		                PHA             ; begin setdp macro
-.39774b		08		php		                PHP
-.39774c		c2 20		rep #$20	                REP #$20        ; set A long
-.39774e		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397751		5b		tcd		                TCD
-.397752		28		plp		                PLP
-.397753		68		pla		                PLA             ; end setdp macro
-.397754		e2 20		sep #$20	                SEP #$20        ; set A short
-.397756		a5 02		lda $0f02	                LDA #S_KBD_CONTROL.STATUS,D
-.397758		28		plp		                PLP
-.397759		2b		pld		                PLD
-.39775a		6b		rtl		                RTL
-.39775b						KBD_TEST_BREAK
-.39775b		0b		phd		                PHD
-.39775c		08		php		                PHP
-.39775d		48		pha		                PHA             ; begin setdp macro
-.39775e		08		php		                PHP
-.39775f		c2 20		rep #$20	                REP #$20        ; set A long
-.397761		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397764		5b		tcd		                TCD
-.397765		28		plp		                PLP
-.397766		68		pla		                PLA             ; end setdp macro
-.397767		e2 20		sep #$20	                SEP #$20        ; set A short
-.397769		a9 80		lda #$80	                LDA #KBD_STAT_BREAK             ; Check the BREAK bit in STATUS
-.39776b		14 02		trb $0f02	                TRB #S_KBD_CONTROL.STATUS,D     ; ... and clear it
-.39776d		d0 04		bne $397773	                BNE ret_true                    ; If it was set, return TRUE
-.39776f		28		plp		ret_false       PLP                             ; Otherwise, return false
-.397770		2b		pld		                PLD
-.397771		18		clc		                CLC
-.397772		6b		rtl		                RTL
-.397773		28		plp		ret_true        PLP
-.397774		2b		pld		                PLD
-.397775		38		sec		                SEC
-.397776		6b		rtl		                RTL
-.397777						KBD_GETMODS_ANSI
-.397777		0b		phd		                    PHD
-.397778		08		php		                    PHP
-.397779		48		pha		                PHA             ; begin setdp macro
-.39777a		08		php		                PHP
-.39777b		c2 20		rep #$20	                REP #$20        ; set A long
-.39777d		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397780		5b		tcd		                TCD
-.397781		28		plp		                PLP
-.397782		68		pla		                PLA             ; end setdp macro
-.397783		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.397785		a9 00		lda #$00	                    LDA #0                      ; Make space for the result code
-.397787		48		pha		                    PHA
+.3975da		48		pha		save_scancode       PHA
+.3975db		48		pha		                    PHA
+.3975dc		29 80		and #$80	                    AND #$80
+.3975de		83 01		sta $01,s	                    STA l_break                         ; Save the make/break bit
+.3975e0		a2 00		ldx #$00	                    LDX #0                              ; Start from the beginning
+.3975e2		bf 00 7b 39	lda $397b00,x	chk_transition      LDA @l KBD_STATE_MACH,X             ; Get the tranition's start state
+.3975e6		c9 ff		cmp #$ff	                    CMP #$FF
+.3975e8		d0 03		bne $3975ed	                    BNE compare_state
+.3975ea		82 54 00	brl $397641	                    BRL done                            ; If $FF: we've reached the end... this is an error... just ignore it?
+.3975ed		c5 00		cmp $0f00	compare_state       CMP #S_KBD_CONTROL.STATE,D          ; Compare it to the current state
+.3975ef		d0 0e		bne $3975ff	                    BNE next_transition                 ; If they don't match, go to the next transition
+.3975f1		bf 01 7b 39	lda $397b01,x	                    LDA @l KBD_STATE_MACH+1,X           ; Get the tranition's test byte
+.3975f5		f0 0e		beq $397605	                    BEQ apply                           ; Is it 0? Yes: the default applies
+.3975f7		a3 02		lda $02,s	                    LDA l_code                          ; Otherwise: get the scan code back
+.3975f9		df 01 7b 39	cmp $397b01,x	                    CMP @l KBD_STATE_MACH+1,X           ; Compare it to the transition's test byte
+.3975fd		f0 06		beq $397605	                    BEQ apply                           ; If equal: this matches, apply the transition
+.3975ff		e8		inx		next_transition     INX                                 ; Move to the next transition
+.397600		e8		inx		                    INX
+.397601		e8		inx		                    INX
+.397602		e8		inx		                    INX
+.397603		80 dd		bra $3975e2	                    BRA chk_transition                  ; Check to see if the next transition applies
+.397605		bf 02 7b 39	lda $397b02,x	apply               LDA @l KBD_STATE_MACH+2,X           ; Get the tranition's destination state
+.397609		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D          ; And save it as our new state
+.39760b		bf 03 7b 39	lda $397b03,x	                    LDA @l KBD_STATE_MACH+3,X           ; Get the tranition's action
+.39760f		c9 00		cmp #$00	                    CMP #KBD_ACTION_IGNORE              ; Is it IGNORE?
+.397611		f0 2e		beq $397641	                    BEQ done                            ; Yes: we're done for now
+.397613		c9 01		cmp #$01	                    CMP #KBD_ACTION_EMIT_BASE           ; Is it EMIT_BASE?
+.397615		f0 06		beq $39761d	                    BEQ emit_base                       ; Yes: emit the translation of the base byte
+.397617		c9 02		cmp #$02	                    CMP #KBD_ACTION_EMIT_E0             ; Is it EMIT_E0?
+.397619		f0 0f		beq $39762a	                    BEQ emit_e0                         ; Yes: emit the translation of the E0 prefixed byte
+.39761b		80 18		bra $397635	                    BRA emit_A                          ; Otherwise: just emit the action byte as the new scan code
+.39761d		a3 02		lda $02,s	emit_base           LDA l_code
+.39761f		29 7f		and #$7f	                    AND #$7F                            ; Strip off the make/break bit
+.397621		aa		tax		                    TAX
+.397622		bf 00 7a 39	lda $397a00,x	                    LDA @l TBL_SET1,X                   ; Get the translation of the base scan code
+.397626		03 01		ora $01,s	                    ORA l_break                         ; Add the make/break bit back
+.397628		80 0b		bra $397635	                    BRA emit_A                          ; Emit the translation
+.39762a		a3 02		lda $02,s	emit_e0             LDA l_code
+.39762c		29 7f		and #$7f	                    AND #$7F                            ; Strip off any make/break bit
+.39762e		aa		tax		                    TAX
+.39762f		bf 80 7a 39	lda $397a80,x	                    LDA @l TBL_SET1_E0,X                ; Get the translation of the E0 prefixed scan code
+.397633		03 01		ora $01,s	                    ORA l_break                         ; Add in the make/break flag
+.397635		c9 00		cmp #$00	emit_A              CMP #0                              ; Is the code NUL?
+.397637		f0 08		beq $397641	                    BEQ done                            ; If so, skip enqueuing it
+.397639		22 49 76 39	jsl $397649	enqueue             JSL KBD_SC_ENQUEUE                  ; Enqueue the scancode
+.39763d		a9 00		lda #$00	                    LDA #KBD_STATE_IDLE                 ; Set the state machine to the initial state
+.39763f		85 00		sta $0f00	                    STA #S_KBD_CONTROL.STATE,D
+.397641						done
+.397641		e2 20		sep #$20	                SEP #$20        ; set A short
+.397643		68		pla		                    PLA                                 ; Clean the scan code byte from the stack
+.397644		68		pla		                    PLA
+.397645		28		plp		                    PLP
+.397646		2b		pld		                    PLD
+.397647		ab		plb		                    PLB
+.397648		6b		rtl		                    RTL
+.397649						KBD_SC_ENQUEUE
+.397649		0b		phd		                    PHD
+.39764a		08		php		                    PHP
+.39764b		78		sei		                    SEI                             ; Disable IRQs for the duration of this routine to avoid race conditions
+.39764c		48		pha		                PHA             ; begin setdp macro
+.39764d		08		php		                PHP
+.39764e		c2 20		rep #$20	                REP #$20        ; set A long
+.397650		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.397653		5b		tcd		                TCD
+.397654		28		plp		                PLP
+.397655		68		pla		                PLA             ; end setdp macro
+.397656		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.397658		c9 00		cmp #$00	                    CMP #0                          ; Is the scan code a NUL?
+.39765a		f0 2f		beq $39768b	                    BEQ done                        ; Yes: just ignore
+.39765c		c9 61		cmp #$61	                    CMP #KBD_SC_BREAK               ; Is it the BREAK key?
+.39765e		d0 10		bne $397670	                    BNE chk_locks                   ; No: check the various lock keys
+.397660		a5 01		lda $0f01	                    LDA #S_KBD_CONTROL.CONTROL,D
+.397662		89 80		bit #$80	                    BIT #KBD_CTRL_BREAK                 ; Are we processing BREAK?
+.397664		f0 08		beq $39766e	                    BEQ enqueue_break                   ; No: enqueue it as normal
+.397666		a9 80		lda #$80	                    LDA #KBD_STAT_BREAK                 ; Yes: turn on the BREAK bit
+.397668		05 02		ora $0f02	                    ORA #S_KBD_CONTROL.STATUS,D
+.39766a		85 02		sta $0f02	                    STA #S_KBD_CONTROL.STATUS,D
+.39766c		80 1d		bra $39768b	                    BRA done                            ; And we're done
+.39766e		a9 61		lda #$61	enqueue_break       LDA #KBD_SC_BREAK
+.397670		c9 3a		cmp #$3a	chk_locks           CMP #KBD_SC_CAPSLOCK            ; Is it the CAPS lock?
+.397672		f0 1a		beq $39768e	                    BEQ toggle_caps                 ; Yes: toggle the CAPS lock bits
+.397674		c9 45		cmp #$45	                    CMP #KBD_SC_NUMLOCK             ; Is it the NUM lock?
+.397676		f0 20		beq $397698	                    BEQ toggle_num                  ; Yes: toggle the NUM lock bits
+.397678		c9 46		cmp #$46	                    CMP #KBD_SC_SCROLL              ; Is it the SCROLL lock?
+.39767a		f0 22		beq $39769e	                    BEQ toggle_scroll               ; Yes: toggle the SCROLL lock bits
+.39767c		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; Get the index of the next free spot
+.39767e		e0 10		cpx #$10	                    CPX #KBD_INBUF_SIZE             ; Is it at the end?
+.397680		f0 09		beq $39768b	                    BEQ done                        ; Yes: we're full... ignore the scancode
+.397682		95 03		sta $0f03,x	                    STA #S_KBD_CONTROL.SC_BUF,D,X   ; No: we have room, write the scan code to the buffer
+.397684		e8		inx		                    INX                             ; Advance to the next location
+.397685		86 13		stx $0f13	                    STX #S_KBD_CONTROL.SC_HEAD,D
+.397687		a9 01		lda #$01	                    LDA #KBD_STAT_SCAN              ; Set the KBD_STAT_SCAN bit
+.397689		04 02		tsb $0f02	                    TSB #S_KBD_CONTROL.STATUS,D
+.39768b		28		plp		done                PLP
+.39768c		2b		pld		                    PLD
+.39768d		6b		rtl		                    RTL
+.39768e		a5 26		lda $0f26	toggle_caps         LDA #S_KBD_CONTROL.LOCKS,D
+.397690		49 04		eor #$04	                    EOR #KBD_LOCK_CAPS              ; Toggle the CAPS lock
+.397692		22 cd 77 39	jsl $3977cd	save_locks          JSL KBD_SETLOCKS                ; Set the locks
+.397696		80 f3		bra $39768b	                    BRA done
+.397698		a5 26		lda $0f26	toggle_num          LDA #S_KBD_CONTROL.LOCKS,D
+.39769a		49 02		eor #$02	                    EOR #KBD_LOCK_NUMBER            ; Toggle the NUM lock
+.39769c		80 f4		bra $397692	                    BRA save_locks
+.39769e		a5 26		lda $0f26	toggle_scroll       LDA #S_KBD_CONTROL.LOCKS,D
+.3976a0		49 01		eor #$01	                    EOR #KBD_LOCK_SCROLL            ; Toggle the SCROLL lock
+.3976a2		80 ee		bra $397692	                    BRA save_locks
+.3976a4						KBD_CHAR_ENQUEUE
+.3976a4		0b		phd		                    PHD
+.3976a5		08		php		                    PHP
+.3976a6		78		sei		                    SEI                             ; Disable IRQs for the duration of this routine to avoid race conditions
+.3976a7		48		pha		                PHA             ; begin setdp macro
+.3976a8		08		php		                PHP
+.3976a9		c2 20		rep #$20	                REP #$20        ; set A long
+.3976ab		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3976ae		5b		tcd		                TCD
+.3976af		28		plp		                PLP
+.3976b0		68		pla		                PLA             ; end setdp macro
+.3976b1		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.3976b3		c9 00		cmp #$00	                    CMP #0                          ; Is the character a NUL?
+.3976b5		f0 0f		beq $3976c6	                    BEQ done                        ; Yes: just ignore
+.3976b7		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D  ; Get the index of the next free spot
+.3976b9		e0 10		cpx #$10	                    CPX #KBD_INBUF_SIZE             ; Is it at the end?
+.3976bb		f0 09		beq $3976c6	                    BEQ done                        ; Yes: we're full... ignore the scancode
+.3976bd		95 14		sta $0f14,x	                    STA #S_KBD_CONTROL.CHAR_BUF,D,X ; No: we have room, write the scan code to the buffer
+.3976bf		e8		inx		                    INX                             ; Advance to the next location
+.3976c0		86 24		stx $0f24	                    STX #S_KBD_CONTROL.CHAR_HEAD,D
+.3976c2		a9 02		lda #$02	                    LDA #KBD_STAT_CHAR              ; Set the KBD_STAT_CHAR bit
+.3976c4		04 02		tsb $0f02	                    TSB #S_KBD_CONTROL.STATUS,D
+.3976c6		28		plp		done                PLP
+.3976c7		2b		pld		                    PLD
+.3976c8		6b		rtl		                    RTL
+.3976c9						KBD_CHAR_DEQUEUE
+.3976c9		da		phx		                    PHX
+.3976ca		0b		phd		                    PHD
+.3976cb		08		php		                    PHP
+.3976cc		48		pha		                PHA             ; begin setdp macro
+.3976cd		08		php		                PHP
+.3976ce		c2 20		rep #$20	                REP #$20        ; set A long
+.3976d0		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3976d3		5b		tcd		                TCD
+.3976d4		28		plp		                PLP
+.3976d5		68		pla		                PLA             ; end setdp macro
+.3976d6		78		sei		                    SEI                                 ; Disable IRQ for the duration of this routine to avoid race conditions
+.3976d7		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.3976d9		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D      ; Get the index of the next free spot
+.3976db		f0 21		beq $3976fe	                    BEQ return_empty                    ; If it's 0, we have no data
+.3976dd		a5 14		lda $0f14	                    LDA #S_KBD_CONTROL.CHAR_BUF,D       ; Get the character at the head of the queue
+.3976df		48		pha		                    PHA                                 ; Save it
+.3976e0		a6 24		ldx $0f24	                    LDX #S_KBD_CONTROL.CHAR_HEAD,D      ; How many bytes were there?
+.3976e2		e0 01		cpx #$01	                    CPX #1                              ; Is it one?
+.3976e4		d0 08		bne $3976ee	                    BNE copy_down                       ; No: we need to copy down the remaining bytes
+.3976e6		64 24		stz $0f24	                    STZ #S_KBD_CONTROL.CHAR_HEAD,D      ; Yes: mark that we have no data in the queue now
+.3976e8		a9 02		lda #$02	                    LDA #KBD_STAT_CHAR                  ; Clear the KBD_STAT_CHAR bit
+.3976ea		14 02		trb $0f02	                    TRB #S_KBD_CONTROL.STATUS,D
+.3976ec		80 0d		bra $3976fb	                    BRA return_head                     ; And return the character we found
+.3976ee		a2 00		ldx #$00	copy_down           LDX #0                              ; Starting at the beginning of the buffer...
+.3976f0		b5 15		lda $0f15,x	loop                LDA #S_KBD_CONTROL.CHAR_BUF+1,D,X   ; Get the next byte
+.3976f2		95 14		sta $0f14,x	                    STA #S_KBD_CONTROL.CHAR_BUF,D,X     ; Move it down
+.3976f4		e8		inx		                    INX                                 ; And move to the next byte
+.3976f5		e4 24		cpx $0f24	                    CPX #S_KBD_CONTROL.CHAR_HEAD,D      ; Have we reached the end?
+.3976f7		d0 f7		bne $3976f0	                    BNE loop                            ; No: keep copying bytes
+.3976f9		c6 24		dec $0f24	                    DEC #S_KBD_CONTROL.CHAR_HEAD,D      ; Decrement the index
+.3976fb		68		pla		return_head         PLA                                 ; Get the character back
+.3976fc		80 02		bra $397700	                    BRA done                            ; And return it
+.3976fe		a9 00		lda #$00	return_empty        LDA #0                              ; Return: 0 for no character
+.397700		28		plp		done                PLP
+.397701		2b		pld		                    PLD
+.397702		fa		plx		                    PLX
+.397703		6b		rtl		                    RTL
+.397704						KBD_GET_SCANCODE
+.397704		da		phx		                    PHX
+.397705		0b		phd		                    PHD
+.397706		08		php		                    PHP
+.397707		48		pha		                PHA             ; begin setdp macro
+.397708		08		php		                PHP
+.397709		c2 20		rep #$20	                REP #$20        ; set A long
+.39770b		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.39770e		5b		tcd		                TCD
+.39770f		28		plp		                PLP
+.397710		68		pla		                PLA             ; end setdp macro
+.397711		78		sei		                    SEI                             ; Disable IRQ for the duration of this routine to avoid race conditions
+.397712		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.397714		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; Get the index of the next free spot
+.397716		f0 21		beq $397739	                    BEQ return_empty                ; If it's 0, we have no data
+.397718		a5 03		lda $0f03	                    LDA #S_KBD_CONTROL.SC_BUF,D     ; Get the scan code at the head of the queue
+.39771a		48		pha		                    PHA                             ; Save it
+.39771b		a6 13		ldx $0f13	                    LDX #S_KBD_CONTROL.SC_HEAD,D    ; How many bytes were there?
+.39771d		e0 01		cpx #$01	                    CPX #1                          ; Is it one?
+.39771f		d0 08		bne $397729	                    BNE copy_down                   ; No: we need to copy down the remaining bytes
+.397721		64 13		stz $0f13	                    STZ #S_KBD_CONTROL.SC_HEAD,D    ; Yes: mark that we have no data in the queue now
+.397723		a9 01		lda #$01	                    LDA #KBD_STAT_SCAN              ; Clear the KBD_STAT_SCAN bit
+.397725		14 02		trb $0f02	                    TRB #S_KBD_CONTROL.STATUS,D
+.397727		80 0d		bra $397736	                    BRA return_head                 ; And return the scan code we found
+.397729		a2 00		ldx #$00	copy_down           LDX #0                          ; Starting at the beginning of the buffer...
+.39772b		b5 04		lda $0f04,x	loop                LDA #S_KBD_CONTROL.SC_BUF+1,D,X ; Get the next byte
+.39772d		85 03		sta $0f03	                    STA #S_KBD_CONTROL.SC_BUF,D     ; Move it down
+.39772f		e8		inx		                    INX                             ; And move to the next byte
+.397730		e4 13		cpx $0f13	                    CPX #S_KBD_CONTROL.SC_HEAD,D    ; Have we reached the end?
+.397732		d0 f7		bne $39772b	                    BNE loop                        ; No: keep copying bytes
+.397734		c6 13		dec $0f13	                    DEC #S_KBD_CONTROL.SC_HEAD,D    ; Reduce the index to the next free byte
+.397736		68		pla		return_head         PLA                             ; Get the scan code back
+.397737		80 02		bra $39773b	                    BRA done                        ; And return it
+.397739		a9 00		lda #$00	return_empty        LDA #0                          ; Return: 0 for no scan code
+.39773b		28		plp		done                PLP
+.39773c		2b		pld		                    PLD
+.39773d		fa		plx		                    PLX
+.39773e		6b		rtl		                    RTL
+.39773f						KBD_GETMODS
+.39773f		0b		phd		                PHD
+.397740		08		php		                PHP
+.397741		48		pha		                PHA             ; begin setdp macro
+.397742		08		php		                PHP
+.397743		c2 20		rep #$20	                REP #$20        ; set A long
+.397745		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.397748		5b		tcd		                TCD
+.397749		28		plp		                PLP
+.39774a		68		pla		                PLA             ; end setdp macro
+.39774b		e2 20		sep #$20	                SEP #$20        ; set A short
+.39774d		a5 25		lda $0f25	                LDA #S_KBD_CONTROL.MODIFIERS,D
+.39774f		28		plp		                PLP
+.397750		2b		pld		                PLD
+.397751		6b		rtl		                RTL
+.397752						KBD_GET_STAT
+.397752		0b		phd		                PHD
+.397753		08		php		                PHP
+.397754		48		pha		                PHA             ; begin setdp macro
+.397755		08		php		                PHP
+.397756		c2 20		rep #$20	                REP #$20        ; set A long
+.397758		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.39775b		5b		tcd		                TCD
+.39775c		28		plp		                PLP
+.39775d		68		pla		                PLA             ; end setdp macro
+.39775e		e2 20		sep #$20	                SEP #$20        ; set A short
+.397760		a5 02		lda $0f02	                LDA #S_KBD_CONTROL.STATUS,D
+.397762		28		plp		                PLP
+.397763		2b		pld		                PLD
+.397764		6b		rtl		                RTL
+.397765						KBD_TEST_BREAK
+.397765		0b		phd		                PHD
+.397766		08		php		                PHP
+.397767		48		pha		                PHA             ; begin setdp macro
+.397768		08		php		                PHP
+.397769		c2 20		rep #$20	                REP #$20        ; set A long
+.39776b		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.39776e		5b		tcd		                TCD
+.39776f		28		plp		                PLP
+.397770		68		pla		                PLA             ; end setdp macro
+.397771		e2 20		sep #$20	                SEP #$20        ; set A short
+.397773		a9 80		lda #$80	                LDA #KBD_STAT_BREAK             ; Check the BREAK bit in STATUS
+.397775		14 02		trb $0f02	                TRB #S_KBD_CONTROL.STATUS,D     ; ... and clear it
+.397777		d0 04		bne $39777d	                BNE ret_true                    ; If it was set, return TRUE
+.397779		28		plp		ret_false       PLP                             ; Otherwise, return false
+.39777a		2b		pld		                PLD
+.39777b		18		clc		                CLC
+.39777c		6b		rtl		                RTL
+.39777d		28		plp		ret_true        PLP
+.39777e		2b		pld		                PLD
+.39777f		38		sec		                SEC
+.397780		6b		rtl		                RTL
+.397781						KBD_GETMODS_ANSI
+.397781		0b		phd		                    PHD
+.397782		08		php		                    PHP
+.397783		48		pha		                PHA             ; begin setdp macro
+.397784		08		php		                PHP
+.397785		c2 20		rep #$20	                REP #$20        ; set A long
+.397787		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.39778a		5b		tcd		                TCD
+.39778b		28		plp		                PLP
+.39778c		68		pla		                PLA             ; end setdp macro
+.39778d		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.39778f		a9 00		lda #$00	                    LDA #0                      ; Make space for the result code
+.397791		48		pha		                    PHA
 >0001						l_result            .byte ?
-.397788		a5 25		lda $0f25	                    LDA #S_KBD_CONTROL.MODIFIERS,D
-.39778a		89 03		bit #$03	                    BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT
-.39778c		f0 06		beq $397794	                    BEQ check_alt
-.39778e		a3 01		lda $01,s	                    LDA l_result
-.397790		09 02		ora #$02	                    ORA #%00000010
-.397792		83 01		sta $01,s	                    STA l_result
-.397794		a5 25		lda $0f25	check_alt           LDA #S_KBD_CONTROL.MODIFIERS,D
-.397796		89 30		bit #$30	                    BIT #KBD_MOD_LALT | KBD_MOD_RALT
-.397798		f0 06		beq $3977a0	                    BEQ check_ctrl
-.39779a		a3 01		lda $01,s	                    LDA l_result
-.39779c		09 04		ora #$04	                    ORA #%00000100
-.39779e		83 01		sta $01,s	                    STA l_result
-.3977a0		a5 25		lda $0f25	check_ctrl          LDA #S_KBD_CONTROL.MODIFIERS,D
-.3977a2		89 0c		bit #$0c	                    BIT #KBD_MOD_LCTRL | KBD_MOD_RCTRL
-.3977a4		f0 06		beq $3977ac	                    BEQ return_result
-.3977a6		a3 01		lda $01,s	                    LDA l_result
-.3977a8		09 08		ora #$08	                    ORA #%00001000
-.3977aa		83 01		sta $01,s	                    STA l_result
-.3977ac		68		pla		return_result       PLA
-.3977ad		28		plp		                    PLP
-.3977ae		2b		pld		                    PLD
-.3977af		6b		rtl		                    RTL
-.3977b0						KBD_GETLOCKS
-.3977b0		0b		phd		                PHD
-.3977b1		08		php		                PHP
-.3977b2		48		pha		                PHA             ; begin setdp macro
-.3977b3		08		php		                PHP
-.3977b4		c2 20		rep #$20	                REP #$20        ; set A long
-.3977b6		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3977b9		5b		tcd		                TCD
-.3977ba		28		plp		                PLP
-.3977bb		68		pla		                PLA             ; end setdp macro
-.3977bc		e2 20		sep #$20	                SEP #$20        ; set A short
-.3977be		a5 26		lda $0f26	                LDA #S_KBD_CONTROL.LOCKS,D
-.3977c0		28		plp		                PLP
-.3977c1		2b		pld		                PLD
-.3977c2		6b		rtl		                RTL
-.3977c3						KBD_SETLOCKS
-.3977c3		0b		phd		                PHD
-.3977c4		08		php		                PHP
-.3977c5		48		pha		                PHA             ; begin setdp macro
-.3977c6		08		php		                PHP
-.3977c7		c2 20		rep #$20	                REP #$20        ; set A long
-.3977c9		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3977cc		5b		tcd		                TCD
-.3977cd		28		plp		                PLP
-.3977ce		68		pla		                PLA             ; end setdp macro
-.3977cf		e2 20		sep #$20	                SEP #$20        ; set A short
-.3977d1		85 26		sta $0f26	                STA #S_KBD_CONTROL.LOCKS,D
-.3977d3		aa		tax		                TAX                         ; Move the new status to X...
-.3977d4		a9 ed		lda #$ed	                LDA #KBD_CMD_SET_LED        ; Set the LEDs...
-.3977d6		22 76 75 39	jsl $397576	                JSL KBD_SND_CMD_P
-.3977da		28		plp		                PLP
-.3977db		2b		pld		                PLD
-.3977dc		6b		rtl		                RTL
-.3977dd						KBD_GET_CONTROL
-.3977dd		0b		phd		                PHD
-.3977de		08		php		                PHP
-.3977df		48		pha		                PHA             ; begin setdp macro
-.3977e0		08		php		                PHP
-.3977e1		c2 20		rep #$20	                REP #$20        ; set A long
-.3977e3		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3977e6		5b		tcd		                TCD
-.3977e7		28		plp		                PLP
-.3977e8		68		pla		                PLA             ; end setdp macro
-.3977e9		e2 20		sep #$20	                SEP #$20        ; set A short
-.3977eb		a5 01		lda $0f01	                LDA #S_KBD_CONTROL.CONTROL,D
-.3977ed		28		plp		                PLP
-.3977ee		2b		pld		                PLD
-.3977ef		6b		rtl		                RTL
-.3977f0						KBD_SET_CONTROL
-.3977f0		0b		phd		                PHD
-.3977f1		08		php		                PHP
-.3977f2		48		pha		                PHA             ; begin setdp macro
-.3977f3		08		php		                PHP
-.3977f4		c2 20		rep #$20	                REP #$20        ; set A long
-.3977f6		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3977f9		5b		tcd		                TCD
-.3977fa		28		plp		                PLP
-.3977fb		68		pla		                PLA             ; end setdp macro
-.3977fc		e2 20		sep #$20	                SEP #$20        ; set A short
-.3977fe		85 01		sta $0f01	                STA #S_KBD_CONTROL.CONTROL,D
-.397800		28		plp		                PLP
-.397801		2b		pld		                PLD
-.397802		6b		rtl		                RTL
-.397803						KBD_GETCW
-.397803		22 0f 78 39	jsl $39780f	                JSL KBD_GETC
-.397807		c9 00		cmp #$00	                CMP #0
-.397809		f0 01		beq $39780c	                BEQ wait
-.39780b		6b		rtl		                RTL
-.39780c		cb		wai		wait            WAI
-.39780d		80 f4		bra $397803	                BRA KBD_GETCW
-.39780f						KBD_GETC
-.39780f		0b		phd		                PHD
-.397810		08		php		                PHP
-.397811		48		pha		                PHA             ; begin setdp macro
-.397812		08		php		                PHP
-.397813		c2 20		rep #$20	                REP #$20        ; set A long
-.397815		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.397818		5b		tcd		                TCD
-.397819		28		plp		                PLP
-.39781a		68		pla		                PLA             ; end setdp macro
-.39781b		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.39781d		22 bf 76 39	jsl $3976bf	                JSL KBD_CHAR_DEQUEUE        ; Try to fetch a character from the character queue
-.397821		c9 00		cmp #$00	                CMP #0                      ; Did we get anything back?
-.397823		f0 03		beq $397828	                BEQ get_scancode            ; No: try to get a scan code
-.397825		82 cb 00	brl $3978f3	                BRL done                    ; Yes: return the character we had queued
-.397828		22 fa 76 39	jsl $3976fa	get_scancode    JSL KBD_GET_SCANCODE        ; Fetch the next scancode
-.39782c		c9 00		cmp #$00	                CMP #0                      ; Is it NUL?
-.39782e		d0 04		bne $397834	                BNE chk_make_break
-.397830		28		plp		                PLP                         ; Yes: return 0... we got nothin
-.397831		38		sec		                SEC
-.397832		2b		pld		                PLD
-.397833		6b		rtl		                RTL
-.397834		89 80		bit #$80	chk_make_break  BIT #$80                    ; Is it a break scan code?
-.397836		d0 08		bne $397840	                BNE handle_break            ; Yes: process the break
-.397838		c9 2a		cmp #$2a	handle_make     CMP #KBD_SC_LSHIFT          ; Is it a make LSHIFT?
-.39783a		d0 0c		bne $397848	                BNE not_make_ls
-.39783c		a9 01		lda #$01	                LDA #KBD_MOD_LSHIFT
-.39783e		80 4e		bra $39788e	                BRA set_modifier
-.397840		c9 aa		cmp #$aa	handle_break    CMP #KBD_SC_LSHIFT | $80    ; Is it a break LSHIFT?
-.397842		d0 0c		bne $397850	                BNE not_break_ls
-.397844		a9 01		lda #$01	                LDA #KBD_MOD_LSHIFT
-.397846		80 50		bra $397898	                BRA clr_modifier
-.397848		c9 1d		cmp #$1d	not_make_ls     CMP #KBD_SC_LCTRL           ; Is it a make LCTRL?
-.39784a		d0 0c		bne $397858	                BNE not_make_lc
-.39784c		a9 04		lda #$04	                LDA #KBD_MOD_LCTRL
-.39784e		80 3e		bra $39788e	                BRA set_modifier
-.397850		c9 9d		cmp #$9d	not_break_ls    CMP #KBD_SC_LCTRL | $80     ; Is it a break LCTRL?
-.397852		d0 0c		bne $397860	                BNE not_break_lc
-.397854		a9 04		lda #$04	                LDA #KBD_MOD_LCTRL
-.397856		80 40		bra $397898	                BRA clr_modifier
-.397858		c9 38		cmp #$38	not_make_lc     CMP #KBD_SC_LALT            ; Is it a make LALT?
-.39785a		d0 0c		bne $397868	                BNE not_make_la
-.39785c		a9 10		lda #$10	                LDA #KBD_MOD_LALT
-.39785e		80 2e		bra $39788e	                BRA set_modifier
-.397860		c9 b8		cmp #$b8	not_break_lc    CMP #KBD_SC_LALT | $80      ; Is it a break LALT?
-.397862		d0 0c		bne $397870	                BNE not_break_la
-.397864		a9 10		lda #$10	                LDA #KBD_MOD_LALT
-.397866		80 30		bra $397898	                BRA clr_modifier
-.397868		c9 36		cmp #$36	not_make_la     CMP #KBD_SC_RSHIFT          ; Is it a make RSHIFT?
-.39786a		d0 0c		bne $397878	                BNE not_make_rs
-.39786c		a9 02		lda #$02	                LDA #KBD_MOD_RSHIFT
-.39786e		80 1e		bra $39788e	                BRA set_modifier
-.397870		c9 b6		cmp #$b6	not_break_la    CMP #KBD_SC_RSHIFT | $80    ; Is it a break RSHIFT?
-.397872		d0 0c		bne $397880	                BNE not_break_rs
-.397874		a9 02		lda #$02	                LDA #KBD_MOD_RSHIFT
-.397876		80 20		bra $397898	                BRA clr_modifier
-.397878		c9 5e		cmp #$5e	not_make_rs     CMP #KBD_SC_RCTRL           ; Is it a make RCTRL?
-.39787a		d0 0c		bne $397888	                BNE not_make_rc
-.39787c		a9 08		lda #$08	                LDA #KBD_MOD_RCTRL
-.39787e		80 0e		bra $39788e	                BRA set_modifier
-.397880		c9 de		cmp #$de	not_break_rs    CMP #KBD_SC_RCTRL | $80     ; Is it a break RCTRL?
-.397882		d0 0e		bne $397892	                BNE not_break_rc
-.397884		a9 08		lda #$08	                LDA #KBD_MOD_RCTRL
-.397886		80 10		bra $397898	                BRA clr_modifier
-.397888		c9 5c		cmp #$5c	not_make_rc     CMP #KBD_SC_RALT            ; Is it a make RALT?
-.39788a		d0 12		bne $39789e	                BNE not_make_ra
-.39788c		a9 20		lda #$20	                LDA #KBD_MOD_RALT
-.39788e		04 25		tsb $0f25	set_modifier    TSB #S_KBD_CONTROL.MODIFIERS,D  ; Set the indicated modifier bit
-.397890		80 08		bra $39789a	                BRA return_null
-.397892		c9 dc		cmp #$dc	not_break_rc    CMP #KBD_SC_RALT | $80          ; Is it a break RALT?
-.397894		d0 04		bne $39789a	                BNE return_null                 ; No: we don't use any other break scan codes
+.397792		a5 25		lda $0f25	                    LDA #S_KBD_CONTROL.MODIFIERS,D
+.397794		89 03		bit #$03	                    BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT
+.397796		f0 06		beq $39779e	                    BEQ check_alt
+.397798		a3 01		lda $01,s	                    LDA l_result
+.39779a		09 02		ora #$02	                    ORA #%00000010
+.39779c		83 01		sta $01,s	                    STA l_result
+.39779e		a5 25		lda $0f25	check_alt           LDA #S_KBD_CONTROL.MODIFIERS,D
+.3977a0		89 30		bit #$30	                    BIT #KBD_MOD_LALT | KBD_MOD_RALT
+.3977a2		f0 06		beq $3977aa	                    BEQ check_ctrl
+.3977a4		a3 01		lda $01,s	                    LDA l_result
+.3977a6		09 04		ora #$04	                    ORA #%00000100
+.3977a8		83 01		sta $01,s	                    STA l_result
+.3977aa		a5 25		lda $0f25	check_ctrl          LDA #S_KBD_CONTROL.MODIFIERS,D
+.3977ac		89 0c		bit #$0c	                    BIT #KBD_MOD_LCTRL | KBD_MOD_RCTRL
+.3977ae		f0 06		beq $3977b6	                    BEQ return_result
+.3977b0		a3 01		lda $01,s	                    LDA l_result
+.3977b2		09 08		ora #$08	                    ORA #%00001000
+.3977b4		83 01		sta $01,s	                    STA l_result
+.3977b6		68		pla		return_result       PLA
+.3977b7		28		plp		                    PLP
+.3977b8		2b		pld		                    PLD
+.3977b9		6b		rtl		                    RTL
+.3977ba						KBD_GETLOCKS
+.3977ba		0b		phd		                PHD
+.3977bb		08		php		                PHP
+.3977bc		48		pha		                PHA             ; begin setdp macro
+.3977bd		08		php		                PHP
+.3977be		c2 20		rep #$20	                REP #$20        ; set A long
+.3977c0		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3977c3		5b		tcd		                TCD
+.3977c4		28		plp		                PLP
+.3977c5		68		pla		                PLA             ; end setdp macro
+.3977c6		e2 20		sep #$20	                SEP #$20        ; set A short
+.3977c8		a5 26		lda $0f26	                LDA #S_KBD_CONTROL.LOCKS,D
+.3977ca		28		plp		                PLP
+.3977cb		2b		pld		                PLD
+.3977cc		6b		rtl		                RTL
+.3977cd						KBD_SETLOCKS
+.3977cd		0b		phd		                PHD
+.3977ce		08		php		                PHP
+.3977cf		48		pha		                PHA             ; begin setdp macro
+.3977d0		08		php		                PHP
+.3977d1		c2 20		rep #$20	                REP #$20        ; set A long
+.3977d3		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3977d6		5b		tcd		                TCD
+.3977d7		28		plp		                PLP
+.3977d8		68		pla		                PLA             ; end setdp macro
+.3977d9		e2 20		sep #$20	                SEP #$20        ; set A short
+.3977db		85 26		sta $0f26	                STA #S_KBD_CONTROL.LOCKS,D
+.3977dd		aa		tax		                TAX                         ; Move the new status to X...
+.3977de		a9 ed		lda #$ed	                LDA #KBD_CMD_SET_LED        ; Set the LEDs...
+.3977e0		22 80 75 39	jsl $397580	                JSL KBD_SND_CMD_P
+.3977e4		28		plp		                PLP
+.3977e5		2b		pld		                PLD
+.3977e6		6b		rtl		                RTL
+.3977e7						KBD_GET_CONTROL
+.3977e7		0b		phd		                PHD
+.3977e8		08		php		                PHP
+.3977e9		48		pha		                PHA             ; begin setdp macro
+.3977ea		08		php		                PHP
+.3977eb		c2 20		rep #$20	                REP #$20        ; set A long
+.3977ed		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3977f0		5b		tcd		                TCD
+.3977f1		28		plp		                PLP
+.3977f2		68		pla		                PLA             ; end setdp macro
+.3977f3		e2 20		sep #$20	                SEP #$20        ; set A short
+.3977f5		a5 01		lda $0f01	                LDA #S_KBD_CONTROL.CONTROL,D
+.3977f7		28		plp		                PLP
+.3977f8		2b		pld		                PLD
+.3977f9		6b		rtl		                RTL
+.3977fa						KBD_SET_CONTROL
+.3977fa		0b		phd		                PHD
+.3977fb		08		php		                PHP
+.3977fc		48		pha		                PHA             ; begin setdp macro
+.3977fd		08		php		                PHP
+.3977fe		c2 20		rep #$20	                REP #$20        ; set A long
+.397800		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.397803		5b		tcd		                TCD
+.397804		28		plp		                PLP
+.397805		68		pla		                PLA             ; end setdp macro
+.397806		e2 20		sep #$20	                SEP #$20        ; set A short
+.397808		85 01		sta $0f01	                STA #S_KBD_CONTROL.CONTROL,D
+.39780a		28		plp		                PLP
+.39780b		2b		pld		                PLD
+.39780c		6b		rtl		                RTL
+.39780d						KBD_GETCW
+.39780d		22 19 78 39	jsl $397819	                JSL KBD_GETC
+.397811		c9 00		cmp #$00	                CMP #0
+.397813		f0 01		beq $397816	                BEQ wait
+.397815		6b		rtl		                RTL
+.397816		cb		wai		wait            WAI
+.397817		80 f4		bra $39780d	                BRA KBD_GETCW
+.397819						KBD_GETC
+.397819		0b		phd		                PHD
+.39781a		08		php		                PHP
+.39781b		48		pha		                PHA             ; begin setdp macro
+.39781c		08		php		                PHP
+.39781d		c2 20		rep #$20	                REP #$20        ; set A long
+.39781f		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.397822		5b		tcd		                TCD
+.397823		28		plp		                PLP
+.397824		68		pla		                PLA             ; end setdp macro
+.397825		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.397827		22 c9 76 39	jsl $3976c9	                JSL KBD_CHAR_DEQUEUE        ; Try to fetch a character from the character queue
+.39782b		c9 00		cmp #$00	                CMP #0                      ; Did we get anything back?
+.39782d		f0 03		beq $397832	                BEQ get_scancode            ; No: try to get a scan code
+.39782f		82 cb 00	brl $3978fd	                BRL done                    ; Yes: return the character we had queued
+.397832		22 04 77 39	jsl $397704	get_scancode    JSL KBD_GET_SCANCODE        ; Fetch the next scancode
+.397836		c9 00		cmp #$00	                CMP #0                      ; Is it NUL?
+.397838		d0 04		bne $39783e	                BNE chk_make_break
+.39783a		28		plp		                PLP                         ; Yes: return 0... we got nothin
+.39783b		38		sec		                SEC
+.39783c		2b		pld		                PLD
+.39783d		6b		rtl		                RTL
+.39783e		89 80		bit #$80	chk_make_break  BIT #$80                    ; Is it a break scan code?
+.397840		d0 08		bne $39784a	                BNE handle_break            ; Yes: process the break
+.397842		c9 2a		cmp #$2a	handle_make     CMP #KBD_SC_LSHIFT          ; Is it a make LSHIFT?
+.397844		d0 0c		bne $397852	                BNE not_make_ls
+.397846		a9 01		lda #$01	                LDA #KBD_MOD_LSHIFT
+.397848		80 4e		bra $397898	                BRA set_modifier
+.39784a		c9 aa		cmp #$aa	handle_break    CMP #KBD_SC_LSHIFT | $80    ; Is it a break LSHIFT?
+.39784c		d0 0c		bne $39785a	                BNE not_break_ls
+.39784e		a9 01		lda #$01	                LDA #KBD_MOD_LSHIFT
+.397850		80 50		bra $3978a2	                BRA clr_modifier
+.397852		c9 1d		cmp #$1d	not_make_ls     CMP #KBD_SC_LCTRL           ; Is it a make LCTRL?
+.397854		d0 0c		bne $397862	                BNE not_make_lc
+.397856		a9 04		lda #$04	                LDA #KBD_MOD_LCTRL
+.397858		80 3e		bra $397898	                BRA set_modifier
+.39785a		c9 9d		cmp #$9d	not_break_ls    CMP #KBD_SC_LCTRL | $80     ; Is it a break LCTRL?
+.39785c		d0 0c		bne $39786a	                BNE not_break_lc
+.39785e		a9 04		lda #$04	                LDA #KBD_MOD_LCTRL
+.397860		80 40		bra $3978a2	                BRA clr_modifier
+.397862		c9 38		cmp #$38	not_make_lc     CMP #KBD_SC_LALT            ; Is it a make LALT?
+.397864		d0 0c		bne $397872	                BNE not_make_la
+.397866		a9 10		lda #$10	                LDA #KBD_MOD_LALT
+.397868		80 2e		bra $397898	                BRA set_modifier
+.39786a		c9 b8		cmp #$b8	not_break_lc    CMP #KBD_SC_LALT | $80      ; Is it a break LALT?
+.39786c		d0 0c		bne $39787a	                BNE not_break_la
+.39786e		a9 10		lda #$10	                LDA #KBD_MOD_LALT
+.397870		80 30		bra $3978a2	                BRA clr_modifier
+.397872		c9 36		cmp #$36	not_make_la     CMP #KBD_SC_RSHIFT          ; Is it a make RSHIFT?
+.397874		d0 0c		bne $397882	                BNE not_make_rs
+.397876		a9 02		lda #$02	                LDA #KBD_MOD_RSHIFT
+.397878		80 1e		bra $397898	                BRA set_modifier
+.39787a		c9 b6		cmp #$b6	not_break_la    CMP #KBD_SC_RSHIFT | $80    ; Is it a break RSHIFT?
+.39787c		d0 0c		bne $39788a	                BNE not_break_rs
+.39787e		a9 02		lda #$02	                LDA #KBD_MOD_RSHIFT
+.397880		80 20		bra $3978a2	                BRA clr_modifier
+.397882		c9 5e		cmp #$5e	not_make_rs     CMP #KBD_SC_RCTRL           ; Is it a make RCTRL?
+.397884		d0 0c		bne $397892	                BNE not_make_rc
+.397886		a9 08		lda #$08	                LDA #KBD_MOD_RCTRL
+.397888		80 0e		bra $397898	                BRA set_modifier
+.39788a		c9 de		cmp #$de	not_break_rs    CMP #KBD_SC_RCTRL | $80     ; Is it a break RCTRL?
+.39788c		d0 0e		bne $39789c	                BNE not_break_rc
+.39788e		a9 08		lda #$08	                LDA #KBD_MOD_RCTRL
+.397890		80 10		bra $3978a2	                BRA clr_modifier
+.397892		c9 5c		cmp #$5c	not_make_rc     CMP #KBD_SC_RALT            ; Is it a make RALT?
+.397894		d0 12		bne $3978a8	                BNE not_make_ra
 .397896		a9 20		lda #$20	                LDA #KBD_MOD_RALT
-.397898		14 25		trb $0f25	clr_modifier    TRB #S_KBD_CONTROL.MODIFIERS,D  ; Clear the indicated modifier bit
-.39789a		a9 00		lda #$00	return_null     LDA #0
-.39789c		80 55		bra $3978f3	                BRA done
-.39789e		a8		tay		not_make_ra     TAY                                     ; Use the scan code as an index...
-.39789f		c9 38		cmp #$38	                CMP #KBD_SC_PIVOT
-.3978a1		90 0e		bcc $3978b1	                BLT below_38
-.3978a3		a5 26		lda $0f26	                LDA #S_KBD_CONTROL.LOCKS,D              ; Check the NUM lock
-.3978a5		89 02		bit #$02	                BIT #KBD_LOCK_NUMBER
-.3978a7		f0 2a		beq $3978d3	                BEQ fetch_unmod                         ; No: translate the keys as unmodified
-.3978a9		a5 25		lda $0f25	chk_num_shift   LDA #S_KBD_CONTROL.MODIFIERS,D
-.3978ab		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Check for a shift key being pressed
-.3978ad		d0 24		bne $3978d3	                BNE fetch_unmod                         ; If so: translate the keys as modified
-.3978af		80 30		bra $3978e1	                BRA fetch_caps                          ; No: translate the key using the lock table
-.3978b1		a5 25		lda $0f25	below_38        LDA #S_KBD_CONTROL.MODIFIERS,D
-.3978b3		89 0c		bit #$0c	                BIT #KBD_MOD_LCTRL | KBD_MOD_RCTRL      ; Is either control key pressed?
-.3978b5		f0 0c		beq $3978c3	                BEQ chk_capslock                        ; No: check for capslock
-.3978b7		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
-.3978b9		f0 04		beq $3978bf	                BEQ fetch_control                       ; No: translate just based off of control
-.3978bb		b7 3b		lda [$0f3b],y	                LDA [#S_KBD_CONTROL.TBL_CTRL_SHIFT,D],Y ; Look up the key modfified by CTRL and SHIFT
-.3978bd		80 26		bra $3978e5	                BRA chk_ansi
-.3978bf		b7 2f		lda [$0f2f],y	fetch_control   LDA [#S_KBD_CONTROL.TBL_CTRL,D],Y       ; Look up the key modified by CONTROL
-.3978c1		80 22		bra $3978e5	                BRA chk_ansi
-.3978c3		a5 26		lda $0f26	chk_capslock    LDA #S_KBD_CONTROL.LOCKS,D              ; Check the CAPS lock
-.3978c5		89 04		bit #$04	                BIT #KBD_LOCK_CAPS
-.3978c7		d0 0e		bne $3978d7	                BNE chk_caps_shift                      ; Yes: check the state of the SHIFT key
-.3978c9		a5 25		lda $0f25	                LDA #S_KBD_CONTROL.MODIFIERS,D
-.3978cb		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
-.3978cd		f0 04		beq $3978d3	                BEQ fetch_unmod                         ; No: translate just based off of control
-.3978cf		b7 2b		lda [$0f2b],y	fetch_shifted   LDA [#S_KBD_CONTROL.TBL_SHIFT,D],Y      ; Look up the key modified by SHIFT
-.3978d1		80 12		bra $3978e5	                BRA chk_ansi
-.3978d3		b7 27		lda [$0f27],y	fetch_unmod     LDA [#S_KBD_CONTROL.TBL_UNMOD,D],Y      ; Look up the unmodified key
-.3978d5		80 0e		bra $3978e5	                BRA chk_ansi
-.3978d7		a5 25		lda $0f25	chk_caps_shift  LDA #S_KBD_CONTROL.MODIFIERS,D
-.3978d9		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
-.3978db		f0 04		beq $3978e1	                BEQ fetch_caps                          ; No: translate just based off of control
-.3978dd		b7 37		lda [$0f37],y	                LDA [#S_KBD_CONTROL.TBL_LOCK_SHIFT,D],Y ; Look up the key modified by CAPS and SHIFT
-.3978df		80 04		bra $3978e5	                BRA chk_ansi
-.3978e1		b7 33		lda [$0f33],y	fetch_caps      LDA [#S_KBD_CONTROL.TBL_LOCK,D],Y       ; Look up the key modified by CAPSLOCK
-.3978e3		80 00		bra $3978e5	                BRA chk_ansi
-.3978e5		c9 80		cmp #$80	chk_ansi        CMP #$80                                ; Check to see if we have an ANSI escape sequence to send
-.3978e7		90 0a		bcc $3978f3	                BLT done                                ; If not, just return the character
-.3978e9		c9 96		cmp #$96	                CMP #$96
-.3978eb		b0 06		bcs $3978f3	                BGE done
-.3978ed		22 2f 79 39	jsl $39792f	                JSL KBD_ENQ_ANSI                        ; Expand and enqueue the ANSI sequence
-.3978f1		a9 1b		lda #$1b	                LDA #CHAR_ESC                           ; And return the ESC key to start the sequence
-.3978f3		28		plp		done            PLP
-.3978f4		2b		pld		                PLD
-.3978f5		18		clc		                CLC
-.3978f6		6b		rtl		                RTL
-.3978f7						KBD_ENQUEUE_BCD
-.3978f7		08		php		                PHP
-.3978f8		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.3978fa		48		pha		                PHA                     ; Save the value
-.3978fb		4a		lsr a		                LSR A                   ; Get the 10s digit
-.3978fc		4a		lsr a		                LSR A
-.3978fd		4a		lsr a		                LSR A
-.3978fe		4a		lsr a		                LSR A
-.3978ff		c9 00		cmp #$00	                CMP #0                  ; If it's 0, move to the 1s digit
-.397901		f0 0b		beq $39790e	                BEQ enqueue_1
-.397903		c9 0a		cmp #$0a	                CMP #$0A                ; If it's out of range, ignore this whole call
-.397905		b0 13		bcs $39791a	                BGE done_A
-.397907		18		clc		                CLC                     ; Enqueue the tens digit
-.397908		69 30		adc #$30	                ADC #'0'
-.39790a		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE
-.39790e		68		pla		enqueue_1       PLA                     ; Enqueue the ones digit
-.39790f		29 0f		and #$0f	                AND #$0F
-.397911		18		clc		                CLC
+.397898		04 25		tsb $0f25	set_modifier    TSB #S_KBD_CONTROL.MODIFIERS,D  ; Set the indicated modifier bit
+.39789a		80 08		bra $3978a4	                BRA return_null
+.39789c		c9 dc		cmp #$dc	not_break_rc    CMP #KBD_SC_RALT | $80          ; Is it a break RALT?
+.39789e		d0 04		bne $3978a4	                BNE return_null                 ; No: we don't use any other break scan codes
+.3978a0		a9 20		lda #$20	                LDA #KBD_MOD_RALT
+.3978a2		14 25		trb $0f25	clr_modifier    TRB #S_KBD_CONTROL.MODIFIERS,D  ; Clear the indicated modifier bit
+.3978a4		a9 00		lda #$00	return_null     LDA #0
+.3978a6		80 55		bra $3978fd	                BRA done
+.3978a8		a8		tay		not_make_ra     TAY                                     ; Use the scan code as an index...
+.3978a9		c9 38		cmp #$38	                CMP #KBD_SC_PIVOT
+.3978ab		90 0e		bcc $3978bb	                BLT below_38
+.3978ad		a5 26		lda $0f26	                LDA #S_KBD_CONTROL.LOCKS,D              ; Check the NUM lock
+.3978af		89 02		bit #$02	                BIT #KBD_LOCK_NUMBER
+.3978b1		f0 2a		beq $3978dd	                BEQ fetch_unmod                         ; No: translate the keys as unmodified
+.3978b3		a5 25		lda $0f25	chk_num_shift   LDA #S_KBD_CONTROL.MODIFIERS,D
+.3978b5		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Check for a shift key being pressed
+.3978b7		d0 24		bne $3978dd	                BNE fetch_unmod                         ; If so: translate the keys as modified
+.3978b9		80 30		bra $3978eb	                BRA fetch_caps                          ; No: translate the key using the lock table
+.3978bb		a5 25		lda $0f25	below_38        LDA #S_KBD_CONTROL.MODIFIERS,D
+.3978bd		89 0c		bit #$0c	                BIT #KBD_MOD_LCTRL | KBD_MOD_RCTRL      ; Is either control key pressed?
+.3978bf		f0 0c		beq $3978cd	                BEQ chk_capslock                        ; No: check for capslock
+.3978c1		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
+.3978c3		f0 04		beq $3978c9	                BEQ fetch_control                       ; No: translate just based off of control
+.3978c5		b7 3b		lda [$0f3b],y	                LDA [#S_KBD_CONTROL.TBL_CTRL_SHIFT,D],Y ; Look up the key modfified by CTRL and SHIFT
+.3978c7		80 26		bra $3978ef	                BRA chk_ansi
+.3978c9		b7 2f		lda [$0f2f],y	fetch_control   LDA [#S_KBD_CONTROL.TBL_CTRL,D],Y       ; Look up the key modified by CONTROL
+.3978cb		80 22		bra $3978ef	                BRA chk_ansi
+.3978cd		a5 26		lda $0f26	chk_capslock    LDA #S_KBD_CONTROL.LOCKS,D              ; Check the CAPS lock
+.3978cf		89 04		bit #$04	                BIT #KBD_LOCK_CAPS
+.3978d1		d0 0e		bne $3978e1	                BNE chk_caps_shift                      ; Yes: check the state of the SHIFT key
+.3978d3		a5 25		lda $0f25	                LDA #S_KBD_CONTROL.MODIFIERS,D
+.3978d5		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
+.3978d7		f0 04		beq $3978dd	                BEQ fetch_unmod                         ; No: translate just based off of control
+.3978d9		b7 2b		lda [$0f2b],y	fetch_shifted   LDA [#S_KBD_CONTROL.TBL_SHIFT,D],Y      ; Look up the key modified by SHIFT
+.3978db		80 12		bra $3978ef	                BRA chk_ansi
+.3978dd		b7 27		lda [$0f27],y	fetch_unmod     LDA [#S_KBD_CONTROL.TBL_UNMOD,D],Y      ; Look up the unmodified key
+.3978df		80 0e		bra $3978ef	                BRA chk_ansi
+.3978e1		a5 25		lda $0f25	chk_caps_shift  LDA #S_KBD_CONTROL.MODIFIERS,D
+.3978e3		89 03		bit #$03	                BIT #KBD_MOD_LSHIFT | KBD_MOD_RSHIFT    ; Is either shift key pressed?
+.3978e5		f0 04		beq $3978eb	                BEQ fetch_caps                          ; No: translate just based off of control
+.3978e7		b7 37		lda [$0f37],y	                LDA [#S_KBD_CONTROL.TBL_LOCK_SHIFT,D],Y ; Look up the key modified by CAPS and SHIFT
+.3978e9		80 04		bra $3978ef	                BRA chk_ansi
+.3978eb		b7 33		lda [$0f33],y	fetch_caps      LDA [#S_KBD_CONTROL.TBL_LOCK,D],Y       ; Look up the key modified by CAPSLOCK
+.3978ed		80 00		bra $3978ef	                BRA chk_ansi
+.3978ef		c9 80		cmp #$80	chk_ansi        CMP #$80                                ; Check to see if we have an ANSI escape sequence to send
+.3978f1		90 0a		bcc $3978fd	                BLT done                                ; If not, just return the character
+.3978f3		c9 96		cmp #$96	                CMP #$96
+.3978f5		b0 06		bcs $3978fd	                BGE done
+.3978f7		22 39 79 39	jsl $397939	                JSL KBD_ENQ_ANSI                        ; Expand and enqueue the ANSI sequence
+.3978fb		a9 1b		lda #$1b	                LDA #CHAR_ESC                           ; And return the ESC key to start the sequence
+.3978fd		28		plp		done            PLP
+.3978fe		2b		pld		                PLD
+.3978ff		18		clc		                CLC
+.397900		6b		rtl		                RTL
+.397901						KBD_ENQUEUE_BCD
+.397901		08		php		                PHP
+.397902		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.397904		48		pha		                PHA                     ; Save the value
+.397905		4a		lsr a		                LSR A                   ; Get the 10s digit
+.397906		4a		lsr a		                LSR A
+.397907		4a		lsr a		                LSR A
+.397908		4a		lsr a		                LSR A
+.397909		c9 00		cmp #$00	                CMP #0                  ; If it's 0, move to the 1s digit
+.39790b		f0 0b		beq $397918	                BEQ enqueue_1
+.39790d		c9 0a		cmp #$0a	                CMP #$0A                ; If it's out of range, ignore this whole call
+.39790f		b0 13		bcs $397924	                BGE done_A
+.397911		18		clc		                CLC                     ; Enqueue the tens digit
 .397912		69 30		adc #$30	                ADC #'0'
-.397914		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE
-.397918		28		plp		done            PLP
-.397919		6b		rtl		                RTL
-.39791a		68		pla		done_A          PLA
-.39791b		80 fb		bra $397918	                BRA done
-.39791d						KBD_BIN_TO_BCD
-.39791d		da		phx		                PHX
-.39791e		08		php		                PHP
-.39791f		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.397921		aa		tax		                TAX
-.397922		a9 99		lda #$99	                LDA #$99                ; Start with -1 in BCD form
-.397924		f8		sed		                SED                     ; Switch to Decimal arithmetic
-.397925		18		clc		loop            CLC
-.397926		69 01		adc #$01	                ADC #1                  ; Add 1 with BCD arithmetic
-.397928		ca		dex		                DEX                     ; Decrement input value in X
-.397929		10 fa		bpl $397925	                BPL loop                ; loop until input value < 0
-.39792b		d8		cld		                CLD                     ; Switch back to Binary arithmetic
-.39792c		28		plp		                PLP
-.39792d		fa		plx		                PLX
-.39792e		6b		rtl		                RTL
-.39792f						KBD_ENQ_ANSI
-.39792f		08		php		                PHP
-.397930		e2 30		sep #$30	                SEP #$30        ; set A&X short
-.397932		c9 80		cmp #$80	                CMP #$80                        ; check to make sure the code is within range
-.397934		b0 03		bcs $397939	                BGE chk_high_end
-.397936		82 4a 00	brl $397983	                BRL done                        ; Out of range, just ignore it
-.397939		c9 96		cmp #$96	chk_high_end    CMP #$96
-.39793b		90 03		bcc $397940	                BLT save_value
-.39793d		82 43 00	brl $397983	                BRL done                        ; Out of range, just ignore it
-.397940		48		pha		save_value      PHA
-.397941		a9 5b		lda #$5b	                LDA #'['
-.397943		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE
-.397947		68		pla		                PLA
-.397948		38		sec		                SEC
-.397949		e9 80		sbc #$80	                SBC #$80                ; Convert to an offset
-.39794b		aa		tax		                TAX                     ; And use it as an index to...
-.39794c		bf 85 79 39	lda $397985,x	                LDA @l ENCODE_CODE,X    ; Get the number
-.397950		10 0b		bpl $39795d	                BPL send_number         ; If MSB is not set, send the number as-is
-.397952		29 7f		and #$7f	                AND #$7F                ; Remove the MSB
-.397954		18		clc		                CLC
-.397955		69 41		adc #$41	                ADC #'A'                ; Convert to 'A' .. 'D'
-.397957		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE    ; Enqueue the code
-.39795b		80 26		bra $397983	                BRA done
-.39795d		22 1d 79 39	jsl $39791d	send_number     JSL KBD_BIN_TO_BCD      ; Convert A to BCD
-.397961		22 f7 78 39	jsl $3978f7	                JSL KBD_ENQUEUE_BCD     ; Enqueue the BCD value
-.397965		22 77 77 39	jsl $397777	chk_modifier    JSL KBD_GETMODS_ANSI    ; Get the modifiers
-.397969		c9 00		cmp #$00	                CMP #0                  ; Are there any?
-.39796b		f0 10		beq $39797d	                BEQ close               ; No: close the sequence
-.39796d		48		pha		                PHA
-.39796e		a9 3b		lda #$3b	                LDA #';'                ; Enqueue the separator
-.397970		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE
-.397974		68		pla		                PLA
-.397975		22 1d 79 39	jsl $39791d	                JSL KBD_BIN_TO_BCD      ; Convert A to BCD
-.397979		22 f7 78 39	jsl $3978f7	                JSL KBD_ENQUEUE_BCD     ; Enqueue the BCD value
-.39797d		a9 7e		lda #$7e	close           LDA #'~'                ; Enqueue closing code
-.39797f		22 9a 76 39	jsl $39769a	                JSL KBD_CHAR_ENQUEUE
-.397983		28		plp		done            PLP
-.397984		6b		rtl		                RTL
->397985		01 02 03 04 05 06		ENCODE_CODE     .byte 1, 2, 3, 4, 5, 6      ; Insert, etc...
->39798b		80 81 82 83			                .byte $80, $81, $82, $83    ; Cursor keys
->39798f		0b 0c 0d 0e 0f			                .byte 11, 12, 13, 14, 15    ; F1 - F5
->397994		11 12 13 14 15			                .byte 17, 18, 19, 20, 21    ; F6 - F10
->397999		17 18				                .byte 23, 24                ; F11 - F12
-.39799b						KBD_SETTABLE
-.39799b		48		pha		                PHA
-.39799c		8b		phb		                PHB
-.39799d		0b		phd		                PHD
-.39799e		08		php		                PHP
-.39799f		48		pha		                PHA             ; begin setdp macro
-.3979a0		08		php		                PHP
-.3979a1		c2 20		rep #$20	                REP #$20        ; set A long
-.3979a3		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
-.3979a6		5b		tcd		                TCD
-.3979a7		28		plp		                PLP
-.3979a8		68		pla		                PLA             ; end setdp macro
-.3979a9		e2 20		sep #$20	                SEP #$20        ; set A short
-.3979ab		8b		phb		                PHB                 ; Get the data bank into A
-.3979ac		68		pla		                PLA
-.3979ad		c2 20		rep #$20	                REP #$20        ; set A long
-.3979af		29 ff 00	and #$00ff	                AND #$00FF
-.3979b2		85 29		sta $0f29	                STA #S_KBD_CONTROL.TBL_UNMOD+2,D
-.3979b4		85 2d		sta $0f2d	                STA #S_KBD_CONTROL.TBL_SHIFT+2,D
-.3979b6		85 31		sta $0f31	                STA #S_KBD_CONTROL.TBL_CTRL+2,D
-.3979b8		85 35		sta $0f35	                STA #S_KBD_CONTROL.TBL_LOCK+2,D
-.3979ba		85 39		sta $0f39	                STA #S_KBD_CONTROL.TBL_LOCK_SHIFT+2,D
-.3979bc		85 3d		sta $0f3d	                STA #S_KBD_CONTROL.TBL_CTRL_SHIFT+2,D
-.3979be		86 27		stx $0f27	                STX #S_KBD_CONTROL.TBL_UNMOD,D
-.3979c0		86 2b		stx $0f2b	                STX #S_KBD_CONTROL.TBL_SHIFT,D
-.3979c2		86 2f		stx $0f2f	                STX #S_KBD_CONTROL.TBL_CTRL,D
-.3979c4		86 33		stx $0f33	                STX #S_KBD_CONTROL.TBL_LOCK,D
-.3979c6		86 37		stx $0f37	                STX #S_KBD_CONTROL.TBL_LOCK_SHIFT,D
-.3979c8		86 3b		stx $0f3b	                STX #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
-.3979ca		28		plp		                PLP
-.3979cb		2b		pld		                PLD
-.3979cc		ab		plb		                PLB
-.3979cd		68		pla		                PLA
-.3979ce		6b		rtl		                RTL
->3979cf						.align 256
+.397914		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE
+.397918		68		pla		enqueue_1       PLA                     ; Enqueue the ones digit
+.397919		29 0f		and #$0f	                AND #$0F
+.39791b		18		clc		                CLC
+.39791c		69 30		adc #$30	                ADC #'0'
+.39791e		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE
+.397922		28		plp		done            PLP
+.397923		6b		rtl		                RTL
+.397924		68		pla		done_A          PLA
+.397925		80 fb		bra $397922	                BRA done
+.397927						KBD_BIN_TO_BCD
+.397927		da		phx		                PHX
+.397928		08		php		                PHP
+.397929		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.39792b		aa		tax		                TAX
+.39792c		a9 99		lda #$99	                LDA #$99                ; Start with -1 in BCD form
+.39792e		f8		sed		                SED                     ; Switch to Decimal arithmetic
+.39792f		18		clc		loop            CLC
+.397930		69 01		adc #$01	                ADC #1                  ; Add 1 with BCD arithmetic
+.397932		ca		dex		                DEX                     ; Decrement input value in X
+.397933		10 fa		bpl $39792f	                BPL loop                ; loop until input value < 0
+.397935		d8		cld		                CLD                     ; Switch back to Binary arithmetic
+.397936		28		plp		                PLP
+.397937		fa		plx		                PLX
+.397938		6b		rtl		                RTL
+.397939						KBD_ENQ_ANSI
+.397939		08		php		                PHP
+.39793a		e2 30		sep #$30	                SEP #$30        ; set A&X short
+.39793c		c9 80		cmp #$80	                CMP #$80                        ; check to make sure the code is within range
+.39793e		b0 03		bcs $397943	                BGE chk_high_end
+.397940		82 4a 00	brl $39798d	                BRL done                        ; Out of range, just ignore it
+.397943		c9 96		cmp #$96	chk_high_end    CMP #$96
+.397945		90 03		bcc $39794a	                BLT save_value
+.397947		82 43 00	brl $39798d	                BRL done                        ; Out of range, just ignore it
+.39794a		48		pha		save_value      PHA
+.39794b		a9 5b		lda #$5b	                LDA #'['
+.39794d		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE
+.397951		68		pla		                PLA
+.397952		38		sec		                SEC
+.397953		e9 80		sbc #$80	                SBC #$80                ; Convert to an offset
+.397955		aa		tax		                TAX                     ; And use it as an index to...
+.397956		bf 8f 79 39	lda $39798f,x	                LDA @l ENCODE_CODE,X    ; Get the number
+.39795a		10 0b		bpl $397967	                BPL send_number         ; If MSB is not set, send the number as-is
+.39795c		29 7f		and #$7f	                AND #$7F                ; Remove the MSB
+.39795e		18		clc		                CLC
+.39795f		69 41		adc #$41	                ADC #'A'                ; Convert to 'A' .. 'D'
+.397961		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE    ; Enqueue the code
+.397965		80 26		bra $39798d	                BRA done
+.397967		22 27 79 39	jsl $397927	send_number     JSL KBD_BIN_TO_BCD      ; Convert A to BCD
+.39796b		22 01 79 39	jsl $397901	                JSL KBD_ENQUEUE_BCD     ; Enqueue the BCD value
+.39796f		22 81 77 39	jsl $397781	chk_modifier    JSL KBD_GETMODS_ANSI    ; Get the modifiers
+.397973		c9 00		cmp #$00	                CMP #0                  ; Are there any?
+.397975		f0 10		beq $397987	                BEQ close               ; No: close the sequence
+.397977		48		pha		                PHA
+.397978		a9 3b		lda #$3b	                LDA #';'                ; Enqueue the separator
+.39797a		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE
+.39797e		68		pla		                PLA
+.39797f		22 27 79 39	jsl $397927	                JSL KBD_BIN_TO_BCD      ; Convert A to BCD
+.397983		22 01 79 39	jsl $397901	                JSL KBD_ENQUEUE_BCD     ; Enqueue the BCD value
+.397987		a9 7e		lda #$7e	close           LDA #'~'                ; Enqueue closing code
+.397989		22 a4 76 39	jsl $3976a4	                JSL KBD_CHAR_ENQUEUE
+.39798d		28		plp		done            PLP
+.39798e		6b		rtl		                RTL
+>39798f		01 02 03 04 05 06		ENCODE_CODE     .byte 1, 2, 3, 4, 5, 6      ; Insert, etc...
+>397995		80 81 82 83			                .byte $80, $81, $82, $83    ; Cursor keys
+>397999		0b 0c 0d 0e 0f			                .byte 11, 12, 13, 14, 15    ; F1 - F5
+>39799e		11 12 13 14 15			                .byte 17, 18, 19, 20, 21    ; F6 - F10
+>3979a3		17 18				                .byte 23, 24                ; F11 - F12
+.3979a5						KBD_SETTABLE
+.3979a5		48		pha		                PHA
+.3979a6		8b		phb		                PHB
+.3979a7		0b		phd		                PHD
+.3979a8		08		php		                PHP
+.3979a9		48		pha		                PHA             ; begin setdp macro
+.3979aa		08		php		                PHP
+.3979ab		c2 20		rep #$20	                REP #$20        ; set A long
+.3979ad		a9 00 0f	lda #$0f00	                LDA #<>KBD_VARS         ; set DP to page 0
+.3979b0		5b		tcd		                TCD
+.3979b1		28		plp		                PLP
+.3979b2		68		pla		                PLA             ; end setdp macro
+.3979b3		e2 20		sep #$20	                SEP #$20        ; set A short
+.3979b5		8b		phb		                PHB                 ; Get the data bank into A
+.3979b6		68		pla		                PLA
+.3979b7		c2 20		rep #$20	                REP #$20        ; set A long
+.3979b9		29 ff 00	and #$00ff	                AND #$00FF
+.3979bc		85 29		sta $0f29	                STA #S_KBD_CONTROL.TBL_UNMOD+2,D
+.3979be		85 2d		sta $0f2d	                STA #S_KBD_CONTROL.TBL_SHIFT+2,D
+.3979c0		85 31		sta $0f31	                STA #S_KBD_CONTROL.TBL_CTRL+2,D
+.3979c2		85 35		sta $0f35	                STA #S_KBD_CONTROL.TBL_LOCK+2,D
+.3979c4		85 39		sta $0f39	                STA #S_KBD_CONTROL.TBL_LOCK_SHIFT+2,D
+.3979c6		85 3d		sta $0f3d	                STA #S_KBD_CONTROL.TBL_CTRL_SHIFT+2,D
+.3979c8		86 27		stx $0f27	                STX #S_KBD_CONTROL.TBL_UNMOD,D
+.3979ca		86 2b		stx $0f2b	                STX #S_KBD_CONTROL.TBL_SHIFT,D
+.3979cc		86 2f		stx $0f2f	                STX #S_KBD_CONTROL.TBL_CTRL,D
+.3979ce		86 33		stx $0f33	                STX #S_KBD_CONTROL.TBL_LOCK,D
+.3979d0		86 37		stx $0f37	                STX #S_KBD_CONTROL.TBL_LOCK_SHIFT,D
+.3979d2		86 3b		stx $0f3b	                STX #S_KBD_CONTROL.TBL_CTRL_SHIFT,D
+.3979d4		28		plp		                PLP
+.3979d5		2b		pld		                PLD
+.3979d6		ab		plb		                PLB
+.3979d7		68		pla		                PLA
+.3979d8		6b		rtl		                RTL
+>3979d9						.align 256
 >397a00		00 01 02 03 04 05 06 07		TBL_SET1        .byte $00, $01, $02, $03, $04, $05, $06, $07    ; $00 - $07
 >397a08		08 09 0a 0b 0c 0d 0e 0f		                .byte $08, $09, $0A, $0B, $0C, $0D, $0E, $0F    ; $08 - $0F
 >397a10		10 11 12 13 14 15 16 17		                .byte $10, $11, $12, $13, $14, $15, $16, $17    ; $10 - $17
@@ -15903,9 +15909,9 @@
 
 ;******  Processing file: src\version.asm
 
->3981ca		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+164 (2021-05-11)"
->3981d2		6c 70 68 61 2b 31 36 34 20 28 32 30 32 31 2d 30
->3981e2		35 2d 31 31 29
+>3981ca		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+172 (2021-05-12)"
+>3981d2		6c 70 68 61 2b 31 37 32 20 28 32 30 32 31 2d 30
+>3981e2		35 2d 31 32 29
 
 ;******  Return to file: src\kernel.asm
 

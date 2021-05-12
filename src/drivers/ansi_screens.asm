@@ -1301,6 +1301,11 @@ calc_src_dest       LDA #0
                     LDA #S_ANSI_VARS.ARG0,D
                     STA #S_ANSI_VARS.TMPPTR1,D          ; TMPPTR+1 := n (source)
 
+                    SEC                                 ; Calculate end offset
+                    LDA #S_ANSI_VARS.COLS_VISIBLE,D
+                    SBC #S_ANSI_VARS.CURSORX,D
+                    STA #S_ANSI_VARS.ARG1,D
+
 del_loop            LDY #S_ANSI_VARS.TMPPTR1,D          ; text[dest] := text[source]
                     LDA [#S_ANSI_VARS.CURSORPOS,D],Y
                     LDY #S_ANSI_VARS.TMPPTR1+1,D
@@ -1315,18 +1320,21 @@ del_loop            LDY #S_ANSI_VARS.TMPPTR1,D          ; text[dest] := text[sou
                     INC #S_ANSI_VARS.TMPPTR1+1,D
 
                     LDA #S_ANSI_VARS.TMPPTR1,D
-                    CMP #S_ANSI_VARS.COLS_VISIBLE,D
-                    BLT del_loop                        ; Keep looping until we reach the end                
+                    CMP #S_ANSI_VARS.ARG1,D
+                    BLT del_loop                        ; Keep looping until we reach the end
 
-                    LDY #S_ANSI_VARS.TMPPTR1+1,D
-                    DEY
+                    SEC                                 ; Calculate the starting point to fill with blanks
+                    LDA #S_ANSI_VARS.TMPPTR1+1,D
+                    SBC #S_ANSI_VARS.ARG0,D
+                    TAY
+                    
 fill_loop           LDA #CHAR_SP                        ; Replace the character with a space
                     STA [#S_ANSI_VARS.CURSORPOS,D],Y
                     LDA #S_ANSI_VARS.CURCOLOR,D
                     STA [#S_ANSI_VARS.COLORPOS,D],Y     ; In the default color
 
                     INY                                 ; Move to the next byte
-                    CPY #S_ANSI_VARS.COLS_VISIBLE,D     ; Until we reach the end
+                    CPY #S_ANSI_VARS.ARG1,D             ; Until we reach the end
                     BLT fill_loop
 
                     PLP
