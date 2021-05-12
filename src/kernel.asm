@@ -2387,7 +2387,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM  XXX  XX     ",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "FF      MM MM MM XXX     XX    ",$0D
                 .text $0D, "C256 FOENIX FMX -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
+                .text "www.c256foenix.com -- Kernel: " 
                 .include "version.asm"
                 .text $0D,$00                
 .endif
@@ -2401,7 +2401,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU   +",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UUUUUUUU   +",$0D
                 .text $0D, "C256 FOENIX U+ -- 3,670,016 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
+                .text "www.c256foenix.com -- Kernel: " 
                 .include "version.asm"
                 .text $0D,$00  
 .endif 
@@ -2414,7 +2414,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UU    UU",$0D
                 .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "UUUUUUUU",$0D
                 .text $0D, "C256 FOENIX U -- 1,572,864 Bytes Free", $0D
-                .text "www.c256foenix.com - Kernel Date: March 13th, 2021",$0D 
+                .text "www.c256foenix.com -- Kernel: " 
                 .include "version.asm"
                 .text $0D,$00  
   .endif
