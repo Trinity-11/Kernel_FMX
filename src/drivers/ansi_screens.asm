@@ -451,7 +451,7 @@ do_st_init          CMP #CHAR_ESC               ; Is it ESC?
                     BEQ go_escape               ; Yes, handle the ESC
                     BLT do_control              ; If less than, handle as a control code
 print_raw           JSL ANSI_PUTRAWC            ; Otherwise: Just print the raw character 
-                    BRA done
+                    BRL done
 
 go_escape           LDA #ST_ESCAPE
                     STA #S_ANSI_VARS.STATE,D    ; Move to the ESCAPE state
@@ -462,8 +462,21 @@ do_control          JSL ANSI_PR_CONTROL         ; Hand a single byte control cod
 
                     ; State: ESCAPE... we've seen an ESC character
 
-do_st_escape        CMP #'['                    ; Have we gotten 'ESC['?
+do_st_escape        CMP #'\'                    ; Have we gotten 'ESC\' (String terminator)?
+                    BEQ go_init                 ; Yes: go back to the init state (we do nothing with this)
+
+chk_apc             CMP #'_'                    ; Have we gotten 'ESC_' (Application Program Command)?
+                    BNE chk_csi                 ; No: check to see if we have a CSI
+
+                    JSL SHOW_CREDITS            ; Yes: show the credits
+go_init             LDA #ST_INIT
+                    STA #S_ANSI_VARS.STATE,D    ; Move to the INIT state
+                    BRA done
+
+chk_csi             CMP #'['                    ; Have we gotten 'ESC['?
                     BNE pr_and_reset            ; No: print this and return to ST_INIT
+
+
 
                     STZ #S_ANSI_VARS.ARG0,D     ; Clear the arguments
                     STZ #S_ANSI_VARS.ARG1,D

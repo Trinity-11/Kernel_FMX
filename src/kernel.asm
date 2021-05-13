@@ -2625,7 +2625,7 @@ CREDITS_TEXT    TXTLINE "                              CREDITS                  
                 .fill 80 * (60 - 26),$20
 
 .align 256
-CREDITS_COLOR   .fill 80 * 60, $F3
+CREDITS_COLOR   .fill 80 * 60, $F4
 
 
 ;
