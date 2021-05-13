@@ -236,7 +236,6 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setdp 0
                 ; Init the Keyboard used by the SuperIO
                 JSL INITKEYBOARD
-                JSL INITMOUSE
 
                 CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
                 setas
@@ -275,6 +274,8 @@ greet           setaxl
                 setaxl 
                 LDA #STACK_END          ; We are the root, let's make sure from now on, that we start clean
                 TAS
+
+                JSL INITMOUSE           ; Initialize the mouse
 
                 ; Init Global Look-up Table
                 ; Moved the DOS Init after the FLashing Moniker Display
@@ -1718,22 +1719,6 @@ IINITSUPERIO	  PHD
 	              PLP
 		            PLD
                 RTL
-
-Poll_Inbuf	    .as
-                LDA STATUS_PORT		; Load Status Byte
-				        AND	#<INPT_BUF_FULL	; Test bit $02 (if 0, Empty)
-				        CMP #<INPT_BUF_FULL
-				        BEQ Poll_Inbuf
-                RTS
-
-Poll_Outbuf	    .as
-                LDA STATUS_PORT
-                AND #OUT_BUF_FULL ; Test bit $01 (if 1, Full)
-                CMP #OUT_BUF_FULL
-                BNE Poll_Outbuf
-                RTS
-
-
 
 ; Author: Stefany
 ; Note: We assume that A & X are 16Bits Wide when entering here.
