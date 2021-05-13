@@ -114,39 +114,38 @@ Poll_OutbufWeAreDone:
 ; ///       Vicky does the rest
 ; ///////////////////////////////////////////////////////////////////
 MOUSE_INTERRUPT .proc
+                PHD
                 PHP
                 setasx
 
-                LDA @l MOUSE_PTR                ; Get the # of the mouse byte to write
-                CMP #3                          ; Check that mouse pointer is in bounds
-                BLT mouse_ptr_ok                ; If it is: fetch the byte
-                LDA #0                          ; If not, reset it
-mouse_ptr_ok    TAX                             ; into X
+                SEI
 
+                setdp 0
+
+                LDX @b MOUSE_PTR                ; Get the # of the mouse byte to write
                 LDA @l KBD_INPT_BUF             ; Get the byte from the PS/2 interface
-                STA @l MOUSE_PTR_BYTE0, X       ; Store it into the correct Vicky register
+                STA @l MOUSE_PTR_BYTE0,X        ; Store it into the correct Vicky register
 
                 INX                             ; Move to the next byte
                 CPX #$03                        ; Have we written 3 bytes?
-                BNE EXIT_FOR_NEXT_VALUE         ; No: return and wait for the next mouse interrupt
+                BNE save_ptr                    ; No: return and wait for the next mouse interrupt
 
                 ; Yes: use Vicky to get the absolute position from the relative count
 
                 LDA @l MOUSE_PTR_X_POS_L
-                STA @l MOUSE_POS_X_LO
+                STA @b MOUSE_POS_X_LO
                 LDA @l MOUSE_PTR_X_POS_H
-                STA @l MOUSE_POS_X_HI
+                STA @b MOUSE_POS_X_HI
 
                 LDA @l MOUSE_PTR_Y_POS_L
-                STA @l MOUSE_POS_Y_LO
+                STA @b MOUSE_POS_Y_LO
                 LDA @l MOUSE_PTR_Y_POS_H
-                STA @l MOUSE_POS_Y_HI
+                STA @b MOUSE_POS_Y_HI
 
-                LDX #$00                        ; Reset our state machine to the beginning
-EXIT_FOR_NEXT_VALUE
-                TXA                             ; Save our next byte position (state)
-                STA @l MOUSE_PTR
+                LDX #0                          ; Reset our state machine to the beginning
+save_ptr        STX @b MOUSE_PTR                ; Save our next byte position (state)
 
                 PLP
+                PLD
                 RTL
                 .pend

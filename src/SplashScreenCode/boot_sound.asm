@@ -18,12 +18,12 @@ clr_loop        STA @l SID0_V1_FREQ_LO,X        ; Clear the SID register
                 CPX #24
                 BNE clr_loop                    ; Loop until we've cleared all the main ones
 
-                LDA #$2A                        ; Attack = 2, Decay = 10
+                LDA #$29                        ; Attack = 2, Decay = 9
                 STA @l SID0_V1_ATCK_DECY
                 STA @l SID0_V2_ATCK_DECY
                 STA @l SID0_V3_ATCK_DECY
 
-                LDA #$1A                        ; Sustain = 1, Release = 10
+                LDA #$1F                        ; Sustain = 1, Release = 5
                 STA @l SID0_V1_SSTN_RLSE
                 STA @l SID0_V2_SSTN_RLSE
                 STA @l SID0_V3_SSTN_RLSE
@@ -39,7 +39,7 @@ clr_loop        STA @l SID0_V1_FREQ_LO,X        ; Clear the SID register
                 LDA #$11                        ; Turn on triangle wave
                 STA @l SID0_V1_CTRL
 
-                LDX #1500                       ; Wait to press the next key
+                LDX #800                        ; Wait to press the next key
                 JSL ILOOP_MS
 
                 LDA #49                         ; Set voice 2 to A-3
@@ -50,7 +50,7 @@ clr_loop        STA @l SID0_V1_FREQ_LO,X        ; Clear the SID register
                 LDA #$11                        ; Turn on triangle wave
                 STA @l SID0_V2_CTRL
 
-                LDX #1500                       ; Wait to press the next key
+                LDX #800                        ; Wait to press the next key
                 JSL ILOOP_MS
 
                 LDA #135                        ; Set voice 3 to C-3
@@ -61,13 +61,20 @@ clr_loop        STA @l SID0_V1_FREQ_LO,X        ; Clear the SID register
                 LDA #$11                        ; Turn on triangle wave
                 STA @l SID0_V3_CTRL
 
-                LDX #40000                      ; Hold down the keys, so to speak... for a while
-                JSL ILOOP_MS
-
+                LDX #20000                      ; Hold down the keys, so to speak... for a while
+                JSL ILOOP_MS           
+                
                 LDA #$10                        ; Release the keys...
+                STA @l SID0_V1_CTRL
                 STA @l SID0_V2_CTRL
-                STA @l SID0_V2_CTRL
-                STA @l SID0_V2_CTRL
+                STA @l SID0_V3_CTRL
+
+                LDA #14
+dampen          STA @l SID0_MODE_VOL  
+                LDX #100
+                JSL ILOOP_MS
+                DEC A
+                BNE dampen  
 
                 PLP
                 PLX

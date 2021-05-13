@@ -157,21 +157,18 @@ InitC100ESID:
                 JSL SIMPLE_INIT_ETHERNET_CTRL
                 ; There is nothing else to Init in the ESID 
 
-SkipInitExpC100C200:
-                setaxl
-                 
-                LDA #$00
-                STA KEYBOARD_SC_FLG       ; Clear the Keyboard Flag
-
+SkipInitExpC100C200:                
                 ; Shutdown the SN76489 before the CODEC enables all the channels
 
-                LDA #$9F                  ; Channel Two - No Atteniation
+                setas
+                setxl
+                LDA #$9F              ; Channel 1 - Full Atteniation
                 STA $AFF100
-                LDA #$BF                  ; Channel Two - No Atteniation
+                LDA #$BF              ; Channel 2 - Full Atteniation
                 STA $AFF100
-                LDA #$DF                  ; Channel Two - No Atteniation
+                LDA #$DF              ; Channel 3 - No Atteniation
                 STA $AFF100
-                LDA #$FF                  ; Channel Two - No Atteniation
+                LDA #$FF              ; Channel 4 - No Atteniation
                 STA $AFF100
 
                 LDA #$70                  ; Set the default text color to dim white on black
@@ -203,47 +200,11 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
 
                 ; Initialize the ANSI screen driver
                 JSL ANSI_INIT
-
                 JSL SETSIZES
-
-;                 setas
-;                 LDA @l SCREENBEGIN+2
-;                 JSL PRINTAH
-;                 setal
-;                 LDA @l SCREENBEGIN
-;                 JSL PRINTAH
-
-;                 LDA #' '
-;                 JSL PUTC
-
-;                 LDA @l COLS_VISIBLE
-;                 JSL PRINTAH
-
-;                 LDA #' '
-;                 JSL PUTC
-                
-;                 LDA @l COLS_PER_LINE
-;                 JSL PRINTAH 
-
-;                 LDA #' '
-;                 JSL PUTC 
-
-;                 LDA @l LINES_VISIBLE
-;                 JSL PRINTAH
-
-;                 LDA #' '
-;                 JSL PUTC 
-                
-;                 LDA @l LINES_MAX
-;                 JSL PRINTAH  
-
-;                 JSL PRINTCR
-
-; lock            NOP
-;                 BRA lock
 
                 ;Init CODEC
                 JSL INITCODEC
+
                 ; Init Suprt IO (Keyboard/Floppy/Etc...)
 .if TARGET_SYS == SYS_C256_FMX     
                 setaxl                
@@ -274,29 +235,8 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setal
                 setdp 0
                 ; Init the Keyboard used by the SuperIO
-                JSL INITKEYBOARD      ; INITKEYBOARD  ; KBD_INIT
+                JSL INITKEYBOARD
                 JSL INITMOUSE
-
-                ; setas
-                ; setxl
-                ; LDA #$9F              ; Channel Two - No Atteniation
-                ; STA $AFF100
-                ; LDA #$BF              ; Channel Two - No Atteniation
-                ; STA $AFF100
-                ; LDA #$DF              ; Channel Two - No Atteniation
-                ; STA $AFF100
-                ; LDA #$FF              ; Channel Two - No Atteniation
-                ; STA $AFF100
-                ; LDA #$83              ; Channel Zero - No Atteniation
-                ; STA $AFF100
-                ; LDA #$12              ; Channel Zero - No Atteniation
-                ; STA $AFF100
-                ; LDA #$90              ; Channel One - No Atteniation
-                ; STA $AFF100
-                ; LDX #16384            ; 400ms
-                ; JSL ILOOP_MS
-                ; LDA #$9F              ; Channel Two - No Atteniation
-                ; STA $AFF100
 
                 CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
                 setas
@@ -1574,6 +1514,7 @@ IINITTILEMODE
 ;
 ; Outputs:
 ;   A = the data at that address in video RAM.
+;   C set on failure (timeout), clear on success
 ;
 IREADVRAM       .proc
                 PHP
@@ -1582,14 +1523,22 @@ IREADVRAM       .proc
                 LDA #0,B,X                      ; Request the byte
 
                 setal
+                LDX #100
 wait_loop       LDA @l VMEM2CPU_Fifo_Count_LO   ; Wait for the FIFO to have data
                 BIT #$8000
-                BNE wait_loop
+                BEQ read_byte                   ; If it has data, go read the byte
+                DEX                             ; Otherwise, decrement timeout counter
+                BNE wait_loop                   ; Keep waiting so long as it's not 0             
 
-                setas
-                LDA @l VMEM2CPU_Data_Port
+ret_failure     PLP                             ; Return failure
+                CLC
+                RTL
 
-                PLP
+read_byte       setas
+                LDA @l VMEM2CPU_Data_Port       ; Get the byte from Vicky
+
+ret_success     PLP                             ; Return success
+                CLC
                 RTL
                 .pend
 
