@@ -235,9 +235,11 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setal
                 setdp 0
                 ; Init the Keyboard used by the SuperIO
+                JSL INITMOUSE           ; Initialize the mouse
                 JSL INITKEYBOARD
 
-                CLI                   ; Make sure no Interrupt will come and fuck up Init before this point.
+                CLI
+                 
                 setas
                 setxl
                 setdbr `greet_msg     ; set data bank to 39 (Kernel Variables)
@@ -274,8 +276,6 @@ greet           setaxl
                 setaxl 
                 LDA #STACK_END          ; We are the root, let's make sure from now on, that we start clean
                 TAS
-
-                JSL INITMOUSE           ; Initialize the mouse
 
                 ; Init Global Look-up Table
                 ; Moved the DOS Init after the FLashing Moniker Display
