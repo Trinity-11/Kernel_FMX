@@ -753,9 +753,9 @@ ANSI_CUU            .proc
 
                     setas
                     LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
-                    INC A
+                    BNE loop                        ; Move so long as not 0
 
-default             LDA #1                          ; Otherwise: treat it as 1
+                    LDA #1                          ; If 0, default to 1
 
 loop                PHA                             ; Save the count
                     JSL ANSI_CSRUP                  ; Cursor Up
@@ -776,7 +776,9 @@ ANSI_CUD            .proc
 
                     setas
                     LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
-                    INC A
+                    BNE loop                        ; Move so long as not 0
+
+                    LDA #1                          ; If 0, default to 1
 
 loop                PHA                             ; Save the count
                     JSL ANSI_CSRDOWN                ; Cursor Down
@@ -797,7 +799,9 @@ ANSI_CUF            .proc
 
                     setas
                     LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
-                    INC A
+                    BNE loop                        ; Move so long as not 0
+
+                    LDA #1                          ; If 0, default to 1
 
 loop                PHA                             ; Save the count
                     JSL ANSI_CSRRIGHT               ; Cursor right
@@ -818,7 +822,9 @@ ANSI_CUB            .proc
 
                     setas
                     LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
-                    INC A
+                    BNE loop                        ; Move so long as not 0
+
+                    LDA #1                          ; If 0, default to 1
 
 loop                PHA                             ; Save the count
                     JSL ANSI_CSRLEFT                ; Cursor left
@@ -1132,43 +1138,69 @@ ANSI_ED             .proc
 
                     setas
                     setxl
-                    LDA #S_ANSI_VARS.ARG0,D         ; Get the first argument
+                    LDA #S_ANSI_VARS.ARG0,D             ; Get the first argument
 
-                    BNE not_0                       ; Is the code 0?
+                    BNE not_0                           ; Is the code 0?
 
-code_0              ; 0 --> Erase from the cursor to the end of the screen
-                    LDA #' '
-                    LDY #CURSORPOS,D                ; Start with the cursor's position
-code_0_loop         STA [#SCREENBEGIN,D],Y          ; Clear the text cell
-                    INY                             ; Go to the next position
-                    CPY #$2000                      ; Have we reached the end?
-                    BNE code_0_loop                 ; No: keep going
+                    ; 0 --> Erase from the cursor to the end of the screen
+
+code_0              setal
+                    SEC                                 ; Calculate min index to erase
+                    LDA #S_ANSI_VARS.CURSORPOS,D
+                    SBC #S_ANSI_VARS.SCREENBEGIN,D
+                    TAY
+                    setas
+
+code_2_loop         LDA #' '
+                    STA [#S_ANSI_VARS.SCREENBEGIN,D],Y  ; Clear the text cell
+
+                    LDA #S_ANSI_VARS.CURCOLOR,D
+                    STA [#S_ANSI_VARS.COLORBEGIN,D],Y   ; And set the default color
+
+                    INY
+                    CPY #$2000
+                    BNE code_2_loop
                     BRL done
 
-not_0               CMP #1                          ; Is the code 1?
+not_0               CMP #1                              ; Is the code 1?
                     BNE not_1
 
-code_1              ; 1 --> Erase from beginning of screen to cursor
-                    LDA #' '
-                    LDY #CURSORPOS,D                ; Start with the cursor's position
-code_1_loop         STA [#SCREENBEGIN,D],Y          ; Clear the text cell
-                    DEY                             ; Go to the previous position
-                    BNE code_1_loop
-                    STA [#SCREENBEGIN,D],Y          ; Clear the first cell
+                    ; 1 --> Erase from beginning of screen to cursor
+
+code_1              setal
+                    SEC                                 ; Calculate max index to erase
+                    LDA #S_ANSI_VARS.CURSORPOS,D
+                    SBC #S_ANSI_VARS.SCREENBEGIN,D
+                    TAY
+                    setas
+
+code_1_loop         LDA #' '
+                    STA [#S_ANSI_VARS.SCREENBEGIN,D],Y  ; Clear the text cell
+
+                    LDA #S_ANSI_VARS.CURCOLOR,D
+                    STA [#S_ANSI_VARS.COLORBEGIN,D],Y   ; And set the default color
+
+                    DEY                                 ; Move to the previous index
+                    BPL code_1_loop                     ; And loop until we're done
                     BRL done
 
-not_1               CMP #2                          ; Is the code 2 or 3?
-                    BEQ code_2_3
+not_1               CMP #2                              ; Is the code 2 or 3?
+                    BEQ cls_all
                     CMP #3
-                    BNE done                        ; No: just ignore the sequence
+                    BNE done                            ; No: just ignore the sequence
 
-code_2_3            ; 2|3 --> Clear the entire screen
-                    LDA #' '
-                    LDY #0                          ; Start with the cursor's position
-code_2_3_loop       STA [#SCREENBEGIN,D],Y          ; Clear the text cell
-                    INY                             ; Go to the next position
-                    CPY #$2000                      ; Have we reached the end?
-                    BNE code_0_loop                 ; No: keep going
+                    ; 2|3 --> Clear the entire screen
+
+cls_all             LDY #0                              ; Start with the cursor's position
+cls_all_loop        LDA #' '
+                    STA [#S_ANSI_VARS.SCREENBEGIN,D],Y  ; Clear the text cell
+
+                    LDA #S_ANSI_VARS.CURCOLOR,D
+                    STA [#S_ANSI_VARS.COLORBEGIN,D],Y   ; And set the default color
+                    
+                    INY                                 ; Go to the next position
+                    CPY #$2000                          ; Have we reached the end?
+                    BNE cls_all_loop                    ; No: keep going
 
 done                PLP
                     PLY
