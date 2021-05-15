@@ -234,9 +234,8 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
 
                 setal
                 setdp 0
-                ; Init the Keyboard used by the SuperIO
+                JSL INITKEYBOARD        ; Initialize the keyboard
                 JSL INITMOUSE           ; Initialize the mouse
-                JSL INITKEYBOARD
 
                 CLI
                  

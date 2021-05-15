@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 -D TARGET_SYS=3 --long-address --flat --intel-hex -o kernel_U_Plus.hex --list kernel_U_Plus_hex.lst --labels=kernel_U_Plus_hex.lbl src\kernel.asm
-; Sat May 15 15:30:06 2021
+; Sat May 15 16:41:36 2021
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -2526,8 +2526,8 @@
 .3904f6		5b		tcd		                TCD
 .3904f7		28		plp		                PLP
 .3904f8		68		pla		                PLA             ; end setdp macro
-.3904f9		22 b8 10 00	jsl $0010b8	                JSL INITMOUSE           ; Initialize the mouse
-.3904fd		22 b4 10 00	jsl $0010b4	                JSL INITKEYBOARD
+.3904f9		22 b4 10 00	jsl $0010b4	                JSL INITKEYBOARD        ; Initialize the keyboard
+.3904fd		22 b8 10 00	jsl $0010b8	                JSL INITMOUSE           ; Initialize the mouse
 .390501		58		cli		                CLI
 .390502		e2 20		sep #$20	                SEP #$20        ; set A short
 .390504		c2 10		rep #$10	                REP #$10        ; set X long
@@ -15971,8 +15971,8 @@
 
 ;******  Processing file: src\version.asm
 
->3981ce		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+264 (2021-05-15)"
->3981d6		6c 70 68 61 2b 32 36 34 20 28 32 30 32 31 2d 30
+>3981ce		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+266 (2021-05-15)"
+>3981d6		6c 70 68 61 2b 32 36 36 20 28 32 30 32 31 2d 30
 >3981e6		35 2d 31 35 29
 
 ;******  Return to file: src\kernel.asm
