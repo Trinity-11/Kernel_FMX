@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 -D TARGET_SYS=1 --long-address --flat --intel-hex -o kernel_FMX.hex --list kernel_FMX_hex.lst --labels=kernel_FMX_hex.lbl src\kernel.asm
-; Sat May 15 18:22:02 2021
+; Sat May 15 18:54:15 2021
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -15992,8 +15992,8 @@
 
 ;******  Processing file: src\version.asm
 
->398222		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+274 (2021-05-15)"
->39822a		6c 70 68 61 2b 32 37 34 20 28 32 30 32 31 2d 30
+>398222		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+275 (2021-05-15)"
+>39822a		6c 70 68 61 2b 32 37 35 20 28 32 30 32 31 2d 30
 >39823a		35 2d 31 35 29
 
 ;******  Return to file: src\kernel.asm
@@ -17554,7 +17554,7 @@
 >3a4ba8		00 20 23 1e e2 20 dc d4 08 e2 20 a9 8f 20 ef 21
 >3a4bb8		20 d1 1c 20 16 06 e2 20 a5 25 c9 b0 90 10 c9 f0
 >3a4bc8		b0 0c 8b 48 ab a6 23 22 44 11 00 ab 80 04 e2 20
->3a4bd8		a7 23 85 23 64 24 64 25 64 30 e2 20 20 e2 20 60
+>3a4bd8		a7 23 85 23 64 24 64 25 64 26 e2 20 20 e2 20 60
 >3a4be8		08 c2 20 48 a9 00 08 5b 68 28 e2 20 a9 04 8f d3
 >3a4bf8		08 00 c2 20 29 ff 00 20 23 1e e2 20 dc d4 08 e2
 >3a4c08		20 a9 8f 20 ef 21 20 d1 1c 20 16 06 e2 20 a5 25
@@ -18601,7 +18601,7 @@
 >3ad268		00 49 4e 4b 45 59 00 0d 52 45 41 44 59 0d 00 43
 >3ad278		32 35 36 20 46 6f 65 6e 69 78 20 42 41 53 49 43
 >3ad288		38 31 36 20 76 30 2e 32 2e 30 2d 61 6c 70 68 61
->3ad298		2b 34 30 34 0d 00
+>3ad298		2b 34 30 35 0d 00
 >3b0000						.align 256
 .3b0000						CREDITS_TEXT
 >3b0000		20 20 20 20 20 20 20 20		                .text "                              CREDITS                                  "
