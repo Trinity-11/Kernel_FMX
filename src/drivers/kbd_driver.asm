@@ -244,14 +244,25 @@ reset_kbd           LDA #KBD_CMD_RESET          ; Send a reset command to the ke
 enable_loop         LDA #KBD_CMD_ENABLE         ; Try to enable the keyboard
                     LDX #0
                     JSL KBD_SND_CMD
+
+                    ; NOTE: the keyboard controller on the U and U+ does not seem to communicate
+                    ; well here with every keyboard (some don't get a response through). So...
+                    ; the FMX will check for a response, the U and U+ will just have to trust that
+                    ; the keyboard was re-enabled correctly.
+
+.if TARGET_SYS == SYS_C256_FMX
                     CMP #KBD_RESP_ACK           ; Did the keyboard acknowledge the command?
                     BEQ set_led                 ; Yes: try to set the LEDs
                     DEY                         ; No: try again... counting down
                     BNE enable_loop             ; If we are out of attempts...
                     LDA #5                      ; Return error #5
                     BRA done
+.endif
 
-set_led             LDA #0                      ; Set the state of the locks
+set_led             LDA #"6"
+                    JSL PUTC
+                    
+                    LDA #0                      ; Set the state of the locks
                     JSL KBD_SETLOCKS
 
                     LDA @l INT_PENDING_REG1     ; Read the Pending Register &
