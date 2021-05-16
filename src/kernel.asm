@@ -238,6 +238,9 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 JSL INITMOUSE           ; Initialize the mouse
 
                 CLI
+
+                LDA #0
+                STA @w MOUSE_IDX
                  
                 setas
                 setxl

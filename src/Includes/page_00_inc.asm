@@ -122,11 +122,12 @@ MODEL            = $0000B0
 ; Mouse variables
 ;
 
-MOUSE_PTR        = $0000E0
+MOUSE_IDX        = $0000E0
 MOUSE_POS_X_LO   = $0000E1
 MOUSE_POS_X_HI   = $0000E2
 MOUSE_POS_Y_LO   = $0000E3
 MOUSE_POS_Y_HI   = $0000E4
+MOUSE_BUTTONS    = $0000E6
 
 USER_TEMP        = $0000F0 ;32 Bytes Temp space for user programs
 

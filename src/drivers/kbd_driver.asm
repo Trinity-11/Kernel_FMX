@@ -440,6 +440,9 @@ KBD_PROCESS_BYTE    .proc
                     setdp <>KBD_VARS
 
                     setaxs
+                    LDA #0
+                    STA @l MOUSE_IDX                    ; A bit of a hack to try to stabilize the mouse
+
                     LDA @l KBD_DATA_BUF                 ; Get the current scancode byte
                     BNE save_scancode
 

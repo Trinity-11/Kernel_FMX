@@ -14,9 +14,11 @@
 IINITMOUSE      .proc
                 PHA
                 PHX
+                PHB
                 PHD
                 PHP
 
+                setdbr 0
                 setdp 0
 
                 SEI
@@ -47,9 +49,9 @@ mouse_init_fail LDA #0                          ; Disable the mouse pointer
                 ; The mouse not being present triggers a spurious keyboard interrupt
                 ; So we clear it here as well as any pending mouse interrupts
 
-                LDA @l INT_PENDING_REG1     ; Read the Pending Register &
+                LDA @l INT_PENDING_REG1         ; Read the Pending Register &
                 AND #FNX1_INT00_KBD
-                STA @l INT_PENDING_REG1     ; Writing it back will clear the Active Bit
+                STA @l INT_PENDING_REG1         ; Writing it back will clear the Active Bit
 
                 LDA @lINT_PENDING_REG0          ; Read the Pending Register &
                 AND #FNX0_INT07_MOUSE
@@ -57,14 +59,20 @@ mouse_init_fail LDA #0                          ; Disable the mouse pointer
 
                 PLP                             ; Return failure
                 PLD
+                PLB
                 PLX
                 PLA
                 SEC
                 RTL
 
-mouse_found     LDA KBD_OUT_BUF		            ; Clear the Output buffer
+mouse_found     LDA @l KBD_OUT_BUF              ; Clear the Output buffer
                 CMP #$00
                 BNE DO_CMD_A9_AGAIN
+
+                LDA #$F5                        ; Disable the mouse
+                JSR MOUSE_WRITE
+                JSR MOUSE_READ
+                BCS mouse_init_fail                
             
                 LDA #$F6                        ;Tell the mouse to use default settings
                 JSR MOUSE_WRITE
@@ -91,7 +99,7 @@ mouse_found     LDA KBD_OUT_BUF		            ; Clear the Output buffer
                 ; Let's Clear all the Variables Necessary to Computer the Absolute Position of the Mouse
 
                 LDA #$00
-                STA MOUSE_PTR
+                STA @w MOUSE_IDX
 
                 LDA @lINT_PENDING_REG0          ; Read the Pending Register &
                 AND #FNX0_INT07_MOUSE
@@ -103,6 +111,7 @@ mouse_found     LDA KBD_OUT_BUF		            ; Clear the Output buffer
 
 mouse_init_ok   PLP
                 PLD
+                PLB
                 PLX
                 PLA
                 CLC
@@ -214,19 +223,21 @@ ret_success     CLC                     ; Return success
 ; ///       Vicky does the rest
 ; ///////////////////////////////////////////////////////////////////
 MOUSE_INTERRUPT .proc
+                PHB
                 PHD
                 PHP
                 setasx
 
                 SEI
 
+                setdbr 0
                 setdp 0
 
-                LDX @b MOUSE_PTR                ; Get the # of the mouse byte to write
+                LDX @w MOUSE_IDX                ; Get the # of the mouse byte to write
                 LDA @l KBD_INPT_BUF             ; Get the byte from the PS/2 interface
                 STA @l MOUSE_PTR_BYTE0,X        ; Store it into the correct Vicky register
 
-                INX                             ; Move to the next byte
+next_byte       INX                             ; Move to the next byte
                 CPX #$03                        ; Have we written 3 bytes?
                 BNE save_ptr                    ; No: return and wait for the next mouse interrupt
 
@@ -243,10 +254,11 @@ MOUSE_INTERRUPT .proc
                 STA @b MOUSE_POS_Y_HI
 
                 LDX #0                          ; Reset our state machine to the beginning
-save_ptr        STX @b MOUSE_PTR                ; Save our next byte position (state)
+save_ptr        STX @w MOUSE_IDX                ; Save our next byte position (state)
 
                 PLP
                 PLD
+                PLB
                 RTL
                 .pend
 
