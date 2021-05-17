@@ -83,8 +83,33 @@ READVRAM         = $001144 ; Read a byte from video RAM at B:X
 ; Interrupt Vector Table
 ;
 
-VEC_INT00_SOF   = $001700 ; Interrupt routine for Start Of Frame interrupt
-VEC_INT01_SOL   = $001704 ; Interrupt routine for Start Of Line interrupt
-VEC_INT02_TMR0  = $001708 ; Interrupt routine for Timer0
-VEC_INT03_TMR1  = $00170C ; Interrupt routine for Timer1
-VEC_INT04_TMR2  = $001710 ; Interrupt routine for Timer2
+VEC_INT00_SOF       = $001700 ; IRQ 0, 0 --- Start Of Frame interrupt 
+VEC_INT01_SOL       = $001704 ; IRQ 0, 1 --- Start Of Line interrupt
+VEC_INT02_TMR0      = $001708 ; IRQ 0, 2 --- Timer 0 interrupt
+VEC_INT03_TMR1      = $00170C ; IRQ 0, 3 --- Timer 1 interrupt
+VEC_INT04_TMR2      = $001710 ; IRQ 0, 4 --- Timer 2 interrupt
+VEC_INT05_RTC       = $001714 ; IRQ 0, 5 --- Real Time Clock interrupt
+VEC_INT06_FDC       = $001718 ; IRQ 0, 6 --- Floppy Drive Controller interrupt
+VEC_INT07_MOUSE     = $00171C ; IRQ 0, 7 --- Mouse interrupt
+
+VEC_INT10_KBD       = $001720 ; IRQ 1, 0 --- Keyboard interrupt
+VEC_INT11_COL0      = $001724 ; IRQ 1, 1 --- VICKY_II (INT2) Sprite Collision 
+VEC_INT12_COL1      = $001728 ; IRQ 1, 2 --- VICKY_II (INT3) Bitmap Collision
+VEC_INT13_COM2      = $00172C ; IRQ 1, 3 --- Serial port #2 interrupt
+VEC_INT14_COM1      = $001730 ; IRQ 1, 4 --- Serial port #1 interrupt
+VEC_INT15_MIDI      = $001734 ; IRQ 1, 5 --- MIDI controller interrupt
+VEC_INT16_LPT       = $001738 ; IRQ 1, 6 --- Parallel port interrupt
+VEC_INT17_SDC       = $00173C ; IRQ 1, 7 --- SD Card Controller interrupt (CH376S???)
+
+VEC_INT20_OPL       = $001740 ; IRQ 2, 0 --- OPL3
+VEC_INT21_GABE0     = $001744 ; IRQ 2, 1 --- GABE (INT0) - TBD
+VEC_INT22_GABE1     = $001748 ; IRQ 2, 2 --- GABE (INT1) - TBD
+VEC_INT23_VDMA      = $00174C ; IRQ 2, 3 --- VICKY_II (INT4) - VDMA Interrupt
+VEC_INT24_COL2      = $001750 ; IRQ 2, 4 --- VICKY_II (INT5) Tile Collision
+VEC_INT25_GABE2     = $001754 ; IRQ 2, 5 --- GABE (INT2) - TBD
+VEC_INT26_EXT       = $001758 ; IRQ 2, 6 --- External Expansion
+VEC_INT17_SDINS     = $00175C ; IRQ 2, 7 --- SDCARD Insertion
+
+VEC_INT30_OPN2      = $001760 ; IRQ 3, 0 --- OPN2
+VEC_INT31_OPM       = $001764 ; IRQ 3, 1 --- OPM
+VEC_INT32_IDE       = $001768 ; IRQ 3, 2 --- HDD IDE Interrupt
