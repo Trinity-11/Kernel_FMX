@@ -105,69 +105,54 @@ pr_serial       LDA DOS_SECTOR+1,X
                 BNE pr_serial
                 JSL PRINTCR
 
-                setaxl
-                LDA #1                 ; Set LBA = 1
+;                 setaxl
+;                 LDA #1                 ; Set LBA = 1
+;                 STA @l BIOS_LBA
+;                 LDA #0
+;                 STA @l BIOS_LBA+2
+
+;                 LDA #<>DOS_SECTOR
+;                 STA @l BIOS_BUFF_PTR
+;                 LDA #`DOS_SECTOR
+;                 STA @l BIOS_BUFF_PTR+2
+
+;                 LDX #0                  ; Initialize the block to some recognizable data
+;                 LDA #$5AA5
+; init_loop       STA DOS_SECTOR,X
+;                 INX
+;                 INX
+;                 CPX #512
+;                 BNE init_loop
+
+;                 JSL IDE_PUTBLOCK        ; Attempt to write the block
+;                 BCS read_sect1
+
+;                 TRACE "Could not write sector #1."
+;                 JSL PRINTCR
+;                 BRA done
+
+read_sect1      setal
+                LDA #0                 ; Set LBA = 0
                 STA @l BIOS_LBA
                 LDA #0
                 STA @l BIOS_LBA+2
 
-                LDA #<>DOS_SECTOR
+                LDA #<>DOS_BOOT_SECTOR
                 STA @l BIOS_BUFF_PTR
-                LDA #`DOS_SECTOR
-                STA @l BIOS_BUFF_PTR+2
-
-                LDX #0                  ; Initialize the block to some recognizable data
-                LDA #$5AA5
-init_loop       STA DOS_SECTOR,X
-                INX
-                INX
-                CPX #512
-                BNE init_loop
-
-                JSL IDE_PUTBLOCK        ; Attempt to write the block
-                BCS read_sect1
-
-                TRACE "Could not write sector #1."
-                JSL PRINTCR
-                BRA done
-
-read_sect1      LDA #1                 ; Set LBA = 1
-                STA @l BIOS_LBA
-                LDA #0
-                STA @l BIOS_LBA+2
-
-                LDA #<>DOS_FAT_SECTORS
-                STA @l BIOS_BUFF_PTR
-                LDA #`DOS_FAT_SECTORS
+                LDA #`DOS_BOOT_SECTOR
                 STA @l BIOS_BUFF_PTR+2
 
                 JSL IDE_GETBLOCK        ; Attempt to read the block
                 BCS all_ok
 
-                TRACE "Could not read sector #1."
+                TRACE "Could not read sector #0."
                 JSL PRINTCR
-                BRA done
-
-                ; setaxl
-                ; LDA #0                 ; Set LBA = 0 for the MBR
-                ; STA @l BIOS_LBA
-                ; LDA #0
-                ; STA @l BIOS_LBA+2
-
-                ; LDA #<>DOS_SECTOR
-                ; STA @l BIOS_BUFF_PTR
-                ; LDA #`DOS_SECTOR
-                ; STA @l BIOS_BUFF_PTR+2
-
-                ; JSL IDE_GETBLOCK        ; Attempt to read the block
-                ; BCS all_ok
-
-                ; TRACE "Could not read MBR."
-                ; JSL PRINTCR
-                ; BRA done                
+                BRA done           
 
 all_ok          TRACE "OK"
                 JSL PRINTCR
+
+                BRK
 
 done            PLP
                 RTL

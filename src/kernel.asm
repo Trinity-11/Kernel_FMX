@@ -285,10 +285,10 @@ greet           setaxl
                 setas
                 setxl
                 LDA @l KRNL_BOOT_MENU_K ; Get the Value of the Keyboard Boot Choice
-                CMP #CHAR_SP          ; Did the user press SPACE?
+                CMP #SCAN_SP          ; Did the user press SPACE?
                 BEQ BOOT_DIP          ; Yes: boot via the DIP switches
 
-                CMP #CHAR_CR          ; Did the user press RETURN?
+                CMP #SCAN_CR          ; Did the user press RETURN?
                 BEQ BOOTBASIC         ; Yes: go straight to BASIC
 
                 CMP #CHAR_F1          ; Did the user press F1?
@@ -420,7 +420,7 @@ wait_key        LDX #100
                 DEY                     ; Count down the tenths of seconds
                 BEQ timeout             ; If we've got to 0, we're done
 
-                JSL GETCH               ; Try to get a character
+                JSL GETSCANCODE         ; Try to get a character
                 CMP #0                  ; Did we get anything
                 BEQ wait_key            ; No: keep waiting until timeout
 
@@ -430,9 +430,9 @@ wait_key        LDX #100
                 BEQ return              ; Yes: return it
                 CMP #CHAR_F3            ; Did the user press F3?
                 BEQ return              ; Yes: return it
-                CMP #CHAR_CR            ; Did the user press CR?
+                CMP #SCAN_CR            ; Did the user press CR?
                 BEQ return              ; Yes: return it
-                CMP #CHAR_SP            ; Did the user press SPACE?
+                CMP #SCAN_SP            ; Did the user press SPACE?
                 BNE wait_key            ; No: keep waiting
 
 timeout         LDA #0                  ; Return 0 for a timeout / SPACE
@@ -2173,6 +2173,8 @@ IDELAY          .proc
                 PHB
                 PHP
 
+                TRACE "IDELAY"
+
                 setdbr 0
 
                 setas
@@ -2678,7 +2680,7 @@ HAVE_FUN:
 ; Replication of the old BOOT_MENU Code - Sorry PJW, it needed some upgrades
 ByPassCharDisplay:
                 setas 
-                JSL GETCH               ; Try to get a character
+                JSL GETSCANCODE         ; Try to get a scan code
                 CMP #0                  ; Did we get anything
                 BEQ Still_Displaying_Char            ; No: keep waiting until timeout
                 CMP #CHAR_F1            ; Did the user press F1?
@@ -2687,9 +2689,9 @@ ByPassCharDisplay:
                 BEQ return              ; Yes: return it
                 CMP #CHAR_F3            ; Did the user press F3?
                 BEQ return              ; Yes: return it
-                CMP #CHAR_CR            ; Did the user press CR?
+                CMP #SCAN_CR            ; Did the user press CR?
                 BEQ return              ; Yes: return it
-                CMP #CHAR_SP            ; Did the user press SPACE?
+                CMP #SCAN_SP            ; Did the user press SPACE?
                 BEQ exitshere
                 ;BNE wait_key            ; No: keep waiting
 Still_Displaying_Char:        
