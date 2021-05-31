@@ -2170,12 +2170,25 @@ LOOP_MS_END     RTL
 ;   X = Bits[15:0] of the number of ticks to wait
 ;
 IDELAY          .proc
+                PHA
                 PHB
                 PHP
 
                 TRACE "IDELAY"
 
                 setdbr 0
+
+                setaxl
+                PHX                         ; Save the delay amount
+                PHY
+
+                LDA #$02                    ; Set the handler for TIMER0 interrupts
+                LDY #`HANDLE_TIMER0
+                LDX #<>HANDLE_TIMER0
+                JSL SETHANDLER
+
+                PLY                         ; Restore the delay amount
+                PLX
 
                 setas
                 LDA #0                      ; Stop the timer if it's running
@@ -2220,6 +2233,7 @@ loop            WAI                         ; Wait for an interrupt
 
                 PLP
                 PLB
+                PLA
                 RTL
                 .pend
 ;

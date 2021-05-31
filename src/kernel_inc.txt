@@ -78,6 +78,8 @@ F_FREEFD         = %ADDR% ; Free a file descriptor
 TESTBREAK        = %ADDR% ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
 SETTABLE         = %ADDR% ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
 READVRAM         = %ADDR% ; Read a byte from video RAM at B:X
+SETHANDLER       = %ADDR% ; Set the handler for the interrupt # in A to the FAR routine at Y:X
+DELAY            = %ADDR% ; Wait at least Y:X ticks of the system clock.
 
 ;
 ; Interrupt Vector Table

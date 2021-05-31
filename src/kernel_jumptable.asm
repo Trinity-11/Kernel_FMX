@@ -100,7 +100,7 @@ CMDBLOCK        JML ICMDBLOCK       ; Send a command to a block device
 F_RUN           JML IF_RUN          ; Load an run a binary file
 F_MOUNT         JML DOS_MOUNT       ; Mount the designated block device
 
-SETSIZES        JML ISETSIZES
+SETSIZES        JML ISETSIZES       ; Set the size information in the kernel's text screen routines based on the screen configuration
 
 F_COPY          JML IF_COPY         ; Copy a file
 F_ALLOCFD       JML IF_ALLOCFD      ; Allocate a file descriptor
@@ -109,6 +109,8 @@ F_FREEFD        JML IF_FREEFD       ; Free a file descriptor
 TESTBREAK       JML KBD_TEST_BREAK  ; Check if BREAK was pressed recently by the user (C is set if true, clear if false)
 SETTABLE        JML KBD_SETTABLE    ; Set the keyboard scan code -> character translation tables (B:X points to the new tables)
 READVRAM        JML IREADVRAM       ; Read a byte from video RAM at B:X
+SETHANDLER      JML ISETHANDLER     ; Set the handler for the interrupt # in A to the FAR routine at Y:X
+DELAY           JML IDELAY          ; Wait at least Y:X ticks of the system clock.
 .here
 
 ;

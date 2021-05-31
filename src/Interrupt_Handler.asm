@@ -193,3 +193,19 @@ EXIT_IRQ_HANDLE
 ; 
 NMI_HANDLER     RTL
 
+;
+; Handler for TIMER0 interrupts... needed for DELAY
+;
+HANDLE_TIMER0   .proc
+                PHA
+                PHP
+
+                setas
+                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+                ORA #TIMER0TRIGGER
+                STA @l TIMERFLAGS
+
+                PLP
+                PLA
+                RTL
+                .pend
