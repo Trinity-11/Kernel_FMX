@@ -2,12 +2,11 @@
 ;;; Registers for the floppy drive controller
 ;;;
 
-SIO_FDC  = $AF13F0
-SIO_FDC_SRA = $AF13F0 ; Read Only - Status Register A (not used in AT mode)
+; SIO_FDC  = $AF13F0
+; SIO_FDC_SRA = $AF13F0 ; Read Only - Status Register A (not used in AT mode)
+; SIO_FDC_SRB = $AF13F1 ; Read Only - Status Register B (not used in AT mode)
 
-SIO_FDC_SRB = $AF13F1 ; Read Only - Status Register B (not used in AT mode)
-
-SIO_FDC_DOR = $AF13F2 ; Read/Write - Digital Output Register
+; SIO_FDC_DOR = $AF13F2 ; Read/Write - Digital Output Register
 FDC_DOR_DSEL0 = $01     ; Drive 0 Select
 FDC_DOR_DSEL1 = $02     ; Drive 1 Select
 FDC_DOR_NRESET = $04    ; Reset the FDC
@@ -17,9 +16,9 @@ FDC_DOR_MOT1  = $20     ; Turn on motor 1
 FDC_DOR_MOT2  = $40     ; Turn on motor 2
 FDC_DOR_MOT3  = $80     ; Turn on motor 3
 
-SIO_FDC_TSR = $AF13F3   ; Read/Write - Tape Drive Status (not used on the C256)
+; SIO_FDC_TSR = $AF13F3   ; Read/Write - Tape Drive Status (not used on the C256)
 
-SIO_FDC_MSR = $AF13F4   ; Read - Main Status Register
+; SIO_FDC_MSR = $AF13F4   ; Read - Main Status Register
 FDC_MSR_DRV0BSY = $01   ; Indicates if drive 0 is busy
 FDC_MSR_DRV1BSY = $02   ; Indicates if drive 1 is busy
 FDC_MSR_CMDBSY = $10    ; Indicates if a command is in progress
@@ -27,20 +26,20 @@ FDC_MSR_NONDMA = $20    ;
 FDC_MSR_DIO = $40       ; Data direction: 1 = read, 0 = write
 FDC_MSR_RQM = $80       ; 1 = host can transfer data, 0 = host must wait
 
-SIO_FDC_DSR = $AF13F4   ; Write - Data Select Register
+; SIO_FDC_DSR = $AF13F4   ; Write - Data Select Register
 ; Bit[0..1] = data rate
 ; Bit[2..4] = precompensation select
 FDC_DSR_LOPWR = $40     ; Turn on low power mode
 FDC_DSR_RESET = $80     ; Software reset of the FDC
 
-SIO_FDC_DTA = $AF13F5   ; Read/Write - Data - FIFO
+; SIO_FDC_DTA = $AF13F5   ; Read/Write - Data - FIFO
 
-SIO_FDC_RSV = $AF13F6   ; Reserved
+; SIO_FDC_RSV = $AF13F6   ; Reserved
 
-SIO_FDC_DIR = $AF13F7   ; Read - Digital Input Register
+; SIO_FDC_DIR = $AF13F7   ; Read - Digital Input Register
 FDC_DIR_DSKCHG = $80    ; Indicates if the disk has changed
 
-SIO_FDC_CCR = $AF13F7   ; Write - Configuration Control Register
+; SIO_FDC_CCR = $AF13F7   ; Write - Configuration Control Register
 ; Bit[0..1] = Data rate
 
 ;
