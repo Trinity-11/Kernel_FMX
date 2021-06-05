@@ -147,7 +147,7 @@ read_sect1      setal
 
                 TRACE "Could not read sector #0."
                 JSL PRINTCR
-                BRA done           
+                BRA done
 
 all_ok          TRACE "OK"
                 JSL PRINTCR
@@ -472,7 +472,7 @@ IDE_GETBLOCK    .proc
                 LDA @l IDE_DATA                 ; Read and toss out one byte from the 8-bit interface
 .endif
                 LDY #0
-                setal
+                setaxl
 read_loop       LDA @l IDE_DATA_LO              ; Get the word of data from the device
                 STA [BIOS_BUFF_PTR],Y           ; Save it to the buffer
                 INY                             ; Move to the next position
