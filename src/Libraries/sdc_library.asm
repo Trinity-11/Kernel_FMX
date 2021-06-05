@@ -7,55 +7,6 @@
 ;;
 
 ;
-; Test the SDC interface
-;
-SDC_TEST        .proc
-                PHB
-                PHD
-                PHP
-
-                setdbr 0
-                setdp SDOS_VARIABLES
-
-                setas
-
-                LDA #$F0                            ; Set white on black background
-                STA @w CURCOLOR
-                JSL CLRSCREEN
-                JSL CSRHOME
-                
-                JSL SDC_INIT                        ; Attempt to initilize the SDC interface
-                BCS init_ok
-
-                TRACE "Could not initilialize the SDC."
-                BRL done
-
-init_ok         LDA #BIOS_DEV_SD
-                STA BIOS_DEV
-
-                JSL DOS_MOUNT                       ; Attempt to mount the SDC
-                BCS mount_ok
-
-                TRACE "Could not mount the SDC."
-                BRL done
-
-mount_ok        JSL IF_DIROPEN
-                BCS all_ok
-
-                TRACE "Could not open SDC directory."
-                BRA done
-
-all_ok          TRACE "OK"
-
-done            JSL PRINTCR
-                
-                PLP
-                PLD
-                PLB
-                RTL
-                .pend
-
-;
 ; Wait for the SDC to finish its transaction
 ;
 SDC_WAITBUSY    .proc
@@ -224,7 +175,8 @@ ret_success     STZ BIOS_STATUS                     ; Return success
                 SEC
                 RTL
 
-ret_error       STA BIOS_STATUS
+ret_error       LDA #BIOS_ERR_READ                  ; Return a read error
+                STA BIOS_STATUS
 
                 LDA @l GABE_MSTR_CTRL               ; Turn off the SDC activity light
                 AND #~GABE_CTRL_SDC_LED
@@ -318,7 +270,8 @@ ret_success     STZ BIOS_STATUS                     ; Return success
                 SEC
                 RTL
 
-ret_error       STA BIOS_STATUS
+ret_error       LDA #BIOS_ERR_WRITE                 ; Return a write error
+                STA BIOS_STATUS
                 
                 LDA @l GABE_MSTR_CTRL               ; Turn off the SDC activity light
                 AND #~GABE_CTRL_SDC_LED
