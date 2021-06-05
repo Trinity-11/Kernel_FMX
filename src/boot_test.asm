@@ -1,6 +1,6 @@
 .cpu "65816"
 .include "Includes/page_00_inc.asm"
-.include "Includes/page_00.asm"
+.include "Includes/page_00_code.asm"
 .include "Includes/dram_inc.asm"
 .include "Includes/macros_inc.asm"
 .include "Includes/simulator_inc.asm"

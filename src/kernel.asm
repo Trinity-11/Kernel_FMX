@@ -2312,10 +2312,10 @@ ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a spac
 IRQHANDLESTUB   RTL
 
 .include "Libraries/OPL2_Library.asm"             ; Library code to drive the OPL2 (right now, only in mono (both side from the same data))
-.include "Defines/sdcard_controller_def.asm"
-.include "sdos.asm"
+.include "Defines/SDCard_Controller_def.asm"
+.include "SDOS.asm"
 .include "uart.asm"                               ; The code to handle the UART
-.include "joystick.asm"                           ; Code for the joysticks and gamepads
+.include "Joystick.asm"                           ; Code for the joysticks and gamepads
 .include "Libraries/sdc_library.asm"              ; Library code for the SD card interface
 .include "Libraries/fdc_library.asm"              ; Library code for the floppy drive controller
 .include "Libraries/ide_library.asm"              ; Library code for the IDE interface
@@ -2614,7 +2614,7 @@ CREDITS_TEXT    TXTLINE "                              CREDITS                  
                 TXTLINE "Special Thanks:"
                 TXTLINE "  Early Creator for the Foenix IDE & Kernel: Tom Wilson"
                 TXTLINE " "
-                TXTLINE " "                
+                TXTLINE " "
                 TXTLINE "FPGA CORES AUTHORS:"
                 TXTLINE "  LPC Core: Howard M. Harte, hharte@opencores.org"
                 TXTLINE "  SDCard Core: Steve Fielding, sfielding@base2designs.com"
@@ -2625,20 +2625,20 @@ CREDITS_TEXT    TXTLINE "                              CREDITS                  
                 TXTLINE "  SID (6581): Gideon Zweijtzer, gideon.zweijtzer@gmail.com"
                 TXTLINE "  UART (16550) (C256 Foenix U): TBD"
                 TXTLINE " "
-                TXTLINE " "                
+                TXTLINE " "
                 TXTLINE "SPECIAL THANKS:"
                 TXTLINE "  Joeri Vanharen"
                 TXTLINE "  Jim Drew"
                 TXTLINE "  Aidan Lawrence (Sound Chip Schematic references)"
                 TXTLINE " "
                 TXTLINE " "
-                TXTLINE "                                                                       "                                
+                TXTLINE "                                                                       "
                 TXTLINE "                     I would like to say a big thanks               "
                 TXTLINE "                  from the bottom of my heart for all of            "
                 TXTLINE "              those who have believed in this project since          " 
                 TXTLINE "                the very beginning and have been there to            "
                 TXTLINE "                        make it what it is today!!!                  "
-                TXTLINE "                                                                       "                
+                TXTLINE "                                                                       "
                 TXTLINE "                        Stefany"
                 .fill 80 * (60 - 26),$20
 
