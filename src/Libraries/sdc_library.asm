@@ -56,11 +56,11 @@ SDC_INIT        .proc
                 setdp SDOS_VARIABLES
                 
                 setas
-                LDA @l SDCARD_STAT                  ; Check the SDC status
-                BIT #SDC_DETECTED                   ; Is a card present
-                BEQ start_trans                     ; Yes: start the transaction
-                LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
-                BRA set_error
+                ; LDA @l SDCARD_STAT                  ; Check the SDC status
+                ; BIT #SDC_DETECTED                   ; Is a card present
+                ; BEQ start_trans                     ; Yes: start the transaction
+                ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
+                ; BRA set_error
 
 start_trans     LDA #SDC_TRANS_INIT_SD
                 STA @l SDC_TRANS_TYPE_REG           ; Set Init SD
@@ -113,11 +113,11 @@ SDC_GETBLOCK    .proc
                 setdp SDOS_VARIABLES
 
                 setas
-                LDA @l SDCARD_STAT                  ; Check the SDC status
-                BIT #SDC_DETECTED                   ; Is a card present
-                BEQ led_on                          ; Yes: turn on the LED
-                LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
-                BRA ret_error
+                ; LDA @l SDCARD_STAT                  ; Check the SDC status
+                ; BIT #SDC_DETECTED                   ; Is a card present
+                ; BEQ led_on                          ; Yes: turn on the LED
+                ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
+                ; BRA ret_error
 
 led_on          LDA @l GABE_MSTR_CTRL               ; Turn on the SDC activity light
                 ORA #GABE_CTRL_SDC_LED
@@ -212,11 +212,11 @@ SDC_PUTBLOCK    .proc
                 setdp SDOS_VARIABLES
 
                 setas
-                LDA @l SDCARD_STAT                  ; Check the SDC status
-                BIT #SDC_DETECTED                   ; Is a card present
-                BEQ check_wp                        ; Yes: check for write protect
-                LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
-                BRA ret_error
+                ; LDA @l SDCARD_STAT                  ; Check the SDC status
+                ; BIT #SDC_DETECTED                   ; Is a card present
+                ; BEQ check_wp                        ; Yes: check for write protect
+                ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
+                ; BRA ret_error
 
 check_wp        BIT #SDC_WRITEPROT                  ; Is card writable?
                 BEQ led_on                          ; Yes: start the transaction
