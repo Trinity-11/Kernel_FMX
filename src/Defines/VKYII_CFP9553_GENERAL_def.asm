@@ -18,8 +18,11 @@ Mstr_Ctrl_Video_Mode1   = $02       ; 0 - No Pixel Doubling, 1- Pixel Doubling (
 GAMMA_CTRL_REG          = $AF0002
 GAMMA_Ctrl_Input        = $01 ; 0 = DipSwitch Chooses GAMMA on/off , 1- Software Control
 GAMMA_Ctrl_Soft         = $02 ; 0 = GAMMA Table is not Applied, 1 = GAMMA Table is Applied
+SYNC_Turn_Off           = $04 ; 0 = Normal Operation, 1 = Turn Off Sync to get sleep mode from Monitor
 GAMMA_DP_SW_VAL         = $08 ; READ ONLY - Actual DIP Switch Value
 HIRES_DP_SW_VAL         = $10 ; READ ONLY - 0 = Hi-Res on BOOT ON, 1 = Hi-Res on BOOT OFF
+
+
 
 VKY_RESERVED_01         = $AF0003
 

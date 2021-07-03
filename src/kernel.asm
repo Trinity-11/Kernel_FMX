@@ -2321,9 +2321,9 @@ IRQHANDLESTUB   RTL
 .include "Libraries/ide_library.asm"              ; Library code for the IDE interface
 .include "Libraries/Ethernet_Init_library.asm"    ; This is a simple Init of the Controller, by Seting the MAC and enabling the RX and TX
 .include "Libraries/EXP-C200_EVID_Library.asm"
-.include "Libraries/ansi_screens.asm"               ; Include the ANSI text screen common code
-.include "Libraries/kbd_driver.asm"                 ; Include the keyboard reading code
-.include "Libraries/mouse_driver.asm"               ; Include the mouse driver code
+.include "drivers/ansi_screens.asm"               ; Include the ANSI text screen common code
+.include "drivers/kbd_driver.asm"                 ; Include the keyboard reading code
+.include "drivers/mouse_driver.asm"               ; Include the mouse driver code
 .include "SplashScreenCode/boot_sound.asm"        ; Include the code to play the boot sound
 
 ;
