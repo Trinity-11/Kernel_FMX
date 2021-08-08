@@ -212,7 +212,7 @@ SDC_PUTBLOCK    .proc
                 setdp SDOS_VARIABLES
 
                 setas
-                ; LDA @l SDCARD_STAT                  ; Check the SDC status
+                LDA @l SDCARD_STAT                  ; Check the SDC status
                 ; BIT #SDC_DETECTED                   ; Is a card present
                 ; BEQ check_wp                        ; Yes: check for write protect
                 ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
