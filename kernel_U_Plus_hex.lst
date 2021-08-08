@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 -D TARGET_SYS=3 --long-address --flat --intel-hex -o kernel_U_Plus.hex --list kernel_U_Plus_hex.lst --labels=kernel_U_Plus_hex.lbl src\kernel.asm
-; Sat Aug 07 20:02:22 2021
+; Sat Aug 07 20:06:32 2021
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -1420,6 +1420,7 @@
 =$af0002					GAMMA_CTRL_REG          = $AF0002
 =$01						GAMMA_Ctrl_Input        = $01 ; 0 = DipSwitch Chooses GAMMA on/off , 1- Software Control
 =$02						GAMMA_Ctrl_Soft         = $02 ; 0 = GAMMA Table is not Applied, 1 = GAMMA Table is Applied
+=$04						SYNC_Turn_Off           = $04 ; 0 = Normal Operation, 1 = Turn Off Sync to get sleep mode from Monitor
 =$08						GAMMA_DP_SW_VAL         = $08 ; READ ONLY - Actual DIP Switch Value
 =$10						HIRES_DP_SW_VAL         = $10 ; READ ONLY - 0 = Hi-Res on BOOT ON, 1 = Hi-Res on BOOT OFF
 =$af0003					VKY_RESERVED_01         = $AF0003
@@ -1618,7 +1619,7 @@
 
 =$01						TILE_Enable             = $01
 =$40						TILE_Collision_On       = $40           ; Enable
-=$af0200					TL0_CONTROL_REG         = $AF0200       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+=$af0200					TL0_CONTROL_REG         = $AF0200       ; Bit[0] - Enable, Bit[3:1] - LUT Select, Bit[6] - Collision On
 =$af0201					TL0_START_ADDY_L        = $AF0201       ; Not USed right now - Starting Address to where is the MAP
 =$af0202					TL0_START_ADDY_M        = $AF0202
 =$af0203					TL0_START_ADDY_H        = $AF0203
@@ -1627,9 +1628,9 @@
 =$af0206					TL0_TOTAL_Y_SIZE_L      = $AF0206       ; Size of the Map in Y Tile Count [9:0]
 =$af0207					TL0_TOTAL_Y_SIZE_H      = $AF0207
 =$af0208					TL0_WINDOW_X_POS_L      = $AF0208       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-=$af0209					TL0_WINDOW_X_POS_H      = $AF0209       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af0209					TL0_WINDOW_X_POS_H      = $AF0209       ; Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 =$af020a					TL0_WINDOW_Y_POS_L      = $AF020A       ; Top Left Corner Position of the TileMAp Window in Y
-=$af020b					TL0_WINDOW_Y_POS_H      = $AF020B       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af020b					TL0_WINDOW_Y_POS_H      = $AF020B       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 =$af020c					TL1_CONTROL_REG         = $AF020C       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 =$af020d					TL1_START_ADDY_L        = $AF020D       ; Not USed right now - Starting Address to where is the MAP
 =$af020e					TL1_START_ADDY_M        = $AF020E
@@ -1639,9 +1640,9 @@
 =$af0212					TL1_TOTAL_Y_SIZE_L      = $AF0212       ; Size of the Map in Y Tile Count [9:0]
 =$af0213					TL1_TOTAL_Y_SIZE_H      = $AF0213
 =$af0214					TL1_WINDOW_X_POS_L      = $AF0214       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-=$af0215					TL1_WINDOW_X_POS_H      = $AF0215       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af0215					TL1_WINDOW_X_POS_H      = $AF0215       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 =$af0216					TL1_WINDOW_Y_POS_L      = $AF0216       ; Top Left Corner Position of the TileMAp Window in Y
-=$af0217					TL1_WINDOW_Y_POS_H      = $AF0217       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af0217					TL1_WINDOW_Y_POS_H      = $AF0217       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 =$af0218					TL2_CONTROL_REG         = $AF0218       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 =$af0219					TL2_START_ADDY_L        = $AF0219       ; Not USed right now - Starting Address to where is the MAP
 =$af021a					TL2_START_ADDY_M        = $AF021A
@@ -1651,9 +1652,9 @@
 =$af021e					TL2_TOTAL_Y_SIZE_L      = $AF021E       ; Size of the Map in Y Tile Count [9:0]
 =$af021f					TL2_TOTAL_Y_SIZE_H      = $AF021F
 =$af0220					TL2_WINDOW_X_POS_L      = $AF0220       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-=$af0221					TL2_WINDOW_X_POS_H      = $AF0221       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af0221					TL2_WINDOW_X_POS_H      = $AF0221       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 =$af0222					TL2_WINDOW_Y_POS_L      = $AF0222       ; Top Left Corner Position of the TileMAp Window in Y
-=$af0223					TL2_WINDOW_Y_POS_H      = $AF0223       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af0223					TL2_WINDOW_Y_POS_H      = $AF0223       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 =$af0224					TL3_CONTROL_REG         = $AF0224       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 =$af0225					TL3_START_ADDY_L        = $AF0225       ; Not USed right now - Starting Address to where is the MAP
 =$af0226					TL3_START_ADDY_M        = $AF0226
@@ -1663,9 +1664,9 @@
 =$af022a					TL3_TOTAL_Y_SIZE_L      = $AF022A       ; Size of the Map in Y Tile Count [9:0]
 =$af022b					TL3_TOTAL_Y_SIZE_H      = $AF022B
 =$af022c					TL3_WINDOW_X_POS_L      = $AF022C       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-=$af022d					TL3_WINDOW_X_POS_H      = $AF022D       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+=$af022d					TL3_WINDOW_X_POS_H      = $AF022D       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 =$af022e					TL3_WINDOW_Y_POS_L      = $AF022E       ; Top Left Corner Position of the TileMAp Window in Y
-=$af022f					TL3_WINDOW_Y_POS_H      = $AF022F       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+=$af022f					TL3_WINDOW_Y_POS_H      = $AF022F       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 =$af0280					TILESET0_ADDY_L         = $AF0280   ; Pointer to Tileset 0 [21:0]
 =$af0281					TILESET0_ADDY_M         = $AF0281
 =$af0282					TILESET0_ADDY_H         = $AF0282
@@ -14636,7 +14637,7 @@
 =16						KBD_INBUF_SIZE = 16         ; Number of scan codes that can be buffered
 =0						KBD_STATE_IDLE = 0          ; Keyboard is IDLE
 =1						KBD_STATE_E0 = 1            ; Keyboard has sent E0
-=2						KBD_STATE_E02A = 2          ; Keybaord has sent E0 2A (leading to Print Screen E02AE037)
+=2						KBD_STATE_E02A = 2          ; Keyboard has sent E0 2A (leading to Print Screen E02AE037)
 =3						KBD_STATE_E02AE0 = 3
 =4						KBD_STATE_E1 = 4            ; Keyboard has sent E1 (leading to Pause/Break)
 =5						KBD_STATE_E11D = 5
@@ -14650,12 +14651,12 @@
 =2						KBD_ACTION_EMIT_E0 = 2      ; State machine action: translate scancode from E0 prefix table and emit it
 =$01						KBD_STAT_OBF = $01          ; Keyboard status: Output Buffer is Full
 =$02						KBD_STAT_IBF = $02          ; Keyboard status: Input Buffer is Full
-=$a7						KBD_CTRL_CMD_DISABLE2 = $A7 ; Keybaord controller command: disable output device #2
-=$a9						KBD_CTRL_CMD_ENABLE2 = $A9  ; Keybaord controller command: enable output device #2
+=$a7						KBD_CTRL_CMD_DISABLE2 = $A7 ; Keyboard controller command: disable output device #2
+=$a9						KBD_CTRL_CMD_ENABLE2 = $A9  ; Keyboard controller command: enable output device #2
 =$aa						KBD_CTRL_CMD_SELFTEST = $AA ; Keyboard controller command: start self test
 =$ab						KBD_CTRL_CMD_KBDTEST = $AB  ; Keyboard controller command: start keyboard test
-=$ad						KBD_CTRL_CMD_DISABLE1 = $AD ; Keybaord controller command: disable output device #1
-=$ae						KBD_CTRL_CMD_ENABLE1 = $AE  ; Keybaord controller command: enable output device #1
+=$ad						KBD_CTRL_CMD_DISABLE1 = $AD ; Keyboard controller command: disable output device #1
+=$ae						KBD_CTRL_CMD_ENABLE1 = $AE  ; Keyboard controller command: enable output device #1
 =$60						KBD_CTRL_CMD_WRITECMD = $60 ; Keyboard controller command: write to the command register
 =$ff						KBD_CMD_RESET = $FF         ; Keyboard command: reset the keyboard
 =$f4						KBD_CMD_ENABLE = $F4        ; Keyboard command: enable to keyboard
@@ -15951,8 +15952,8 @@
 
 ;******  Processing file: src\version.asm
 
->3981f4		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+330 (2021-08-07)"
->3981fc		6c 70 68 61 2b 33 33 30 20 28 32 30 32 31 2d 30
+>3981f4		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+331 (2021-08-07)"
+>3981fc		6c 70 68 61 2b 33 33 31 20 28 32 30 32 31 2d 30
 >39820c		38 2d 30 37 29
 
 ;******  Return to file: src\kernel.asm
@@ -19521,7 +19522,7 @@
 .3e0688		af 07 e8 af	lda $afe807	            LDA @lREVOFPCB_A
 .3e068c		97 9c		sta [$9c],y	            STA [TEXT_DST_PTR_L], Y
 .3e068e		18		clc		            CLC
-.3e068f		af 0d 07 af	lda $af070d	            LDA @lFPGA_DOR   ; it is in BCD
+.3e068f		af 0d 07 af	lda $af070d	            LDA @l FPGA_DOR   ; it is in BCD
 .3e0693		20 f6 07	jsr $3e07f6	            JSR HighNibblerBCD
 .3e0696		8f da 0a 3e	sta $3e0ada	            STA @lLINE8 + 56    ; FAT VICKY in U/U+ Model
 .3e069a		8f 13 0b 3e	sta $3e0b13	            STA @lLINE9 + 47    ; GABE in FMX
@@ -19827,16 +19828,16 @@
 >3e0aba		20 49 49 20 2d 20 52 45 56 3a 30 30 30 30 20 53
 >3e0aca		55 42 52 45 56 3a 30 30 30 30 20 44 41 54 45 3a
 >3e0ada		30 30 2f 30 30 2f 30 30 20 00
->3e0ae4		50 4e 3a 20 43 46 50 39		LINE9  .text "PN: CFP9533 - GABE - REV:0000 SUBREV:0000 DATE:00/00/00          ", $00
->3e0aec		35 33 33 20 2d 20 47 41 42 45 20 2d 20 52 45 56
->3e0afc		3a 30 30 30 30 20 53 55 42 52 45 56 3a 30 30 30
->3e0b0c		30 20 44 41 54 45 3a 30 30 2f 30 30 2f 30 30 20
->3e0b1c		20 20 20 20 20 20 20 20 20 00
->3e0b26		50 4e 3a 20 43 46 50 39		LINE10 .text "PN: CFP9551 - VICKY II - REV:0000 SUBREV:0000 DATE:00/00/00      ", $00
->3e0b2e		35 35 31 20 2d 20 56 49 43 4b 59 20 49 49 20 2d
->3e0b3e		20 52 45 56 3a 30 30 30 30 20 53 55 42 52 45 56
->3e0b4e		3a 30 30 30 30 20 44 41 54 45 3a 30 30 2f 30 30
->3e0b5e		2f 30 30 20 20 20 20 20 20 00
+>3e0ae4		50 4e 3a 20 43 46 50 39		LINE9  .text "PN: CFP9533  - GABE     - REV:0000 SUBREV:0000 DATE:00/00/00     ", $00
+>3e0aec		35 33 33 20 20 2d 20 47 41 42 45 20 20 20 20 20
+>3e0afc		2d 20 52 45 56 3a 30 30 30 30 20 53 55 42 52 45
+>3e0b0c		56 3a 30 30 30 30 20 44 41 54 45 3a 30 30 2f 30
+>3e0b1c		30 2f 30 30 20 20 20 20 20 00
+>3e0b26		50 4e 3a 20 43 46 50 39		LINE10 .text "PN: CFP9551  - VICKY II - REV:0000 SUBREV:0000 DATE:00/00/00     ", $00
+>3e0b2e		35 35 31 20 20 2d 20 56 49 43 4b 59 20 49 49 20
+>3e0b3e		2d 20 52 45 56 3a 30 30 30 30 20 53 55 42 52 45
+>3e0b4e		56 3a 30 30 30 30 20 44 41 54 45 3a 30 30 2f 30
+>3e0b5e		30 2f 30 30 20 20 20 20 20 00
 >3e0b68		43 52 45 44 49 54 53 3a		LINE11 .text "CREDITS: ", $00
 >3e0b70		20 00
 >3e0b72		43 4f 4e 43 45 50 54 20		LINE12 .text "CONCEPT & SYSTEM DESIGN: STEFANY ALLAIRE", $00
