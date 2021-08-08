@@ -230,9 +230,7 @@ clr_loop        STA [BIOS_BUFF_PTR],Y               ; To make errors loading obv
 
                 LDA #BIOS_ERR_BADDEV                ; Otherwise: return a bad device error
 
-ret_failure     setas
-                STA BIOS_STATUS                     ; Set BIOS STATUS
-                PLP
+ret_failure     PLP
                 PLB
                 PLD
                 PLY
@@ -296,9 +294,7 @@ IPUTBLOCK       .proc
 
                 LDA #BIOS_ERR_BADDEV                ; Otherwise: return a bad device error
 
-ret_failure     setas
-                STA BIOS_STATUS                     ; Set BIOS STATUS
-                PLP
+ret_failure     PLP
                 PLB
                 PLD
                 CLC                                 ; Return failure
