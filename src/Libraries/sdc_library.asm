@@ -216,12 +216,12 @@ SDC_PUTBLOCK    .proc
                 ; BIT #SDC_DETECTED                   ; Is a card present
                 ; BEQ check_wp                        ; Yes: check for write protect
                 ; LDA #BIOS_ERR_NOMEDIA               ; No: return a NO MEDIA error
-                ; BRA ret_error
+                ; BRA save_error
 
 check_wp        BIT #SDC_WRITEPROT                  ; Is card writable?
                 BEQ led_on                          ; Yes: start the transaction
                 LDA #BIOS_ERR_WRITEPROT             ; No: return a WRITE PROTECT error
-                BRA ret_error
+                BRA save_error
 
 led_on          LDA @l GABE_MSTR_CTRL               ; Turn on the SDC activity light
                 ORA #GABE_CTRL_SDC_LED
@@ -256,9 +256,11 @@ loop_wr         LDA [BIOS_BUFF_PTR],Y               ; Get the byte...
                 JSL SDC_WAITBUSY                    ; Wait for transaction to complete
 
                 LDA @l SDC_TRANS_ERROR_REG          ; Check for errors
+                STA FDC_ST0                         ; Save any to the hardware status byte
                 BNE ret_error                       ; Is there one? Process the error
 
 ret_success     STZ BIOS_STATUS                     ; Return success
+                STZ FDC_ST0
 
                 LDA @l GABE_MSTR_CTRL               ; Turn off the SDC activity light
                 AND #~GABE_CTRL_SDC_LED
@@ -271,7 +273,7 @@ ret_success     STZ BIOS_STATUS                     ; Return success
                 RTL
 
 ret_error       LDA #BIOS_ERR_WRITE                 ; Return a write error
-                STA BIOS_STATUS
+save_error      STA BIOS_STATUS
                 
                 LDA @l GABE_MSTR_CTRL               ; Turn off the SDC activity light
                 AND #~GABE_CTRL_SDC_LED

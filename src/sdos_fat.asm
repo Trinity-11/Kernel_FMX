@@ -1765,7 +1765,7 @@ inc_buff_ptr        LDA #<>(DOS_FAT_SECTORS+DOS_SECTOR_SIZE)
                     LDA #DOS_ERR_FAT
 
 ret_failure         setas
-                    STA BIOS_STATUS
+                    STA DOS_STATUS
                     PLP
                     PLD
                     PLB
@@ -1773,7 +1773,7 @@ ret_failure         setas
                     RTL
 
 ret_success         setas
-                    STZ BIOS_STATUS
+                    STZ DOS_STATUS
                     PLP
                     PLD
                     PLB
