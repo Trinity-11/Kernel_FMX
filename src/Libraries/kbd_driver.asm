@@ -25,7 +25,7 @@ KBD_INBUF_SIZE = 16         ; Number of scan codes that can be buffered
 
 KBD_STATE_IDLE = 0          ; Keyboard is IDLE
 KBD_STATE_E0 = 1            ; Keyboard has sent E0
-KBD_STATE_E02A = 2          ; Keybaord has sent E0 2A (leading to Print Screen E02AE037)
+KBD_STATE_E02A = 2          ; Keyboard has sent E0 2A (leading to Print Screen E02AE037)
 KBD_STATE_E02AE0 = 3
 KBD_STATE_E1 = 4            ; Keyboard has sent E1 (leading to Pause/Break)
 KBD_STATE_E11D = 5
@@ -42,12 +42,12 @@ KBD_ACTION_EMIT_E0 = 2      ; State machine action: translate scancode from E0 p
 KBD_STAT_OBF = $01          ; Keyboard status: Output Buffer is Full
 KBD_STAT_IBF = $02          ; Keyboard status: Input Buffer is Full
 
-KBD_CTRL_CMD_DISABLE2 = $A7 ; Keybaord controller command: disable output device #2
-KBD_CTRL_CMD_ENABLE2 = $A9  ; Keybaord controller command: enable output device #2
+KBD_CTRL_CMD_DISABLE2 = $A7 ; Keyboard controller command: disable output device #2
+KBD_CTRL_CMD_ENABLE2 = $A9  ; Keyboard controller command: enable output device #2
 KBD_CTRL_CMD_SELFTEST = $AA ; Keyboard controller command: start self test
 KBD_CTRL_CMD_KBDTEST = $AB  ; Keyboard controller command: start keyboard test
-KBD_CTRL_CMD_DISABLE1 = $AD ; Keybaord controller command: disable output device #1
-KBD_CTRL_CMD_ENABLE1 = $AE  ; Keybaord controller command: enable output device #1
+KBD_CTRL_CMD_DISABLE1 = $AD ; Keyboard controller command: disable output device #1
+KBD_CTRL_CMD_ENABLE1 = $AE  ; Keyboard controller command: enable output device #1
 KBD_CTRL_CMD_WRITECMD = $60 ; Keyboard controller command: write to the command register
 
 KBD_CMD_RESET = $FF         ; Keyboard command: reset the keyboard
@@ -143,7 +143,7 @@ TBL_CTRL_SHIFT      .dword ?                    ; Pointer to the scan code trans
 ; Initialize the keyboard driver and controller
 ;
 ; Outputs:
-;   A = status of the initilialization (0 = success)
+;   A = status of the initialization (0 = success)
 ;
 IINITKEYBOARD       .proc
                     PHX

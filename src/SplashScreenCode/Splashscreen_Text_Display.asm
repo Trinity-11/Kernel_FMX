@@ -91,7 +91,7 @@ LetsMoveOn:
             ; I know this is not pretty, but it is straight to the point, no time to make it fancy.
             ; DAY
             CLC
-            LDA @lFPGA_DOR   ; it is in BCD
+            LDA @l FPGA_DOR   ; it is in BCD
             JSR HighNibblerBCD
             STA @lLINE8 + 56    ; FAT VICKY in U/U+ Model
             STA @lLINE9 + 47    ; GABE in FMX
@@ -418,8 +418,8 @@ LINE5  .text "VIDEO MEMORY SIZE:                 ", $00 ; Offset
 LINE6  .text "PCB REVISION:       ", $00
 LINE7  .text "CHIPSET(S): ", $00
 LINE8  .text "PN: CFP95169 - FAT VICKY II - REV:0000 SUBREV:0000 DATE:00/00/00 ", $00
-LINE9  .text "PN: CFP9533 - GABE - REV:0000 SUBREV:0000 DATE:00/00/00          ", $00
-LINE10 .text "PN: CFP9551 - VICKY II - REV:0000 SUBREV:0000 DATE:00/00/00      ", $00
+LINE9  .text "PN: CFP9533  - GABE     - REV:0000 SUBREV:0000 DATE:00/00/00     ", $00
+LINE10 .text "PN: CFP9551  - VICKY II - REV:0000 SUBREV:0000 DATE:00/00/00     ", $00
 LINE11 .text "CREDITS: ", $00
 LINE12 .text "CONCEPT & SYSTEM DESIGN: STEFANY ALLAIRE", $00
 LINE13 .text "KERNEL DESIGN / BASIC816 CREATOR: PETER J. WEINGARTNER", $00

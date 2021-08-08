@@ -12,7 +12,7 @@ TILE_Enable             = $01
 TILE_Collision_On       = $40           ; Enable       
 ;
 ;Tile MAP Layer 0 Registers
-TL0_CONTROL_REG         = $AF0200       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
+TL0_CONTROL_REG         = $AF0200       ; Bit[0] - Enable, Bit[3:1] - LUT Select, Bit[6] - Collision On
 TL0_START_ADDY_L        = $AF0201       ; Not USed right now - Starting Address to where is the MAP
 TL0_START_ADDY_M        = $AF0202
 TL0_START_ADDY_H        = $AF0203
@@ -21,9 +21,9 @@ TL0_TOTAL_X_SIZE_H      = $AF0205
 TL0_TOTAL_Y_SIZE_L      = $AF0206       ; Size of the Map in Y Tile Count [9:0]
 TL0_TOTAL_Y_SIZE_H      = $AF0207
 TL0_WINDOW_X_POS_L      = $AF0208       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-TL0_WINDOW_X_POS_H      = $AF0209       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+TL0_WINDOW_X_POS_H      = $AF0209       ; Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 TL0_WINDOW_Y_POS_L      = $AF020A       ; Top Left Corner Position of the TileMAp Window in Y
-TL0_WINDOW_Y_POS_H      = $AF020B       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+TL0_WINDOW_Y_POS_H      = $AF020B       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 ;Tile MAP Layer 1 Registers
 TL1_CONTROL_REG         = $AF020C       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 TL1_START_ADDY_L        = $AF020D       ; Not USed right now - Starting Address to where is the MAP
@@ -34,9 +34,9 @@ TL1_TOTAL_X_SIZE_H      = $AF0211
 TL1_TOTAL_Y_SIZE_L      = $AF0212       ; Size of the Map in Y Tile Count [9:0]
 TL1_TOTAL_Y_SIZE_H      = $AF0213
 TL1_WINDOW_X_POS_L      = $AF0214       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-TL1_WINDOW_X_POS_H      = $AF0215       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+TL1_WINDOW_X_POS_H      = $AF0215       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 TL1_WINDOW_Y_POS_L      = $AF0216       ; Top Left Corner Position of the TileMAp Window in Y
-TL1_WINDOW_Y_POS_H      = $AF0217       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+TL1_WINDOW_Y_POS_H      = $AF0217       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 ;Tile MAP Layer 2 Registers
 TL2_CONTROL_REG         = $AF0218       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 TL2_START_ADDY_L        = $AF0219       ; Not USed right now - Starting Address to where is the MAP
@@ -47,9 +47,9 @@ TL2_TOTAL_X_SIZE_H      = $AF021D
 TL2_TOTAL_Y_SIZE_L      = $AF021E       ; Size of the Map in Y Tile Count [9:0]
 TL2_TOTAL_Y_SIZE_H      = $AF021F
 TL2_WINDOW_X_POS_L      = $AF0220       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-TL2_WINDOW_X_POS_H      = $AF0221       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+TL2_WINDOW_X_POS_H      = $AF0221       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 TL2_WINDOW_Y_POS_L      = $AF0222       ; Top Left Corner Position of the TileMAp Window in Y
-TL2_WINDOW_Y_POS_H      = $AF0223       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+TL2_WINDOW_Y_POS_H      = $AF0223       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 ;Tile MAP Layer 3 Registers
 TL3_CONTROL_REG         = $AF0224       ; Bit[0] - Enable, Bit[3:1] - LUT Select,
 TL3_START_ADDY_L        = $AF0225       ; Not USed right now - Starting Address to where is the MAP
@@ -60,9 +60,9 @@ TL3_TOTAL_X_SIZE_H      = $AF0229
 TL3_TOTAL_Y_SIZE_L      = $AF022A       ; Size of the Map in Y Tile Count [9:0]
 TL3_TOTAL_Y_SIZE_H      = $AF022B
 TL3_WINDOW_X_POS_L      = $AF022C       ; Top Left Corner Position of the TileMAp Window in X + Scroll
-TL3_WINDOW_X_POS_H      = $AF022D       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in X
+TL3_WINDOW_X_POS_H      = $AF022D       ;  Direction: [14] Pos: [13-4] Scroll: [3:0] in X
 TL3_WINDOW_Y_POS_L      = $AF022E       ; Top Left Corner Position of the TileMAp Window in Y
-TL3_WINDOW_Y_POS_H      = $AF022F       ; Direction: [14] Scroll: [13:10] Pos: [9:0] in Y
+TL3_WINDOW_Y_POS_H      = $AF022F       ; Direction: [14] Pos: [13:4] Scroll: [3:0] in Y
 
 ; CS_TileMAP1_Registers $AF:0280 - $AF:02FF   - TileData
 ; Tile Set 0 Location info
