@@ -467,7 +467,7 @@ IDE_GETBLOCK    .proc
 
                 JSR IDE_DRV_READY_NOTBUSY       ; Wait for the device to be ready
                 BCC ret_failure                 ; If an error occurred, return it
-.if ( TARGET_SYS == SYS_C256_FMX )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX )
                 setas
                 LDA @l IDE_DATA                 ; Read and toss out one byte from the 8-bit interface
 .endif

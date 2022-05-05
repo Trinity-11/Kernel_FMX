@@ -9,6 +9,7 @@ TEST_KEYBOARD = 0 ; This is to enable the ScreenOutput
 SYS_C256_FMX = 1                            ; The target system is the C256 Foenix FMX
 SYS_C256_U = 2                              ; The target system is the C256 Foenix U With 2Megs of Code Memory
 SYS_C256_U_PLUS = 3                         ; The target system is the C256 Foenix U With 4Megs of Code Memory
+SYS_C256_GENX = 4                           ; The target system is the GenX
 
 ; TARGET values. These allow assemble.bat to generate either a BIN or a HEX file and
 ; set the location of some bank 0 data correctly.
@@ -22,7 +23,7 @@ START_OF_CREDITS := 0
 START_OF_SPLASH := 0
 START_OF_FONT := 0
 
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) ||  ( TARGET_SYS == SYS_C256_U_PLUS )
 ; Key memory areas for the Foenix FMX
   START_OF_FLASH := $380000                   ; The Foenix FMX Flash starts at $380000
   START_OF_KERNEL := $390400                  ; The kernel itself starts at $390400
@@ -103,7 +104,7 @@ IBOOT           ; boot the system
                 LDY #<>BOOT       ; Ordinarily, this is done by GAVIN, but
                 LDA #$2000        ; this is ensures it can be reloaded in case of errors
 
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) ||  ( TARGET_SYS == SYS_C256_U_PLUS )
                 MVN $38,$00       ; Or during soft loading of the kernel from the debug port
 .else
                 MVN $18,$00       ; Or during soft loading of the kernel from the debug port
@@ -206,7 +207,7 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 JSL INITCODEC
 
                 ; Init Suprt IO (Keyboard/Floppy/Etc...)
-.if TARGET_SYS == SYS_C256_FMX     
+.if (TARGET_SYS == SYS_C256_FMX) || (TARGET_SYS == SYS_C256_GENX)
                 setaxl                
                 JSL INITSUPERIO
 .endif 
@@ -222,7 +223,7 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 ; Go Enable and Setup the Cursor's Position
                 JSL INITCURSOR
 
-.if TARGET_SYS == SYS_C256_FMX
+.if (TARGET_SYS == SYS_C256_FMX) || (TARGET_SYS == SYS_C256_GENX)
                 ; Initialize the UARTs (SuperIO UART)
                 LDA #CHAN_COM1    ; Initialize COM1
                 JSL UART_SELECT
@@ -441,7 +442,7 @@ return          PLP
                 PLB
                 RTL
 
-.if TARGET_SYS == SYS_C256_FMX                
+.if (TARGET_SYS == SYS_C256_FMX) || (TARGET_SYS == SYS_C256_GENX) 
   bootmenu        .null "F1=FDC, F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
 .else
   bootmenu        .null "F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
@@ -1421,6 +1422,30 @@ INITVICKYMODEHIRES
                 STA BORDER_COLOR_R
                 LDA #$00
                 STA BORDER_COLOR_G
+.elsif TARGET_SYS == SYS_C256_GENX 
+                ; Light Purple
+                LDA #$60
+                STA BORDER_COLOR_R
+                LDA #$1D
+                STA BORDER_COLOR_G
+                LDA #$99
+                STA BORDER_COLOR_B
+
+                ; Dark Orange
+                ; LDA #$99
+                ; STA BORDER_COLOR_R
+                ; LDA #$34
+                ; STA BORDER_COLOR_G
+                ; LDA #$14
+                ; STA BORDER_COLOR_B
+
+                ; Burnt Orange
+                ; LDA #$CC
+                ; STA BORDER_COLOR_R
+                ; LDA #$55
+                ; STA BORDER_COLOR_G
+                ; LDA #$00
+                ; STA BORDER_COLOR_B
 .else
                 LDA #$00
                 STA BORDER_COLOR_R
@@ -2343,6 +2368,20 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $0D,$00                
 .endif
 
+.if TARGET_SYS == SYS_C256_GENX
+; GENX 
+    KERNEL_DATA
+greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, " GGGGGG  EEEEEEE NN    NN XX    XXX" ,$0D
+                .text $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "GG       EE      NNN   NN   XX XXX",$0D
+                .text $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "GG  GGGG EEEEE   NN NN NN    XXX",$0D
+                .text $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, "GG    GG EE      NN   NNN  XXX  XX",$0D
+                .text $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $20, " GGGGGG  EEEEEEE NN    NN XXX     XX",$0D
+                .text $0D, "C256 FOENIX GENX -- 3,670,016 Bytes Free", $0D
+                .text "www.c256foenix.com -- Kernel: " 
+                .include "version.asm"
+                .text $0D,$00      
+.endif 
+
 .if TARGET_SYS == SYS_C256_U_PLUS
 ; U+  
     KERNEL_DATA
@@ -2370,6 +2409,12 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
                 .text $0D,$00  
   .endif
 .if TARGET_SYS == SYS_C256_FMX
+  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line4 .text $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+  greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+.elsif TARGET_SYS == SYS_C256_GENX
   greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
   greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
   greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
@@ -2580,7 +2625,7 @@ MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,
 ;
 
 * = START_OF_BASIC
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
         .binary "binaries/basic816_3A0000.bin"
 .else
         .binary "binaries/basic816_1A0000.bin"

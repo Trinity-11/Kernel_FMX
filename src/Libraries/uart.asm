@@ -18,7 +18,7 @@
 ;;; NOTE: this code is currently polled I/O only.
 
 ; UARTs
-.if TARGET_SYS == SYS_C256_FMX  
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) 
     UART1_BASE = $AF13F8        ; Base address for UART 1 (COM1)
     UART2_BASE = $AF12F8        ; Base address for UART 2 (COM2)
 .else

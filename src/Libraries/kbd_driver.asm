@@ -250,7 +250,7 @@ enable_loop         LDA #KBD_CMD_ENABLE         ; Try to enable the keyboard
                     ; the FMX will check for a response, the U and U+ will just have to trust that
                     ; the keyboard was re-enabled correctly.
 
-.if TARGET_SYS == SYS_C256_FMX
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX )
                     CMP #KBD_RESP_ACK           ; Did the keyboard acknowledge the command?
                     BEQ set_led                 ; Yes: try to set the LEDs
                     DEY                         ; No: try again... counting down
@@ -895,7 +895,7 @@ KBD_SETLOCKS    .proc
                 STA #S_KBD_CONTROL.LOCKS,D
                 
                 ; For the moment, disable this on U/U+, where it doesn't seem to work
-.if TARGET_SYS == SYS_C256_FMX
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX )
                 TAX                         ; Move the new status to X...
                 LDA #KBD_CMD_SET_LED        ; Set the LEDs...
                 JSL KBD_SND_CMD_P

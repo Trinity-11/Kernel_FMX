@@ -142,7 +142,7 @@ BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 ;; Data storage needed by the file system (internal variables user apps shouldn't need)
 ;;
 
-.if TARGET_SYS == SYS_C256_FMX
+.if (TARGET_SYS == SYS_C256_FMX) || (TARGET_SYS == SYS_C256_GENX)
 .include "Includes/sdos_fat_vars_fmx_inc.asm"
 .else
 .include "Includes/sdos_fat_vars_user_inc.asm"

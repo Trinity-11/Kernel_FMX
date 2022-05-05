@@ -334,7 +334,7 @@ STACK_END        = $00FEFF ;0 Byte  End of stack space. Everything below this is
     VECTOR_EIRQ      = $00FFFE ;2 Bytes Emulation mode interrupt handler
     VECTORS_END      = $010000 ;*End of vector space
 .elsif TARGET = TARGET_FLASH
-	.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+	.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
         ISR_BEGIN        = $38FF00 ; Byte  Beginning of CPU vectors in Direct page
         HRESET           = $38FF00 ;16 Bytes Handle RESET asserted. Reboot computer and re-initialize the kernel.
         HCOP             = $38FF10 ;16 Bytes Handle the COP instruction. Program use; not used by OS

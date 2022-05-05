@@ -5,7 +5,7 @@
 ;;
 
 ; Device information from master boot record and boot sector
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS ) 
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) ||( TARGET_SYS == SYS_C256_U_PLUS ) 
 DOS_HIGH_VARIABLES      = $38A000
 DEVICE                  = $38A000       ; 1 byte - The number of the block device
 FILE_SYSTEM             = $38A001       ; 1 byte - The type of filesystem (FAT12, FAT32, etc.)
@@ -42,7 +42,7 @@ VOLUME_ID               = $38A026       ; 4 bytes - The ID of the volume
     VOLUME_ID               = $18A026       ; 4 bytes - The ID of the volume
 .endif
 ; Other variables we don't need in bank 0
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
 DOS_CURR_CLUS           = $38A02A       ; 4 bytes - The current cluster (for delete)
 DOS_NEXT_CLUS           = $38A02E       ; 4 bytes - The next cluster in a file (for delete)
 DOS_DIR_BLOCK_ID        = $38A032       ; 4 bytes - The ID of the current directory block
@@ -105,7 +105,7 @@ DOS_FILE_DESCS          = DOS_SPARE_FD_END
 DOS_FILE_DESCS_END      = DOS_FILE_DESCS + SIZE(FILEDESC) * DOS_FD_MAX
 
 ; Space for sector buffers for the file descriptors (8 buffers of 512 bytes each)
-.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
+.if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_GENX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
     DOS_FILE_BUFFS          = $38B000
     DOS_FILE_BUFFS_END      = DOS_FILE_BUFFS + DOS_SECTOR_SIZE * DOS_FD_MAX
 .else

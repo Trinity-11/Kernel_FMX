@@ -3,7 +3,7 @@
 ;;;
 
 ; Register addresses
-.if TARGET_SYS == SYS_C256_FMX       
+.if (TARGET_SYS == SYS_C256_FMX) || (TARGET_SYS == SYS_C256_GENX)  
     STATUS_PORT 	= $AF1064
     KBD_STATUS      = $AF1064
     KBD_OUT_BUF 	= $AF1060
