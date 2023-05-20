@@ -718,7 +718,7 @@ KBD_GET_SCANCODE    .proc
 
 copy_down           LDX #0                          ; Starting at the beginning of the buffer...
 loop                LDA #S_KBD_CONTROL.SC_BUF+1,D,X ; Get the next byte
-                    STA #S_KBD_CONTROL.SC_BUF,D     ; Move it down
+                    STA #S_KBD_CONTROL.SC_BUF,D,X   ; Move it down
 
                     INX                             ; And move to the next byte
                     CPX #S_KBD_CONTROL.SC_HEAD,D    ; Have we reached the end?
