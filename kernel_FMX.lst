@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
-; 64tass --m65816 -D TARGET=1 -D TARGET_SYS=1 --long-address --flat -b -o kernel_FMX.bin --list kernel_FMX.lst --labels=kernel_FMX.lbl src\kernel.asm
-; Sat Aug 07 21:56:17 2021
+; 64tass --m65816 -D TARGET=1 -D TARGET_SYS=1 --long-address --flat --intel-hex -o kernel_FMX.hex --list kernel_FMX.lst --labels=kernel_FMX_hex.lbl src/kernel.asm
+; Mon May 15 22:28:05 2023
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -10,7 +10,7 @@
 =1						TARGET=1
 =1						TARGET_SYS=1
 
-;******  Processing input file: src\kernel.asm
+;******  Processing input file: src/kernel.asm
 
 =0						TEST_KEYBOARD = 0 ; This is to enable the ScreenOutput
 =1						SYS_C256_FMX = 1                            ; The target system is the C256 Foenix FMX
@@ -31,13 +31,13 @@
 =$3e0000					  START_OF_SPLASH := $3E0000                  ; SplashScreen Code and Data $3E0000
 =$3f0000					  START_OF_FONT := $3F0000                    ; The font starts at $3F0000
 
-;******  Processing file: src\Includes/macros_inc.asm
+;******  Processing file: src/Includes/macros_inc.asm
 
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/characters.asm
+;******  Processing file: src/Includes/characters.asm
 
 =$01						CHAR_CTRL_A = $01   ; CTRL-A (move to start of line)
 =$03						CHAR_CTRL_C = $03   ; CTRL-C
@@ -69,16 +69,16 @@
 =$39						SCAN_SP = $39
 =$1c						SCAN_CR = $1C
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/simulator_inc.asm
+;******  Processing file: src/Includes/simulator_inc.asm
 
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/page_00_inc.asm
+;******  Processing file: src/Includes/page_00_inc.asm
 
 =$000000					BANK0_BEGIN      = $000000 ;Start of bank 0 and Direct page
 =$000000					TMPPTR1          = $000000 ; 4 byte temporary pointer
@@ -337,10 +337,10 @@
 =$400000					        VECTORS_END      = $400000 ;*End of vector space
 =$00ffff					BANK0_END        = $00FFFF ;End of Bank 00 and Direct page
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/page_00_data.asm
+;******  Processing file: src/Includes/page_00_data.asm
 
 >380000		00 a0 af			                .long $AFA000       ; SCREENBEGIN, 3 bytes, Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
 >380003		4c 00				                .word 76            ; COLS_VISIBLE, 2 bytes, Columns visible per screen line. A virtual line can be longer than displayed, up to COLS_PER_LINE long. Default = 80
@@ -355,10 +355,10 @@
 >380014		00 80				                .word STACK_BEGIN   ; STACKBOT, 2 bytes, Lowest location the stack should be allowed to write to. If SP falls below this value, the runtime should generate STACK OVERFLOW error and abort.
 >380016		ff fe				                .word STACK_END     ; STACKTOP, 2 bytes, Highest location the stack can occupy. If SP goes above this value, the runtime should generate STACK OVERFLOW error and abort.
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/page_00_code.asm
+;******  Processing file: src/Includes/page_00_code.asm
 
 .38ff00		18		clc		RHRESET         CLC
 .38ff01		fb		xce		                XCE
@@ -430,19 +430,19 @@
 >38fffc		00 ff				RVECTOR_ERESET  .addr HRESET   ; FFFC
 >38fffe		60 ff				RVECTOR_EIRQ    .addr HIRQ     ; FFFE
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/dram_inc.asm
+;******  Processing file: src/Includes/dram_inc.asm
 
 =$afa000					SCREEN_PAGE0     = $AFA000 ;8192 Bytes First page of display RAM. This is used at boot time to display the welcome screen and the BASIC or MONITOR command screens.
 =$afc000					SCREEN_PAGE1     = $AFC000 ;8192 Bytes Additional page of display RAM. This can be used for page flipping or to handle multiple edit buffers.
 =$b00000					SCREEN_END       = $B00000 ;End of display memory
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/fdc_inc.asm
+;******  Processing file: src/Includes/fdc_inc.asm
 
 =$01						FDC_DOR_DSEL0 = $01     ; Drive 0 Select
 =$02						FDC_DOR_DSEL1 = $02     ; Drive 1 Select
@@ -510,18 +510,18 @@
 =2						FDC_DEVCMD_MOTOR_OFF        = 2     ; Device code to turn the motor off
 =3						FDC_DEVCMD_RECAL            = 3     ; Device code to recalibrate the drive
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Includes/basic_inc.asm
+;******  Processing file: src/Includes/basic_inc.asm
 
 =$3a0000					    BASIC = $3A0000
 =3801092					    MONITOR = BASIC + 4
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\kernel_jumptable.asm
+;******  Processing file: src/kernel_jumptable.asm
 
 .381000	1000	5c 00 04 39	jmp $390400	BOOT            JML IBOOT
 .381004	1004	5c a6 05 39	jmp $3905a6	RESTORE         JML IRESTORE
@@ -636,10 +636,10 @@
 .381764	1764	5c c8 10 39	jmp $3910c8	VEC_INT31_OPM   JML IRQHANDLESTUB           ; IRQ 3, 1 --- OPM
 .381768	1768	5c c8 10 39	jmp $3910c8	VEC_INT32_IDE   JML IRQHANDLESTUB           ; IRQ 3, 2 --- HDD IDE Interrupt
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Interrupt_Handler.asm
+;******  Processing file: src/Interrupt_Handler.asm
 
 .38176c						ISETHANDLER
 .38176c		8b		phb		                PHB
@@ -923,10 +923,10 @@
 .3819a6		68		pla		                PLA
 .3819a7		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/Math_def.asm
+;******  Processing file: src/Defines/Math_def.asm
 
 =$000100					UNSIGNED_MULT_A_LO  = $000100
 =$000101					UNSIGNED_MULT_A_HI  = $000101
@@ -973,10 +973,10 @@
 =$00012a					ADDER32_R_HL        = $00012A
 =$00012b					ADDER32_R_HH        = $00012B
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/timer_def.asm
+;******  Processing file: src/Defines/timer_def.asm
 
 =$000160					TIMER0_CTRL_REG   = $000160 ; (Write - Control, Read Status)
 =$01						TMR0_EN     = $01
@@ -1007,10 +1007,10 @@
 =$00016e					TIMER1_CMP_M      = $00016E ;
 =$00016f					TIMER1_CMP_H      = $00016F ;
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/interrupt_def.asm
+;******  Processing file: src/Defines/interrupt_def.asm
 
 =$000140					INT_PENDING_REG0 = $000140 ;
 =$000141					INT_PENDING_REG1 = $000141 ;
@@ -1061,10 +1061,10 @@
 =$40						FNX3_INT06_TBD        = $40  ;External Expansion
 =$80						FNX3_INT07_TBD        = $80  ; SDCARD Insertion
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/super_io_def.asm
+;******  Processing file: src/Defines/super_io_def.asm
 
 =$af1060					SIO_KB                  = $AF1060
 =$af1100					PME_STS_REG             = $AF1100
@@ -1165,10 +1165,10 @@
 =$af13f8					SIO_FDC_CCR             = $AF13F8 ; Write - Configuration Control Register
 =$af13f8					SIO_COM0                = $AF13F8
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/keyboard_def.asm
+;******  Processing file: src/Defines/keyboard_def.asm
 
 =$af1064					    STATUS_PORT 	= $AF1064
 =$af1064					    KBD_STATUS      = $AF1064
@@ -1209,10 +1209,10 @@
 =$80						KB_CTRL_C = $80             ; CTRL-C was pressed
 =$60						KB_CREDITS = $60            ; Credits key was pressed
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/RTC_def.asm
+;******  Processing file: src/Defines/RTC_def.asm
 
 =$af0800					RTC_SEC       = $AF0800 ;Seconds Register
 =$af0801					RTC_SEC_ALARM = $AF0801 ;Seconds Alarm Register
@@ -1231,10 +1231,10 @@
 =$af080e					RTC_CTRL      = $AF080E ;Control Register
 =$af080f					RTC_CENTURY   = $AF080F ;Century Register
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/io_def.asm
+;******  Processing file: src/Defines/io_def.asm
 
 =0						CHAN_CONSOLE  = 0           ; ID for screen and keyboard access
 =1						CHAN_COM1     = 1           ; ID for serial access on COM1 (external port)
@@ -1250,10 +1250,10 @@
 =$afe901					CODEC_DATA_HI = $AFE901     ;(W) MSB od Add/Data Reg to Control CODEC See WM8776 Spec
 =$afe902					CODEC_WR_CTRL = $AFE902     ;(W) Bit[0] = 1 -> Start Writing the CODEC Control Register
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/Trinity_CFP9301_def.asm
+;******  Processing file: src/Defines/Trinity_CFP9301_def.asm
 
 =$afe800					JOYSTICK0           = $AFE800   ;(R) Joystick 0 - J7 (next to SD Card)
 =$afe801					JOYSTICK1           = $AFE801   ;(R) Joystick 1 - J8
@@ -1283,10 +1283,10 @@
 =$02						DIP_BOOT_FLOPPY     = $02
 =$03						DIP_BOOT_BASIC      = $03
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/Unity_CFP9307_def.asm
+;******  Processing file: src/Defines/Unity_CFP9307_def.asm
 
 =$afe830					IDE_DATA      = $AFE830 ; 8-Bit Access here Only
 =$afe831					IDE_ERROR     = $AFE831 ; Error Information register (only read when there is an error ) - Probably clears Error Bits
@@ -1318,10 +1318,10 @@
 =$21						IDE_CMD_READ_SECTOR = $21   ; Read 1 or more sectors
 =$30						IDE_CMD_WRITE_SECTOR = $30  ; Write 1 or more sectors
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/GABE_Control_Registers_def.asm
+;******  Processing file: src/Defines/GABE_Control_Registers_def.asm
 
 =$afe880					GABE_MSTR_CTRL      = $AFE880
 =$01						GABE_CTRL_PWR_LED   = $01     ; Controls the LED in the Front of the case (Next to the reset button)
@@ -1362,10 +1362,10 @@
 =$afe88e					GABE_MODEL_LO       = $AFE88E
 =$afe88f					GABE_MODEL_HI       = $AFE88F
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/SID_def.asm
+;******  Processing file: src/Defines/SID_def.asm
 
 =$afe400					SID0_V1_FREQ_LO    = $AFE400 ;SID - L - Voice 1 (Write Only) - FREQ LOW
 =$afe401					SID0_V1_FREQ_HI    = $AFE401 ;SID - L - Voice 1 (Write Only) - FREQ HI
@@ -1400,10 +1400,10 @@
 =$afe41e					SID0_NOT_USED1     = $AFE41E ;SID - L - NOT USED
 =$afe41f					SID0_NOT_USED2     = $AFE41F ;SID - L - NOT USED
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_GENERAL_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_GENERAL_def.asm
 
 =$af0000					MASTER_CTRL_REG_L	      = $AF0000
 =$01						Mstr_Ctrl_Text_Mode_En  = $01       ; Enable the Text Mode
@@ -1498,10 +1498,10 @@
 =$afa000					CS_TEXT_MEM_PTR         = $AFA000
 =$afc000					CS_COLOR_MEM_PTR        = $AFC000
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_SDMA_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_SDMA_def.asm
 
 =$af0420					SDMA_CTRL_REG0           = $AF0420
 =$01						SDMA_CTRL0_Enable        = $01
@@ -1542,10 +1542,10 @@
 =$04						SDMA_STAT_Src_Add_Err    = $04     ; If Set to 1, Source Address Invalid
 =$08						SDMA_STAT_TimeOut_Err    = $08     ; will be set to 1 if a Timeout occur when transfering between data from and to VRAM
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_VDMA_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_VDMA_def.asm
 
 =$af0400					VDMA_CONTROL_REG        = $AF0400
 =$01						VDMA_CTRL_Enable        = $01
@@ -1580,10 +1580,10 @@
 =$af040e					VDMA_DST_STRIDE_L       = $AF040E ; Always use an Even Number ( The Engine uses Even Ver of that value)
 =$af040f					VDMA_DST_STRIDE_H       = $AF040F ;
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_BITMAP_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_BITMAP_def.asm
 
 =$01						BM_Enable             = $01
 =$00						BM_LUT0               = $00 ;
@@ -1612,10 +1612,10 @@
 =$af010e					BM1_RESERVED_6      = $AF010E
 =$af010f					BM1_RESERVED_7      = $AF010F
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_TILEMAP_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_TILEMAP_def.asm
 
 =$01						TILE_Enable             = $01
 =$40						TILE_Collision_On       = $40           ; Enable
@@ -1700,10 +1700,10 @@
 =$af029e					TILESET7_ADDY_H         = $AF029E
 =$af029f					TILESET7_ADDY_CFG       = $AF029F
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_SPRITE_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_SPRITE_def.asm
 
 =$01						SPRITE_Enable             = $01
 =$00						SPRITE_LUT0               = $00 ; This is the LUT that the Sprite will use
@@ -2235,10 +2235,10 @@
 =$af0dfe					SP63_Y_POS_L            = $AF0DFE
 =$af0dff					SP63_Y_POS_H            = $AF0DFF
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/VKYII_CFP9553_COLLISION_def.asm
+;******  Processing file: src/Defines/VKYII_CFP9553_COLLISION_def.asm
 
 =$0001						COL_STAT_SP0 = $0001
 =$0002						COL_STAT_SP1 = $0002
@@ -2302,10 +2302,10 @@
 =$af032c					COLLISION_COORD_Y_LO        = $AF032C
 =$af032d					COLLISION_COORD_Y_HI        = $AF032D
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/EXP_C100_ESID_def.asm
+;******  Processing file: src/Defines/EXP_C100_ESID_def.asm
 
 =$ae0000					ESID_EXP_CARD_INFO      = $AE0000    ; Read Only (32 Bytes Card ID - READ ONLY)
 =$ae0000					ESID_ID_NAME_ASCII      = $AE0000    ; 15 Characters + $00
@@ -2391,10 +2391,10 @@
 =$aed11f					ESID_SIDR_NOT_USED2     = $AED11F ;SID - L - NOT USED
 =$aee000					ESID_ETHERNET_REG       = $AEE000
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/EXP_C200_EVID_def.asm
+;******  Processing file: src/Defines/EXP_C200_EVID_def.asm
 
 =$ae0000					EVID_EXP_CARD_INFO      = $AE0000    ; Read Only (32 Bytes Card ID - READ ONLY)
 =$ae0000					EVID_ID_NAME_ASCII      = $AE0000    ; 15 Characters + $00
@@ -2448,7 +2448,7 @@
 =$ae4000					EVID_COLOR_MEM           = $AE4000
 =$aee000					EVID_ETHERNET_REG        = $AEE000
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 .390400						IBOOT
 .390400		18		clc		                CLC               ; clear the carry flag
@@ -2559,27 +2559,27 @@
 .390515		22 b4 10 00	jsl $0010b4	                JSL INITKEYBOARD        ; Initialize the keyboard
 .390519		22 b8 10 00	jsl $0010b8	                JSL INITMOUSE           ; Initialize the mouse
 .39051d		58		cli		                CLI
-.39051e		a9 00 00	lda #$0000	                LDA #0
-.390521		8d e0 00	sta $00e0	                STA @w MOUSE_IDX
+.39051e		e2 20		sep #$20	                SEP #$20        ; set A short
+.390520		c2 10		rep #$10	                REP #$10        ; set X long
+.390522		48		pha		                PHA             ; begin setdbr macro
+.390523		08		php		                PHP
 .390524		e2 20		sep #$20	                SEP #$20        ; set A short
-.390526		c2 10		rep #$10	                REP #$10        ; set X long
-.390528		48		pha		                PHA             ; begin setdbr macro
-.390529		08		php		                PHP
-.39052a		e2 20		sep #$20	                SEP #$20        ; set A short
-.39052c		a9 39		lda #$39	                LDA #`greet_msg
-.39052e		48		pha		                PHA
-.39052f		ab		plb		                PLB
-.390530		28		plp		                PLP
-.390531		68		pla		                PLA             ; end setdbr macro
-.390532		a2 00 00	ldx #$0000	                LDX #0
-.390535		bf 00 10 00	lda $001000,x	jmpcopy         LDA @l BOOT,X
-.390539		9f 00 10 00	sta $001000,x	                STA @l $001000,X
-.39053d		e8		inx		                INX
-.39053e		e0 00 10	cpx #$1000	                CPX #$1000
-.390541		d0 f2		bne $390535	                BNE jmpcopy
-.390543						retry_boot
-.390543		22 5d 3e 39	jsl $393e5d	                JSL DOS_INIT            ; Initialize the "disc operating system"
-.390547		22 73 80 39	jsl $398073	                JSL BOOT_SOUND          ; Play the boot sound
+.390526		a9 39		lda #$39	                LDA #`greet_msg
+.390528		48		pha		                PHA
+.390529		ab		plb		                PLB
+.39052a		28		plp		                PLP
+.39052b		68		pla		                PLA             ; end setdbr macro
+.39052c		a2 00 00	ldx #$0000	                LDX #0
+.39052f		bf 00 10 00	lda $001000,x	jmpcopy         LDA @l BOOT,X
+.390533		9f 00 10 00	sta $001000,x	                STA @l $001000,X
+.390537		e8		inx		                INX
+.390538		e0 00 10	cpx #$1000	                CPX #$1000
+.39053b		d0 f2		bne $39052f	                BNE jmpcopy
+.39053d						retry_boot
+.39053d		22 5d 3e 39	jsl $393e5d	                JSL DOS_INIT            ; Initialize the "disc operating system"
+.390541		22 73 80 39	jsl $398073	                JSL BOOT_SOUND          ; Play the boot sound
+.390545		a9 00		lda #$00	                LDA #0
+.390547		8f e0 00 00	sta $0000e0	                STA @l MOUSE_IDX
 .39054b		22 00 00 3e	jsl $3e0000	                JSL BOOT_MENU           ; Show the splash screen / boot menu and wait for key presses
 .39054f		22 a8 10 00	jsl $0010a8	                JSL CLRSCREEN           ; Clear Screen and Set a standard color in Color Memory
 .390553		22 a0 10 00	jsl $0010a0	                JSL CSRHOME             ; Move to the home position
@@ -2663,10 +2663,10 @@
 .390618		22 b7 06 39	jsl $3906b7	boot_wait_key   JSL IGETCHW           ; Wait for a keypress
 .39061c		c9 52		cmp #$52	                CMP #'R'              ; Was "R" pressed?
 .39061e		d0 03		bne $390623	                BNE chk_r_lc
-.390620		82 20 ff	brl $390543	                BRL retry_boot        ; Yes: retry the boot sequence
+.390620		82 1a ff	brl $39053d	                BRL retry_boot        ; Yes: retry the boot sequence
 .390623		c9 72		cmp #$72	chk_r_lc        CMP #'r'
 .390625		d0 03		bne $39062a	                BNE chk_b_lc
-.390627		82 19 ff	brl $390543	                BRL retry_boot
+.390627		82 13 ff	brl $39053d	                BRL retry_boot
 .39062a		c9 62		cmp #$62	chk_b_lc        CMP #'b'              ; Was "B" pressed?
 .39062c		d0 03		bne $390631	                BNE chk_b_lc_not         ; Yes: try going to BASIC
 .39062e		82 75 ff	brl $3905a6	                BRL BOOTBASIC
@@ -3209,7 +3209,7 @@
 .3909a9		fa		plx		                PLX
 .3909aa		68		pla		                PLA
 .3909ab		6b		rtl		                RTL
-.3909ac		0b		phd		IINITCHLUT		  PHD
+.3909ac		0b		phd		IINITCHLUT		PHD
 .3909ad		08		php		                PHP
 .3909ae		48		pha		                PHA
 .3909af		da		phx		                PHX
@@ -3452,7 +3452,7 @@
 .390bcb		a9 06 00	lda #$0006	                LDA #$0006;
 .390bce		8f 16 00 af	sta $af0016	                STA VKY_TXT_CURSOR_Y_REG_L; // Set the Y to Position 6 (Below)
 .390bd2		6b		rtl		                RTL
-.390bd3		0b		phd		IINITSUPERIO	  PHD
+.390bd3		0b		phd		IINITSUPERIO	PHD
 .390bd4		08		php		                PHP
 .390bd5		48		pha		                PHA
 .390bd6		e2 20		sep #$20	                SEP #$20        ; set A short
@@ -3983,10 +3983,10 @@
 .3910c7		00		brk #		ISCRGETWORD     BRK ; Read a current word on the screen. A word ends with a space, punctuation (except _), or any control character (value < 32). Loads the address into CMPTEXT_VAL and length into CMPTEXT_LEN variables.
 .3910c8		6b		rtl		IRQHANDLESTUB   RTL
 
-;******  Processing file: src\Libraries/OPL2_Library.asm
+;******  Processing file: src/Libraries/OPL2_Library.asm
 
 
-;******  Processing file: src\Libraries/../Defines/OPL3_def.asm
+;******  Processing file: src/Libraries/../Defines/OPL3_def.asm
 
 =$afe600					OPL3_R_BASE               = $AFE600
 =$e600						OPL3_R_BASE_LL            = $E600
@@ -4070,10 +4070,10 @@
 >3910f9		10 08 04 02 01			drumBits                  .byte $10, $08, $04, $02, $01
 >3910fe		20 40 60 80 e0 c0		instrumentBaseRegs        .byte $20, $40, $60, $80, $E0, $C0
 
-;******  Return to file: src\Libraries/OPL2_Library.asm
+;******  Return to file: src/Libraries/OPL2_Library.asm
 
 
-;******  Processing file: src\Libraries/OPL2_Instruments.asm
+;******  Processing file: src/Libraries/OPL2_Instruments.asm
 
 >391104		00 24 4f f2 0b 00 0e 31		INSTRUMENT_ACCORDN    .text $00, $24, $4F, $F2, $0B, $00, $0E, $31, $00, $52, $0B, $00, 'ACCORDN   '
 >39110c		00 52 0b 00 41 43 43 4f 52 44 4e 20 20 20
@@ -4366,10 +4366,10 @@
 >391d64		00 06 00 ff f0 00 0e c4		INSTRUMENT_XYLO3      .text $00, $06, $00, $FF, $F0, $00, $0E, $C4, $00, $F8, $B5, $00, 'XYLO3     '
 >391d6c		00 f8 b5 00 58 59 4c 4f 33 20 20 20 20 20
 
-;******  Return to file: src\Libraries/OPL2_Library.asm
+;******  Return to file: src/Libraries/OPL2_Library.asm
 
 
-;******  Processing file: src\Libraries/OPL2_Midi_Drums.asm
+;******  Processing file: src/Libraries/OPL2_Midi_Drums.asm
 
 >391d7a		00 3e 00 9f 0f 0f 00 30		DRUMINS_CLAP2         .text $00, $3E, $00, $9F, $0F, $0F, $00, $30, $00, $87, $FA, $00
 >391d82		00 87 fa 00
@@ -4524,10 +4524,10 @@
 >39212a		1a 20 39 00 26 20 39 00		              .dword DRUMINS_TRIANGL2, DRUMINS_RIMSHOT3, DRUMINS_RIMSHOT4, DRUMINS_TAIKO
 >392132		32 20 39 00 3e 20 39 00
 
-;******  Return to file: src\Libraries/OPL2_Library.asm
+;******  Return to file: src/Libraries/OPL2_Library.asm
 
 
-;******  Processing file: src\Libraries/OPL2_Midi_Instruments.asm
+;******  Processing file: src/Libraries/OPL2_Midi_Instruments.asm
 
 >39213a		00 33 5a b2 50 01 00 31		MIDI_INSTRUMENT_PIANO1     .text $00, $33, $5A, $B2, $50, $01, $00, $31, $00, $B1, $F5, $01
 >392142		00 b1 f5 01
@@ -4829,10 +4829,10 @@
 >392922		f2 26 39 00 fe 26 39 00 0a 27 39 00 16 27 39 00
 >392932		22 27 39 00 2e 27 39 00		              	.dword MIDI_INSTRUMENT_APPLAUSE, MIDI_INSTRUMENT_GUNSHOT
 
-;******  Return to file: src\Libraries/OPL2_Library.asm
+;******  Return to file: src/Libraries/OPL2_Library.asm
 
 
-;******  Processing file: src\Libraries/OPL2_Midi_Instruments_Win31.asm
+;******  Processing file: src/Libraries/OPL2_Midi_Instruments_Win31.asm
 
 >39293a		00 01 8f f2 f4 38 00 01		MIDIW31_INSTRUMENT_PIANO1     .text $00, $01, $8F, $F2, $F4, $38, $00, $01, $0D, $F2, $F7, $00
 >392942		0d f2 f7 00
@@ -5134,7 +5134,7 @@
 >393122		f2 2e 39 00 fe 2e 39 00 0a 2f 39 00 16 2f 39 00
 >393132		22 2f 39 00 2e 2f 39 00			                 .dword MIDIW31_INSTRUMENT_APPLAUSE, MIDIW31_INSTRUMENT_GUNSHOT
 
-;******  Return to file: src\Libraries/OPL2_Library.asm
+;******  Return to file: src/Libraries/OPL2_Library.asm
 
 >39313a		3c 42 44 45 47 49 4b 4c		NOTE_INTRO  .byte  $3C, $42, $44, $45, $47, $49, $4B, $4C
 .393142						IOPL2_TONE_TEST
@@ -6526,10 +6526,10 @@
 .393ac3		85 2e		sta $2e		                STA OPL2_IND_ADDY_HL
 .393ac5		60		rts		                RTS
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Defines/SDCard_Controller_def.asm
+;******  Processing file: src/Defines/SDCard_Controller_def.asm
 
 =$afea00					SDC_VERSION_REG         = $AFEA00    ; Ought to read 12
 =$afea01					SDC_CONTROL_REG         = $AFEA01    ; Bit0 1 = Reset core logic, and registers. Self clearing
@@ -6566,16 +6566,16 @@
 =$afea20					SDC_TX_FIFO_DATA_REG    = $AFEA20 ; Write Data Block here
 =$afea24					SDC_TX_FIFO_CTRL_REG    = $AFEA24 ; Bit0  Force Empty - Set to 1 to clear FIFO, self clearing (the bit)
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\SDOS.asm
+;******  Processing file: src/SDOS.asm
 
 
-;******  Processing file: src\sdos_fat.asm
+;******  Processing file: src/sdos_fat.asm
 
 
-;******  Processing file: src\sdos_bios.asm
+;******  Processing file: src/sdos_bios.asm
 
 =$80						BIOS_TIMEOUT = $80              ; Flag to indicate if a time out has occurred (see ISETTIMEOUT)
 =0						BIOS_DEV_FDC = 0                ; Floppy 0
@@ -6791,10 +6791,10 @@
 .393be2		38		sec		                SEC                                 ; Return success
 .393be3		6b		rtl		                RTL
 
-;******  Return to file: src\sdos_fat.asm
+;******  Return to file: src/sdos_fat.asm
 
 
-;******  Processing file: src\sdos_dir.asm
+;******  Processing file: src/sdos_dir.asm
 
 .393be4						DOS_DIROPEN
 .393be4		da		phx		                PHX
@@ -7132,7 +7132,7 @@
 .393e58		90 e1		bcc $393e3b	                BCC ret_failure
 .393e5a		82 72 16	brl $3954cf	ret_success     BRL IF_SUCCESS
 
-;******  Return to file: src\sdos_fat.asm
+;******  Return to file: src/sdos_fat.asm
 
 .0000						DEVICE_DESC
 >0000						DEVNAME         .dword ?            ; A pointer to the ASCIIZ name of the device
@@ -7229,7 +7229,7 @@
 =$2c						BPB_ROOTCLUS_OFF = $2C                  ; Offset in the BPB sector to the Root Cluster Number
 =510						BPB_SIGNATURE = 510                     ; The offset to the MBR signature bytes
 
-;******  Processing file: src\Includes/sdos_fat_vars_fmx_inc.asm
+;******  Processing file: src/Includes/sdos_fat_vars_fmx_inc.asm
 
 =$38a000					DOS_HIGH_VARIABLES      = $38A000
 =$38a000					DEVICE                  = $38A000       ; 1 byte - The number of the block device
@@ -7274,7 +7274,7 @@
 =$38b000					    DOS_FILE_BUFFS          = $38B000
 =3719168					    DOS_FILE_BUFFS_END      = DOS_FILE_BUFFS + DOS_SECTOR_SIZE * DOS_FD_MAX
 
-;******  Return to file: src\sdos_fat.asm
+;******  Return to file: src/sdos_fat.asm
 
 .393e5d						DOS_INIT
 .393e5d		8b		phb		                PHB
@@ -9423,7 +9423,7 @@
 .394db8		fa		plx		                PLX
 .394db9		6b		rtl		                RTL
 
-;******  Return to file: src\SDOS.asm
+;******  Return to file: src/SDOS.asm
 
 .394dba						DOS_TEST
 .394dba		8b		phb		                PHB
@@ -10767,10 +10767,10 @@
 .39573c		22 f8 10 00	jsl $0010f8	                JSL F_CLOSE                     ; Close the source
 .395740		82 8c fd	brl $3954cf	                BRL IF_SUCCESS
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/uart.asm
+;******  Processing file: src/Libraries/uart.asm
 
 =$af13f8					    UART1_BASE = $AF13F8        ; Base address for UART 1 (COM1)
 =$af12f8					    UART2_BASE = $AF12F8        ; Base address for UART 2 (COM2)
@@ -10995,10 +10995,10 @@
 .39584a		28		plp		done        PLP
 .39584b		6b		rtl		            RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Joystick.asm
+;******  Processing file: src/Joystick.asm
 
 .39584c						JOYSTICK_SET_NES_MODE
 .39584c		e2 20		sep #$20	                SEP #$20        ; set A short
@@ -11056,10 +11056,10 @@
 .3958c0						END_OF_JOYSTICK_POLL
 .3958c0		6b		rtl		          RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/sdc_library.asm
+;******  Processing file: src/Libraries/sdc_library.asm
 
 .3958c1						SDC_WAITBUSY
 .3958c1		08		php		                PHP
@@ -11267,10 +11267,10 @@
 .395a53		18		clc		                CLC
 .395a54		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/fdc_library.asm
+;******  Processing file: src/Libraries/fdc_library.asm
 
 =4295454					FDC_MOTOR_TIME = 4295454        ; Time to wait for the motor to come on: 300ms
 =2147727					FDC_SEEK_TIME = 2147727         ; Time to wait for a seek to happen: 150ms
@@ -12818,10 +12818,10 @@
 >396653		65 20 62 69 6e 61 72 79 2e 0d 00
 .39665e						FDC_VBR_END
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/ide_library.asm
+;******  Processing file: src/Libraries/ide_library.asm
 
 .0000						IDE_ID
 >0000		00 00				General_Config        .word $0000
@@ -13253,10 +13253,10 @@
 .396922		18		clc		                CLC
 .396923		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/Ethernet_Init_library.asm
+;******  Processing file: src/Libraries/Ethernet_Init_library.asm
 
 .396924						SIMPLE_INIT_ETHERNET_CTRL
 .396924						WaitforittobeReady:
@@ -13304,10 +13304,10 @@
 .3969a8		f0 f4		beq $39699e	                BEQ WaitForCompletion
 .3969aa		60		rts		                RTS
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/EXP-C200_EVID_Library.asm
+;******  Processing file: src/Libraries/EXP-C200_EVID_Library.asm
 
 =$ae2000					EVID_SCREEN_PAGE      = $AE2000 ;8192 Bytes First page of display RAM. This is used at boot time to display the welcome screen and the BASIC or MONITOR command screens.
 .3969ab						INIT_EVID_VID_MODE
@@ -13448,10 +13448,10 @@
 .396b3c		28		plp		                PLP
 .396b3d		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/ansi_screens.asm
+;******  Processing file: src/Libraries/ansi_screens.asm
 
 .0000						S_ANSI_VARS
 >0000						SCREENBEGIN         .long ?     ; Start of screen in video RAM. This is the upper-left corrner of the current video page being written to. This may not be what's being displayed by VICKY. Update this if you change VICKY's display page.
@@ -14641,10 +14641,10 @@
 .3973e3		fa		plx		                    PLX
 .3973e4		6b		rtl		                    RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/kbd_driver.asm
+;******  Processing file: src/Libraries/kbd_driver.asm
 
 =16						KBD_INBUF_SIZE = 16         ; Number of scan codes that can be buffered
 =0						KBD_STATE_IDLE = 0          ; Keyboard is IDLE
@@ -15674,10 +15674,10 @@
 >397ef0		00 00 00 00 00 00 00 00		                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $70 - $77
 >397ef8		00 00 00 00 00 00 00 00		                .byte $00, $00, $00, $00, $00, $00, $00, $00                        ; $78 - $7F
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\Libraries/mouse_driver.asm
+;******  Processing file: src/Libraries/mouse_driver.asm
 
 .397f00						IINITMOUSE
 .397f00		48		pha		                PHA
@@ -15713,15 +15713,15 @@
 .397f30		90 2b		bcc $397f5d	                BCC mouse_found
 .397f32		a9 00		lda #$00	mouse_init_fail LDA #0                          ; Disable the mouse pointer
 .397f34		8f 00 07 af	sta $af0700	                STA @l MOUSE_PTR_CTRL_REG_L
-.397f38		af 4c 01 00	lda $00014c	                LDA @lINT_MASK_REG0             ; Make sure the mouse interrupt is disabled
+.397f38		af 4c 01 00	lda $00014c	                LDA @l INT_MASK_REG0             ; Make sure the mouse interrupt is disabled
 .397f3c		09 80		ora #$80	                ORA #FNX0_INT07_MOUSE
-.397f3e		8f 4c 01 00	sta $00014c	                STA @lINT_MASK_REG0
+.397f3e		8f 4c 01 00	sta $00014c	                STA @l INT_MASK_REG0
 .397f42		af 41 01 00	lda $000141	                LDA @l INT_PENDING_REG1         ; Read the Pending Register &
 .397f46		29 01		and #$01	                AND #FNX1_INT00_KBD
 .397f48		8f 41 01 00	sta $000141	                STA @l INT_PENDING_REG1         ; Writing it back will clear the Active Bit
-.397f4c		af 40 01 00	lda $000140	                LDA @lINT_PENDING_REG0          ; Read the Pending Register &
+.397f4c		af 40 01 00	lda $000140	                LDA @l INT_PENDING_REG0          ; Read the Pending Register &
 .397f50		29 80		and #$80	                AND #FNX0_INT07_MOUSE
-.397f52		8f 40 01 00	sta $000140	                STA @lINT_PENDING_REG0          ; Writing it back will clear the Active Bit
+.397f52		8f 40 01 00	sta $000140	                STA @l INT_PENDING_REG0          ; Writing it back will clear the Active Bit
 .397f56		28		plp		                PLP                             ; Return failure
 .397f57		2b		pld		                PLD
 .397f58		ab		plb		                PLB
@@ -15869,10 +15869,10 @@
 .398071		ab		plb		                PLB
 .398072		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 
-;******  Processing file: src\SplashScreenCode/boot_sound.asm
+;******  Processing file: src/SplashScreenCode/boot_sound.asm
 
 .398073						BOOT_SOUND
 .398073		48		pha		                PHA
@@ -15947,7 +15947,7 @@
 .398128		68		pla		                PLA
 .398129		6b		rtl		                RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 .39812a						KERNEL_DATA
 >39812a		20 20 20 20 0b 0c 0b 0c		greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C, " FFFFFFF MMMMMMMM XX    XXX " ,$0D
@@ -15978,13 +15978,13 @@
 >398232		66 6f 65 6e 69 78 2e 63 6f 6d 20 2d 2d 20 4b 65
 >398242		72 6e 65 6c 3a 20
 
-;******  Processing file: src\version.asm
+;******  Processing file: src/version.asm
 
 >398248		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+333 (2021-08-07)"
 >398250		6c 70 68 61 2b 33 33 33 20 28 32 30 32 31 2d 30
 >398260		38 2d 30 37 29
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/kernel.asm
 
 >398265		0d 00				                .text $0D,$00
 >398267		90 90 90 90 90 90 d0 d0		  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
@@ -16007,7 +16007,7 @@
 >398317		e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
 >398327		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
 >398337		f0 f0
->398339		00 00 00 ff			fg_color_lut	  .text $00, $00, $00, $FF
+>398339		00 00 00 ff			fg_color_lut	.text $00, $00, $00, $FF
 >39833d		00 00 80 ff			                .text $00, $00, $80, $FF
 >398341		00 80 00 ff			                .text $00, $80, $00, $FF
 >398345		80 00 00 ff			                .text $80, $00, $00, $FF
@@ -16023,7 +16023,7 @@
 >39836d		20 20 20 ff			                .text $20, $20, $20, $FF
 >398371		40 40 40 ff			                .text $40, $40, $40, $FF
 >398375		ff ff ff ff			                .text $FF, $FF, $FF, $FF
->398379		00 00 00 ff			bg_color_lut	  .text $00, $00, $00, $FF
+>398379		00 00 00 ff			bg_color_lut	.text $00, $00, $00, $FF
 >39837d		00 00 80 ff			                .text $00, $00, $80, $FF
 >398381		00 80 00 ff			                .text $00, $80, $00, $FF
 >398385		80 00 00 ff			                .text $80, $00, $00, $FF
@@ -16263,37 +16263,37 @@
 >398bf0		f6 f7 f7 f8 f8 f9 f9 fa		                      .text  $f6, $f7, $f7, $f8, $f8, $f9, $f9, $fa, $fb, $fb, $fc, $fc, $fd, $fd, $fe, $ff
 >398bf8		fb fb fc fc fd fd fe ff
 >398c00						.align 256
->398c00		1d c8 a7 ac 10 d6 52 7c		RANDOM_LUT_Tbl		    .text  $1d, $c8, $a7, $ac, $10, $d6, $52, $7c, $83, $dd, $ce, $39, $cd, $c5, $3b, $15
+>398c00		1d c8 a7 ac 10 d6 52 7c		RANDOM_LUT_Tbl		  .text  $1d, $c8, $a7, $ac, $10, $d6, $52, $7c, $83, $dd, $ce, $39, $cd, $c5, $3b, $15
 >398c08		83 dd ce 39 cd c5 3b 15
->398c10		22 55 3b 94 e0 33 1f 38						              .text  $22, $55, $3b, $94, $e0, $33, $1f, $38, $87, $12, $31, $65, $89, $27, $88, $42
+>398c10		22 55 3b 94 e0 33 1f 38					          .text  $22, $55, $3b, $94, $e0, $33, $1f, $38, $87, $12, $31, $65, $89, $27, $88, $42
 >398c18		87 12 31 65 89 27 88 42
->398c20		b2 32 72 84 b2 b2 31 52						              .text  $b2, $32, $72, $84, $b2, $b2, $31, $52, $94, $ce, $56, $ec, $fe, $da, $58, $c9
+>398c20		b2 32 72 84 b2 b2 31 52					          .text  $b2, $32, $72, $84, $b2, $b2, $31, $52, $94, $ce, $56, $ec, $fe, $da, $58, $c9
 >398c28		94 ce 56 ec fe da 58 c9
->398c30		c8 5b 53 2a 08 3b 19 c1						              .text  $c8, $5b, $53, $2a, $08, $3b, $19, $c1, $d0, $10, $2c, $b2, $4b, $ea, $32, $61
+>398c30		c8 5b 53 2a 08 3b 19 c1					          .text  $c8, $5b, $53, $2a, $08, $3b, $19, $c1, $d0, $10, $2c, $b2, $4b, $ea, $32, $61
 >398c38		d0 10 2c b2 4b ea 32 61
->398c40		da 34 33 8f 2b da 49 89						              .text  $da, $34, $33, $8f, $2b, $da, $49, $89, $a1, $e6, $ca, $2d, $b3, $ce, $b0, $79
+>398c40		da 34 33 8f 2b da 49 89					          .text  $da, $34, $33, $8f, $2b, $da, $49, $89, $a1, $e6, $ca, $2d, $b3, $ce, $b0, $79
 >398c48		a1 e6 ca 2d b3 ce b0 79
->398c50		44 aa 32 82 91 e9 29 16						              .text  $44, $aa, $32, $82, $91, $e9, $29, $16, $5f, $e3, $fb, $bd, $15, $2e, $be, $f5
+>398c50		44 aa 32 82 91 e9 29 16					          .text  $44, $aa, $32, $82, $91, $e9, $29, $16, $5f, $e3, $fb, $bd, $15, $2e, $be, $f5
 >398c58		5f e3 fb bd 15 2e be f5
->398c60		e9 4a e4 2e 60 24 94 35						              .text  $e9, $4a, $e4, $2e, $60, $24, $94, $35, $8d, $8f, $2c, $80, $0a, $5e, $99, $36
+>398c60		e9 4a e4 2e 60 24 94 35					          .text  $e9, $4a, $e4, $2e, $60, $24, $94, $35, $8d, $8f, $2c, $80, $0a, $5e, $99, $36
 >398c68		8d 8f 2c 80 0a 5e 99 36
->398c70		ac ab 21 26 42 7c 5e bc						              .text  $ac, $ab, $21, $26, $42, $7c, $5e, $bc, $13, $52, $44, $2f, $e3, $ef, $44, $a2
+>398c70		ac ab 21 26 42 7c 5e bc					          .text  $ac, $ab, $21, $26, $42, $7c, $5e, $bc, $13, $52, $44, $2f, $e3, $ef, $44, $a2
 >398c78		13 52 44 2f e3 ef 44 a2
->398c80		86 c1 9c 47 5f 36 6d 02						              .text  $86, $c1, $9c, $47, $5f, $36, $6d, $02, $be, $23, $02, $58, $0a, $52, $5e, $b4
+>398c80		86 c1 9c 47 5f 36 6d 02					          .text  $86, $c1, $9c, $47, $5f, $36, $6d, $02, $be, $23, $02, $58, $0a, $52, $5e, $b4
 >398c88		be 23 02 58 0a 52 5e b4
->398c90		9f 06 08 c9 97 cb 9e dd						              .text  $9f, $06, $08, $c9, $97, $cb, $9e, $dd, $d5, $cf, $3e, $df, $c4, $9e, $da, $bb
+>398c90		9f 06 08 c9 97 cb 9e dd					          .text  $9f, $06, $08, $c9, $97, $cb, $9e, $dd, $d5, $cf, $3e, $df, $c4, $9e, $da, $bb
 >398c98		d5 cf 3e df c4 9e da bb
->398ca0		9b 5d c9 f5 d9 c3 7e 87						              .text  $9b, $5d, $c9, $f5, $d9, $c3, $7e, $87, $77, $7d, $b1, $3b, $4a, $68, $35, $6e
+>398ca0		9b 5d c9 f5 d9 c3 7e 87					          .text  $9b, $5d, $c9, $f5, $d9, $c3, $7e, $87, $77, $7d, $b1, $3b, $4a, $68, $35, $6e
 >398ca8		77 7d b1 3b 4a 68 35 6e
->398cb0		ee 47 ad 8f fd 73 2e 46						              .text  $ee, $47, $ad, $8f, $fd, $73, $2e, $46, $b5, $8f, $44, $63, $55, $6f, $e1, $50
+>398cb0		ee 47 ad 8f fd 73 2e 46					          .text  $ee, $47, $ad, $8f, $fd, $73, $2e, $46, $b5, $8f, $44, $63, $55, $6f, $e1, $50
 >398cb8		b5 8f 44 63 55 6f e1 50
->398cc0		f4 b6 a3 4f 68 c4 a5 a4						              .text  $f4, $b6, $a3, $4f, $68, $c4, $a5, $a4, $57, $74, $b9, $bd, $05, $14, $50, $eb
+>398cc0		f4 b6 a3 4f 68 c4 a5 a4					          .text  $f4, $b6, $a3, $4f, $68, $c4, $a5, $a4, $57, $74, $b9, $bd, $05, $14, $50, $eb
 >398cc8		57 74 b9 bd 05 14 50 eb
->398cd0		a5 5c 57 2f 99 dc 2e 8a						              .text  $a5, $5c, $57, $2f, $99, $dc, $2e, $8a, $44, $bc, $ec, $db, $22, $58, $fc, $be
+>398cd0		a5 5c 57 2f 99 dc 2e 8a					          .text  $a5, $5c, $57, $2f, $99, $dc, $2e, $8a, $44, $bc, $ec, $db, $22, $58, $fc, $be
 >398cd8		44 bc ec db 22 58 fc be
->398ce0		5f 3f 50 bd 2a 36 ab ae						              .text  $5f, $3f, $50, $bd, $2a, $36, $ab, $ae, $24, $aa, $82, $11, $5c, $9f, $43, $4d
+>398ce0		5f 3f 50 bd 2a 36 ab ae					          .text  $5f, $3f, $50, $bd, $2a, $36, $ab, $ae, $24, $aa, $82, $11, $5c, $9f, $43, $4d
 >398ce8		24 aa 82 11 5c 9f 43 4d
->398cf0		8f 0c 20 00 91 b6 45 9e						              .text  $8f, $0c, $20, $00, $91, $b6, $45, $9e, $3e, $3d, $66, $7e, $0a, $1c, $6b, $74
+>398cf0		8f 0c 20 00 91 b6 45 9e					          .text  $8f, $0c, $20, $00, $91, $b6, $45, $9e, $3e, $3d, $66, $7e, $0a, $1c, $6b, $74
 >398cf8		3e 3d 66 7e 0a 1c 6b 74
 >398d00						.align 16
 >398d00		00 01 01 00 00 00 00 00		MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,$00,$00,$00
@@ -18864,6 +18864,9 @@
 >3b1808		f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4 f4
 ;		...repeated 298 times (4768 bytes)...
 >3b2ab8		f4 f4 f4 f4 f4 f4 f4 f4
+
+;******  Processing file: src/boot_menu.asm
+
 .3e0000						BOOT_MENU
 .3e0000						SplashScreenMain:
 .3e0000		48		pha		                PHA             ; begin setdp macro
@@ -19168,7 +19171,7 @@
 >3e02ff		1c 00 04 08 0c 10 14 18		                .text 28,0,4,8,12,16,20,24,0
 >3e0307		00
 
-;******  Processing file: src\SplashScreenCode/Splashscreen_Bitmap_Setup.asm
+;******  Processing file: src/SplashScreenCode/Splashscreen_Bitmap_Setup.asm
 
 =320						C256Moniker_SizeX = 320
 =64						C256Moniker_SizeY = 64
@@ -19470,10 +19473,10 @@
 .3e05f7		8f 00 04 af	sta $af0400	        STA @l VDMA_CONTROL_REG
 .3e05fb		6b		rtl		        RTL
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/boot_menu.asm
 
 
-;******  Processing file: src\SplashScreenCode/Splashscreen_Text_Display.asm
+;******  Processing file: src/SplashScreenCode/Splashscreen_Text_Display.asm
 
 =23						NumberOfEntry = size( TEXT_POSX ) / 2; (1 more then the actual number)
 .3e05fc						Set_Text_Color:
@@ -19923,7 +19926,7 @@
 >3e0d5f		4f 4e 20 00			ON_TEXT    .text "ON ", $00
 >3e0d63		59 45 53 00			YES_TEXT   .text "YES", $00
 
-;******  Return to file: src\kernel.asm
+;******  Return to file: src/boot_menu.asm
 
 >3e0d67						.align 256
 .3e0e00						SS_MONIKER_LUT
@@ -22052,6 +22055,9 @@
 >3ebad8		00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ;		...repeated 17 times (272 bytes)...
 >3ebbf8		00 00 00 00 00 00 00 00
+
+;******  Return to file: src/kernel.asm
+
 .3f0000						FONT_4_BANK0
 >3f0000		00 00 00 00 00 00 00 00		.binary "FONT/Bm437_PhoenixEGA_8x8.bin", 0, 2048
 >3f0008		7e 81 a5 81 bd 99 81 7e 3c 7e db ff c3 7e 3c 00
@@ -22312,6 +22318,6 @@
 >3f0fd8		ff ff ff ff 0f 0f 0f 0f f7 ef df ff ff ff ff ff
 >3f0fe8		e1 ed ef 87 ef ed 81 ff ef f7 fb ff ff ff ff ff
 >3f0ff8		0f 0f 0f 0f f0 f0 f0 00
->3fffff		ff				                .byte $FF               ; Last byte of flash data
+>3fffff		ff				.byte $FF               ; Last byte of flash data
 
 ;******  End of listing

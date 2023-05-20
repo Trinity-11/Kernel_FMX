@@ -212,10 +212,10 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
 .endif 
                 ; Init GAMMA Table
                 JSL INITGAMMATABLE
-                
+
                 ; Init All the Graphic Mode Look-up Table (by default they are all Zero)
                 JSL INITALLLUT
-
+                
                 ; Initialize the Mouse Pointer Graphic
                 JSL INITMOUSEPOINTER  
                 
@@ -236,12 +236,9 @@ Alreadyin640480Mode     ; Make sure to turn off the Doubling Pixel As well.
                 setdp 0
                 JSL INITKEYBOARD        ; Initialize the keyboard
                 JSL INITMOUSE           ; Initialize the mouse
-
+                
                 CLI
-
-                LDA #0
-                STA @w MOUSE_IDX
-                 
+                
                 setas
                 setxl
                 setdbr `greet_msg     ; set data bank to 39 (Kernel Variables)
@@ -257,6 +254,10 @@ jmpcopy         LDA @l BOOT,X
 retry_boot
                 JSL DOS_INIT            ; Initialize the "disc operating system"
                 JSL BOOT_SOUND          ; Play the boot sound
+                
+                LDA #0
+                STA @l MOUSE_IDX
+                
                 JSL BOOT_MENU           ; Show the splash screen / boot menu and wait for key presses
                                         ; Coming back from the Splash Screen the Value of the Keyboard has been pushed in the stack
                                         ; This is the balance of House Keeping that needs to be done to put it back the way it was
@@ -383,71 +384,6 @@ chk_b_lc_not:
                 BRL BOOTBASIC
 chk_b_lc_not0:                
                 BRA boot_wait_key     ; No: keep waiting
-
-;
-; Display the boot menu / splash screen and give the user some time to respond
-;
-; Outputs:
-;   A = 0 for no response
-;       CR for boot to BASIC
-;       F1 for boot to floppy
-;       F2 for boot to SDC
-;       F3 for boot to IDE
-;
-; February 6th Changes, this is depracated till somebody decides that they don't like the SplashScreen Code ;)
-; I will keep this in case
-.comment
-BOOT_MENU       .proc
-                PHB
-                PHP
-
-                setas
-                setxl
-                LDA #`bootmenu          ; Point DBR:X to the boot menu
-                PHA
-                PLB
-                LDX #<>bootmenu         
-
-                JSL PUTS                ; Display the boot menu
-                                        ; TODO: replace with the splash screen
-
-                setxl
-                LDY #1000               ; Number of cycles we'll wait... total wait time is about 30s (ish)
-
-                setas
-wait_key        LDX #100
-                JSL ILOOP_MS            ; Wait ...
-                DEY                     ; Count down the tenths of seconds
-                BEQ timeout             ; If we've got to 0, we're done
-
-                JSL GETSCANCODE         ; Try to get a character
-                CMP #0                  ; Did we get anything
-                BEQ wait_key            ; No: keep waiting until timeout
-
-                CMP #CHAR_F1            ; Did the user press F1?
-                BEQ return              ; Yes: return it
-                CMP #CHAR_F2            ; Did the user press F2?
-                BEQ return              ; Yes: return it
-                CMP #CHAR_F3            ; Did the user press F3?
-                BEQ return              ; Yes: return it
-                CMP #SCAN_CR            ; Did the user press CR?
-                BEQ return              ; Yes: return it
-                CMP #SCAN_SP            ; Did the user press SPACE?
-                BNE wait_key            ; No: keep waiting
-
-timeout         LDA #0                  ; Return 0 for a timeout / SPACE
-
-return          PLP
-                PLB
-                RTL
-
-.if TARGET_SYS == SYS_C256_FMX                
-  bootmenu        .null "F1=FDC, F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
-.else
-  bootmenu        .null "F2=SDC, F3=IDE, RETURN=BASIC, SPACE=DEFAULT", CHAR_CR
-.endif
-                .pend
-.endc
 
 ;
 ; IBREAK
@@ -1235,7 +1171,7 @@ ICOLORFLAG      .proc
 ;   None
 ; Affects:
 ;   None
-IINITCHLUT		  PHD
+IINITCHLUT		PHD
                 PHP
                 PHA
                 PHX
@@ -1623,7 +1559,7 @@ IINITCURSOR
 ;   None
 ; Affects:
 ;   None
-IINITSUPERIO	  PHD
+IINITSUPERIO	PHD
                 PHP
                 PHA
                 setas			;just make sure we are in 8bit mode
@@ -2383,7 +2319,7 @@ greet_msg       .text $20, $20, $20, $20, $0B, $0C, $0B, $0C, $0B, $0C, $0B, $0C
   greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
 .endif
 
-fg_color_lut	  .text $00, $00, $00, $FF
+fg_color_lut	.text $00, $00, $00, $FF
                 .text $00, $00, $80, $FF
                 .text $00, $80, $00, $FF
                 .text $80, $00, $00, $FF
@@ -2400,7 +2336,7 @@ fg_color_lut	  .text $00, $00, $00, $FF
                 .text $40, $40, $40, $FF
                 .text $FF, $FF, $FF, $FF
 
-bg_color_lut	  .text $00, $00, $00, $FF
+bg_color_lut	.text $00, $00, $00, $FF
                 .text $00, $00, $80, $FF
                 .text $00, $80, $00, $FF
                 .text $80, $00, $00, $FF
@@ -2538,25 +2474,24 @@ GAMMA_1_8_Tbl         .text  $00, $0b, $11, $15, $19, $1c, $1f, $22, $25, $27, $
                       .text  $ed, $ed, $ee, $ef, $ef, $f0, $f0, $f1, $f1, $f2, $f3, $f3, $f4, $f4, $f5, $f5
                       .text  $f6, $f7, $f7, $f8, $f8, $f9, $f9, $fa, $fb, $fb, $fc, $fc, $fd, $fd, $fe, $ff
 .align 256
-RANDOM_LUT_Tbl		    .text  $1d, $c8, $a7, $ac, $10, $d6, $52, $7c, $83, $dd, $ce, $39, $cd, $c5, $3b, $15
-				              .text  $22, $55, $3b, $94, $e0, $33, $1f, $38, $87, $12, $31, $65, $89, $27, $88, $42
-				              .text  $b2, $32, $72, $84, $b2, $b2, $31, $52, $94, $ce, $56, $ec, $fe, $da, $58, $c9
-				              .text  $c8, $5b, $53, $2a, $08, $3b, $19, $c1, $d0, $10, $2c, $b2, $4b, $ea, $32, $61
-				              .text  $da, $34, $33, $8f, $2b, $da, $49, $89, $a1, $e6, $ca, $2d, $b3, $ce, $b0, $79
-				              .text  $44, $aa, $32, $82, $91, $e9, $29, $16, $5f, $e3, $fb, $bd, $15, $2e, $be, $f5
-				              .text  $e9, $4a, $e4, $2e, $60, $24, $94, $35, $8d, $8f, $2c, $80, $0a, $5e, $99, $36
-				              .text  $ac, $ab, $21, $26, $42, $7c, $5e, $bc, $13, $52, $44, $2f, $e3, $ef, $44, $a2
-				              .text  $86, $c1, $9c, $47, $5f, $36, $6d, $02, $be, $23, $02, $58, $0a, $52, $5e, $b4
-				              .text  $9f, $06, $08, $c9, $97, $cb, $9e, $dd, $d5, $cf, $3e, $df, $c4, $9e, $da, $bb
-				              .text  $9b, $5d, $c9, $f5, $d9, $c3, $7e, $87, $77, $7d, $b1, $3b, $4a, $68, $35, $6e
-				              .text  $ee, $47, $ad, $8f, $fd, $73, $2e, $46, $b5, $8f, $44, $63, $55, $6f, $e1, $50
-				              .text  $f4, $b6, $a3, $4f, $68, $c4, $a5, $a4, $57, $74, $b9, $bd, $05, $14, $50, $eb
-				              .text  $a5, $5c, $57, $2f, $99, $dc, $2e, $8a, $44, $bc, $ec, $db, $22, $58, $fc, $be
-				              .text  $5f, $3f, $50, $bd, $2a, $36, $ab, $ae, $24, $aa, $82, $11, $5c, $9f, $43, $4d
-				              .text  $8f, $0c, $20, $00, $91, $b6, $45, $9e, $3e, $3d, $66, $7e, $0a, $1c, $6b, $74
+RANDOM_LUT_Tbl		  .text  $1d, $c8, $a7, $ac, $10, $d6, $52, $7c, $83, $dd, $ce, $39, $cd, $c5, $3b, $15
+			          .text  $22, $55, $3b, $94, $e0, $33, $1f, $38, $87, $12, $31, $65, $89, $27, $88, $42
+			          .text  $b2, $32, $72, $84, $b2, $b2, $31, $52, $94, $ce, $56, $ec, $fe, $da, $58, $c9
+			          .text  $c8, $5b, $53, $2a, $08, $3b, $19, $c1, $d0, $10, $2c, $b2, $4b, $ea, $32, $61
+			          .text  $da, $34, $33, $8f, $2b, $da, $49, $89, $a1, $e6, $ca, $2d, $b3, $ce, $b0, $79
+			          .text  $44, $aa, $32, $82, $91, $e9, $29, $16, $5f, $e3, $fb, $bd, $15, $2e, $be, $f5
+			          .text  $e9, $4a, $e4, $2e, $60, $24, $94, $35, $8d, $8f, $2c, $80, $0a, $5e, $99, $36
+			          .text  $ac, $ab, $21, $26, $42, $7c, $5e, $bc, $13, $52, $44, $2f, $e3, $ef, $44, $a2
+			          .text  $86, $c1, $9c, $47, $5f, $36, $6d, $02, $be, $23, $02, $58, $0a, $52, $5e, $b4
+			          .text  $9f, $06, $08, $c9, $97, $cb, $9e, $dd, $d5, $cf, $3e, $df, $c4, $9e, $da, $bb
+			          .text  $9b, $5d, $c9, $f5, $d9, $c3, $7e, $87, $77, $7d, $b1, $3b, $4a, $68, $35, $6e
+			          .text  $ee, $47, $ad, $8f, $fd, $73, $2e, $46, $b5, $8f, $44, $63, $55, $6f, $e1, $50
+			          .text  $f4, $b6, $a3, $4f, $68, $c4, $a5, $a4, $57, $74, $b9, $bd, $05, $14, $50, $eb
+			          .text  $a5, $5c, $57, $2f, $99, $dc, $2e, $8a, $44, $bc, $ec, $db, $22, $58, $fc, $be
+			          .text  $5f, $3f, $50, $bd, $2a, $36, $ab, $ae, $24, $aa, $82, $11, $5c, $9f, $43, $4d
+			          .text  $8f, $0c, $20, $00, $91, $b6, $45, $9e, $3e, $3d, $66, $7e, $0a, $1c, $6b, $74
 
 .align 16
-
 MOUSE_POINTER_PTR     .text $00,$01,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,$00,$00,$00
                       .text $01,$FF,$FF,$01,$00,$00,$01,$01,$FF,$FF,$FF,$01,$00,$00,$00,$00
                       .text $01,$FF,$FF,$FF,$01,$01,$55,$FF,$01,$55,$FF,$FF,$01,$00,$00,$00
@@ -2644,392 +2579,8 @@ CREDITS_TEXT    TXTLINE "                              CREDITS                  
 .align 256
 CREDITS_COLOR   .fill 80 * 60, $F4
 
+.include "boot_menu.asm"
 
-;
-; The default font and end of flash memory
-;
-* = START_OF_SPLASH
-
-         ; This is for the Color Rolling Scheme
-BOOT_MENU .proc
-SplashScreenMain:
-                setdp 0
-                setxl 
-                setas     
-                JSL INITCHLUT ; The Software does change one of the CH LUT, so, let's Init again
-
-                LDA #$00
-                STA INTERRUPT_STATE
-                STA INTERRUPT_COUNT
-                STA IRQ_COLOR_CHOICE
-                ; Clear Any Pending Interrupt
-                LDA @lINT_PENDING_REG0  ; Read the Pending Register &
-                AND #FNX0_INT02_TMR0
-                STA @lINT_PENDING_REG0  ; Writing it back will clear the Active Bit
-
-                ; Go Get the Model Number here:
-                JSR Splash_Get_Machine_ID
-                JSR Splash_Clear_Screen
-                JSR Splash_Load_FontSet
-                JSL Splashscreen_BitMapSetup
-                JSR Model_Update_Info_Field
-                JSR Set_Text_Color
-                LDA #$00 
-                STA LINE_INDEX  ; Point to the first line to be displayed
-                STA LINE_INDEX + 1
-                JSR Line_Setup_Before_Display   ; Assign and Compute the Pointer   
-;Main Loop is here, Timed @ 16ms
-;
-;
-HAVE_FUN:
-                JSL BOOT_SOUND_OFF
-                JSL Splash_Moniker_Color_Rolling  ; Go Move The Colors on the Logo
-                LDX LINE_INDEX
-                CPX #NumberOfEntry
-                BEQ ByPassCharDisplay           ; If Equal all Lines have been displayed
-                JSR Line_Display_1_Character    ; Go move the cursor one stop 
-                BCC Still_Displaying_Char
-                JSR Line_Setup_Before_Display   ; Assign and Compute the Pointer
-; Replication of the old BOOT_MENU Code - Sorry PJW, it needed some upgrades
-ByPassCharDisplay:
-                setas 
-                JSL GETSCANCODE         ; Try to get a scan code
-                CMP #0                  ; Did we get anything
-                BEQ Still_Displaying_Char            ; No: keep waiting until timeout
-                CMP #CHAR_F1            ; Did the user press F1?
-                BEQ return              ; Yes: return it
-                CMP #CHAR_F2            ; Did the user press F2?
-                BEQ return              ; Yes: return it
-                CMP #CHAR_F3            ; Did the user press F3?
-                BEQ return              ; Yes: return it
-                CMP #SCAN_CR            ; Did the user press CR?
-                BEQ return              ; Yes: return it
-                CMP #SCAN_SP            ; Did the user press SPACE?
-                BEQ exitshere
-                ;BNE wait_key            ; No: keep waiting
-Still_Displaying_Char:        
-                ;JSR Pause_16ms
-WaitForNextSOF:   
-                LDA @l INT_PENDING_REG0
-                AND #FNX0_INT00_SOF
-                CMP #FNX0_INT00_SOF
-                BNE WaitForNextSOF;
-                JMP HAVE_FUN
-
-exitshere: 
-timeout 
-                LDA #0                  ; Return 0 for a timeout / SPACE
-return      
-                STA @l KRNL_BOOT_MENU_K          ; Store ther Keyboard Value
-                ; Let's do some housekeeping before giving back the computer to the user
-                LDA #$00
-                STA @l MASTER_CTRL_REG_L         ; Disable Everything
-                JSL SS_VDMA_CLEAR_MEMORY_640_480 ; Clear the Bitmap Screen
-                JSR VickyII_Registers_Clear      ; Reset All Vicky Registers
-                JSL INITFONTSET ; Reload the Official FONT set
-                JSL INITCURSOR ; Reset the Cursor to its origin
-                JSL INITCHLUT ; The Software does change one of the CH LUT, so, let's Init again
-                JSL INITVKYTXTMODE  ; Init VICKY TextMode now contains Hi-Res Dipswitch read and Automatic Text Size Parameter adjust
-                NOP
-                RTL
-.pend
-
-; Let's initialized all the registers to make sure the app doesn't pick up stuff from a previously ran code
-VickyII_Registers_Clear: .proc
-                setas
-                setxl
-                ; SPRITE CLEAR
-                LDX #$0000
-                LDA #$00
-                ; This will clear all the Sprite Registers
-ClearSpriteRegisters:
-                STA @l SP00_CONTROL_REG, X
-                INX
-                CPX #$0200
-                BNE ClearSpriteRegisters
-
-                ; TILE CLEAR
-                ; This will clear all the Tile Layers Registers
-                LDX #$0000
-                LDA #$00
-ClearTiles0Registers:
-                STA @l TL0_CONTROL_REG, X
-                INX
-                CPX #$0030
-                BNE ClearTiles0Registers
-                NOP
-                ; This will clear all the Tiles Graphics Registers
-                LDX #$0000
-                LDA #$00
-ClearTiles1Registers:
-                STA @l TILESET0_ADDY_L, X
-                INX
-                CPX #$0020
-                BNE ClearTiles1Registers
-                NOP
-
-                LDX #$0000
-                LDA #$00
-                ; This will clear all the Tiles Registers
-ClearBitmapRegisters:
-                STA @l BM0_CONTROL_REG, X
-                STA @l BM1_CONTROL_REG, X
-                INX
-                CPX #$0010
-                BNE ClearBitmapRegisters
-                RTS
-.pend
-;Bit 2, Bit 1, Bit 0
-;$000: FMX
-;$100: FMX (Future C5A)
-;$001: U 2Meg
-;$101: U+ 4Meg U+
-;$010: TBD (Reserved)
-;$110: TBD (Reserved)
-;$011: A2560 Dev
-;$111: A2560 Keyboard
-Splash_Get_Machine_ID .proc
-                setas 
-                LDA @lGABE_SYS_STAT
-                AND #$03        ; Isolate the first 2 bits to know if it is a U or FMX
-                STA MODEL
-                CMP #$00
-                BEQ DONE 
-                ; Now let's figure out if it has 2Megs or 4Megs
-                ; Here we got the Code $01 from Sys_Stat
-                LDA @lGABE_SYS_STAT
-                AND #GABE_SYS_STAT_MID2 ; High 4Meg, Low - 2Megs
-                CMP #GABE_SYS_STAT_MID2
-                BEQ DONE
-                LDA #$02
-                STA MODEL       ; In this Scheme 00 - FMX, 01 - U+, 02 - U
-DONE: 
-                RTS
-.pend
-
-Splash_Load_FontSet .proc
-                setas 
-                setxl
-                LDX #$0000
-DONE_LOADING_FONT:        
-                LDA @l FONT_4_SPLASH, X 
-                STA @l FONT_MEMORY_BANK0, X
-                INX 
-                CPX #2048
-                BNE DONE_LOADING_FONT
-                RTS
-.pend
-
-Splash_Clear_Screen .proc
-                setas
-                setxl
-                LDX #$0000
-Branch_Clear:
-                LDA #$20
-                STA @l CS_TEXT_MEM_PTR,X
-                LDA #$F0
-                STA @l CS_COLOR_MEM_PTR,X
-                INX
-                CPX #$2000
-                BNE Branch_Clear
-                RTS
-.pend
-
-IRQ_SOF_ST0 = $00
-IRQ_SOF_ST1 = $01
-IRQ_SOF_ST2 = $02
-;
-; ///////////////////////////////////////////////////////////////////
-; ///
-; /// Timer Driver Routine (Not using Interrupts)
-; /// 60Hz, 16ms Cyclical
-; ///
-; ///////////////////////////////////////////////////////////////////
-Splash_Moniker_Color_Rolling   .proc
-                ; Let's go throught the statemachine
-                setas
-                LDA @lINT_PENDING_REG0
-                AND #FNX0_INT00_SOF
-                STA @lINT_PENDING_REG0
-
-                LDA INTERRUPT_STATE
-                CMP #IRQ_SOF_ST0
-                BEQ SERVE_STATE0
-
-                CMP #IRQ_SOF_ST1
-                BEQ SERVE_STATE1
-
-                CMP #IRQ_SOF_ST2
-                BNE NOT_SERVE_STATE2
-                BRL SERVE_STATE2
-NOT_SERVE_STATE2
-                RTL
-
-; Go Count for a 4 Frame Tick
-SERVE_STATE0
-                LDA INTERRUPT_COUNT
-                CMP #$04
-                BEQ SERVE_NEXT_STATE
-                INC INTERRUPT_COUNT
-                RTL
-
-SERVE_NEXT_STATE
-                LDA #$00
-                STA INTERRUPT_COUNT
-                LDA #IRQ_SOF_ST1
-                STA INTERRUPT_STATE
-                RTL
-; Change the Color Here
-SERVE_STATE1
-                setaxl
-                LDA #$0000
-                LDX #$0000
-                setaxs
-                ; RED
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+0, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+992
-                ;STA @lBORDER_COLOR_B
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+993
-                ;STA @lBORDER_COLOR_G
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+994
-                ;STA @lBORDER_COLOR_R
-                ;BRL HERE
-                ; ORANGE
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+1, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+996
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+997
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+998
-                ; YELLOW
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+2, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1000
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1001
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1002
-                ; GREEN
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+3, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1004
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1005
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1006
-                ; CYAN
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+4, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1008
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1009
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1010
-                ; BLUE
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+5, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1012
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1013
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1014
-                ; PURPLE
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+6, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1016
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1017
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1018
-                ; New Color Here - Jan 2021
-                LDX IRQ_COLOR_CHOICE
-                LDA @lCOLOR_POINTER+7, X
-                TAX
-                LDA @lCOLOR_CHART, X
-                STA @lGRPH_LUT7_PTR+1020
-                
-                STA @lFG_CHAR_LUT_PTR + $10           ; 
-
-                LDA @lCOLOR_CHART+1, X
-                STA @lGRPH_LUT7_PTR+1021
-                
-                STA @lFG_CHAR_LUT_PTR + $11            ;
-
-                LDA @lCOLOR_CHART+2, X
-                STA @lGRPH_LUT7_PTR+1022                
-                STA @lFG_CHAR_LUT_PTR + $12            ;
-
-HERE
-                CLC
-                LDA IRQ_COLOR_CHOICE
-                ADC #$09
-                STA IRQ_COLOR_CHOICE
-                LDA IRQ_COLOR_CHOICE
-                CMP #$48
-                BNE EXIT_COLOR_CHANGE
-                LDA #$00
-                STA IRQ_COLOR_CHOICE
-EXIT_COLOR_CHANGE
-                setxl
-                LDA #IRQ_SOF_ST0
-                STA INTERRUPT_STATE
-                RTL
-
-SERVE_STATE2
-                LDA #IRQ_SOF_ST0
-                STA INTERRUPT_STATE
-                RTL
-.pend
-.align 16
-COLOR_CHART     .text 46, 46, 164, 00     ;248
-                .text 37, 103, 193, 00    ;249
-                .text 32, 157, 164, 00    ;250
-                .text 44, 156 , 55, 00    ;251
-                .text 148, 142, 44, 00    ;252
-                .text 145, 75, 43, 00     ;253
-                .text 142, 47, 97, 00     ;254
-                .text 33, 80, 127, 00     ;255
-
-COLOR_POINTER   .text 0,4,8,12,16,20,24,28,0
-                .text 4,8,12,16,20,24,28,0,0
-                .text 8,12,16,20,24,28,0,4,0
-                .text 12,16,20,24,28,0,4,8,0
-                .text 16,20,24,28,0,4,8,12,0
-                .text 20,24,28,0,4,8,12,16,0
-                .text 24,28,0,4,8,12,16,20,0
-                .text 28,0,4,8,12,16,20,24,0
-
-.include "SplashScreenCode/Splashscreen_Bitmap_Setup.asm"             ;
-.include "SplashScreenCode/Splashscreen_Text_Display.asm"
-.align 256
-SS_MONIKER_LUT
-.binary "SplashScreenCode/Graphics Assets/Graphic_C256Foenix.data.pal"
-SS_MONIKER
-.binary "SplashScreenCode/Graphics Assets/Graphic_C256Foenix.data"
-SS_FMX_TXT
-.binary "SplashScreenCode/Graphics Assets/Graphic_FMX.data"
-SS_UPlus_TXT
-.binary "SplashScreenCode/Graphics Assets/Graphic_UPlus.data"
-SS_U_TXT
-.binary "SplashScreenCode/Graphics Assets/Graphic_U.data"
 ;
 ; The default font and end of flash memory
 ;
@@ -3040,4 +2591,4 @@ FONT_4_BANK0
 FONT_4_SPLASH 
 .binary "FONT/quadrotextFONT.bin"
 * = START_OF_FONT + $00FFFF
-                .byte $FF               ; Last byte of flash data
+.byte $FF               ; Last byte of flash data
