@@ -16,11 +16,9 @@ IRQ_DISPATCH    .macro irq_bit, irq_pending, handler
                 .as
                 BIT #\irq_bit           ; Check to see if the bit is set
                 BEQ continue            ; If not: skip the rest of this macro
-
-                AND #\irq_bit           ; Mask out all other pending interrupts
-                STA @l \irq_pending     ; Drop the pending bit for this interrupt
+				PHA
                 JSL \handler            ; And call its handler
-                setas                   ; Make sure the accumulator is 8-bits in case the handler screwed it up
+				PLA
 continue
                 .endm
 
@@ -125,7 +123,8 @@ IRQ_HANDLER     .proc
                 BNE process_reg0
                 BRL CHECK_PENDING_REG1      ; If nothing: skip to block 1
 
-process_reg0    IRQ_DISPATCH FNX0_INT00_SOF, INT_PENDING_REG0, VEC_INT00_SOF
+process_reg0    STA @l INT_PENDING_REG0
+				IRQ_DISPATCH FNX0_INT00_SOF, INT_PENDING_REG0, VEC_INT00_SOF
                 IRQ_DISPATCH FNX0_INT01_SOL, INT_PENDING_REG0, VEC_INT01_SOL
                 IRQ_DISPATCH FNX0_INT02_TMR0, INT_PENDING_REG0, VEC_INT02_TMR0
                 IRQ_DISPATCH FNX0_INT03_TMR1, INT_PENDING_REG0, VEC_INT03_TMR1
@@ -143,7 +142,8 @@ CHECK_PENDING_REG1
                 BNE process_reg1
                 BRL CHECK_PENDING_REG2
 
-process_reg1    IRQ_DISPATCH FNX1_INT00_KBD, INT_PENDING_REG1, VEC_INT10_KBD
+process_reg1    STA @l INT_PENDING_REG1
+				IRQ_DISPATCH FNX1_INT00_KBD, INT_PENDING_REG1, VEC_INT10_KBD
                 IRQ_DISPATCH FNX1_INT01_COL0, INT_PENDING_REG1, VEC_INT11_COL0
                 IRQ_DISPATCH FNX1_INT02_COL1, INT_PENDING_REG1, VEC_INT12_COL1
                 IRQ_DISPATCH FNX1_INT03_COM2, INT_PENDING_REG1, VEC_INT13_COM2
@@ -161,7 +161,8 @@ CHECK_PENDING_REG2
                 BNE process_reg2
                 BRL CHECK_PENDING_REG3
 
-process_reg2    IRQ_DISPATCH FNX2_INT00_OPL3, INT_PENDING_REG1, VEC_INT20_OPL
+process_reg2    STA @l INT_PENDING_REG2
+				IRQ_DISPATCH FNX2_INT00_OPL3, INT_PENDING_REG1, VEC_INT20_OPL
                 IRQ_DISPATCH FNX2_INT01_GABE_INT0, INT_PENDING_REG1, VEC_INT21_GABE0
                 IRQ_DISPATCH FNX2_INT02_GABE_INT1, INT_PENDING_REG1, VEC_INT22_GABE1
                 IRQ_DISPATCH FNX2_INT03_VDMA, INT_PENDING_REG1, VEC_INT23_VDMA
@@ -177,6 +178,7 @@ process_reg2    IRQ_DISPATCH FNX2_INT00_OPL3, INT_PENDING_REG1, VEC_INT20_OPL
 CHECK_PENDING_REG3
                 LDA @l INT_PENDING_REG3
                 BEQ EXIT_IRQ_HANDLE
+				STA @l INT_PENDING_REG3
 
                 IRQ_DISPATCH FNX3_INT00_OPN2, INT_PENDING_REG1, VEC_INT30_OPN2
                 IRQ_DISPATCH FNX3_INT01_OPM, INT_PENDING_REG1, VEC_INT31_OPM
