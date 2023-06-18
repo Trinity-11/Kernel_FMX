@@ -38,27 +38,17 @@ setxl           .macro
 
 ; Set the direct page. 
 ; Note: This uses the accumulator and leaves A set to 16 bits. 
-setdp           .macro                
-                PHA             ; begin setdp macro 
-                PHP
-                setal
-                LDA #\1         ; set DP to page 0
-                TCD             
+setdp           .macro
+                PEA #\1         ; set DP to page 0
+                PLD             
                 .dpage \1
-                PLP
-                PLA             ; end setdp macro 
                 .endm 
 
 setdbr          .macro          ; Set the B (Data bank) register 
-                PHA             ; begin setdbr macro 
-                PHP
-                setas
-                LDA #\1
-                PHA
-                PLB
+				PEA #(\1*256)+\1
+				PLB
+				PLB
                 .databank \1
-                PLP
-                PLA             ; end setdbr macro 
                 .endm 
 
 TRACE           .macro message

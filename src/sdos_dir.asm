@@ -29,6 +29,7 @@ DOS_DIROPEN     .proc
 
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
+				setal
 
                 TRACE "DOS_DIROPEN"
 
