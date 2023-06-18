@@ -111,6 +111,7 @@ ISDOS_CLEAR_FAT_REC
               PHD
 
               setdp SDOS_BLOCK_BEGIN
+			  setal
 
               LDY #0
               LDA #0

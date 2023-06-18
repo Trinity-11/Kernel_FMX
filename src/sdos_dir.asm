@@ -257,6 +257,7 @@ DOS_DIRFINDFREE .proc
 
                 setdbr `DOS_HIGH_VARIABLES
                 setdp SDOS_VARIABLES
+				.al
 
                 TRACE "DOS_DIRFINDFREE"
 
