@@ -118,10 +118,14 @@ IRQ_HANDLER     .proc
                 ;
                 ; Interrupt Block 0
                 ;
+				LDA @l INT_MASK_REG0
+				EOR #$FF
+				PHA			; 1,s
 
                 LDA @l INT_PENDING_REG0     ; Get the block 0 pending interrupts
+				AND 1,s
                 BNE process_reg0
-                BRL CHECK_PENDING_REG1      ; If nothing: skip to block 1
+                JMP skip_block0      ; If nothing: skip to block 1
 
 process_reg0    STA @l INT_PENDING_REG0
 				IRQ_DISPATCH FNX0_INT00_SOF, INT_PENDING_REG0, VEC_INT00_SOF
@@ -132,15 +136,20 @@ process_reg0    STA @l INT_PENDING_REG0
                 IRQ_DISPATCH FNX0_INT05_RTC, INT_PENDING_REG0, VEC_INT05_RTC
                 IRQ_DISPATCH FNX0_INT06_FDC, INT_PENDING_REG0, VEC_INT06_FDC
                 IRQ_DISPATCH FNX0_INT07_MOUSE, INT_PENDING_REG0, VEC_INT07_MOUSE
-
+skip_block0     PLA
                 ;
                 ; Interrupt Block 1
                 ;
 
 CHECK_PENDING_REG1
+				LDA @l INT_MASK_REG1
+				EOR #$FF
+				PHA			; 1,s
+
                 LDA @l INT_PENDING_REG1
+				AND 1,s
                 BNE process_reg1
-                BRL CHECK_PENDING_REG2
+                JMP skip_block1
 
 process_reg1    STA @l INT_PENDING_REG1
 				IRQ_DISPATCH FNX1_INT00_KBD, INT_PENDING_REG1, VEC_INT10_KBD
@@ -151,15 +160,20 @@ process_reg1    STA @l INT_PENDING_REG1
                 IRQ_DISPATCH FNX1_INT05_MPU401, INT_PENDING_REG1, VEC_INT15_MIDI
                 IRQ_DISPATCH FNX1_INT06_LPT, INT_PENDING_REG1, VEC_INT16_LPT
                 IRQ_DISPATCH FNX1_INT07_SDCARD, INT_PENDING_REG1, VEC_INT17_SDC
-
+skip_block1     PLA
                 ;
                 ; Interrupt Block 2
                 ;
 
 CHECK_PENDING_REG2
+				LDA @l INT_MASK_REG2
+				EOR #$FF
+				PHA			; 1,s
+
                 LDA @l INT_PENDING_REG2
+				AND 1,s
                 BNE process_reg2
-                BRL CHECK_PENDING_REG3
+                JMP skip_block2
 
 process_reg2    STA @l INT_PENDING_REG2
 				IRQ_DISPATCH FNX2_INT00_OPL3, INT_PENDING_REG1, VEC_INT20_OPL
@@ -170,19 +184,25 @@ process_reg2    STA @l INT_PENDING_REG2
                 IRQ_DISPATCH FNX2_INT05_GABE_INT2, INT_PENDING_REG1, VEC_INT25_GABE2
                 IRQ_DISPATCH FNX2_INT06_EXT, INT_PENDING_REG1, VEC_INT26_EXT
                 IRQ_DISPATCH FNX2_INT07_SDCARD_INS, INT_PENDING_REG1, VEC_INT17_SDINS
-
+skip_block2     PLA
                 ;
                 ; Interrupt Block 3
                 ;
 
 CHECK_PENDING_REG3
+				LDA @l INT_MASK_REG3
+				EOR #$FF
+				PHA			; 1,s
+
                 LDA @l INT_PENDING_REG3
-                BEQ EXIT_IRQ_HANDLE
+				AND 1,s
+                BEQ skip_block3
 				STA @l INT_PENDING_REG3
 
                 IRQ_DISPATCH FNX3_INT00_OPN2, INT_PENDING_REG1, VEC_INT30_OPN2
                 IRQ_DISPATCH FNX3_INT01_OPM, INT_PENDING_REG1, VEC_INT31_OPM
                 IRQ_DISPATCH FNX3_INT02_IDE, INT_PENDING_REG1, VEC_INT32_IDE
+skip_block3     PLA
 
 EXIT_IRQ_HANDLE
                 ; Exit Interrupt Handler
