@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=2 -D TARGET_SYS=1 --long-address --flat --intel-hex -o kernel_FMX.hex --list kernel_FMX_hex.lst --labels=kernel_FMX_hex.lbl src\kernel.asm
-; Sun Jun 18 13:56:18 2023
+; Wed Jun 21 18:43:35 2023
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -394,7 +394,7 @@
 .ff44		48		pha		                PHA
 .ff45		da		phx		                PHX
 .ff46		5a		phy		                PHY
-.ff47		22 ff 18 38	jsl $3818ff	                JSL NMI_HANDLER
+.ff47		22 27 19 38	jsl $381927	                JSL NMI_HANDLER
 .ff4b		7a		ply		                PLY
 .ff4c		fa		plx		                PLX
 .ff4d		68		pla		                PLA
@@ -697,200 +697,220 @@
 .3817bb						IRQ_HANDLER
 .3817bb		08		php		                PHP
 .3817bc		e2 20		sep #$20	                SEP #$20        ; set A short
-.3817be		af 40 01 00	lda $000140	                LDA @l INT_PENDING_REG0     ; Get the block 0 pending interrupts
-.3817c2		d0 03		bne $3817c7	                BNE process_reg0
-.3817c4		82 54 00	brl $38181b	                BRL CHECK_PENDING_REG1      ; If nothing: skip to block 1
-.3817c7		8f 40 01 00	sta $000140	process_reg0    STA @l INT_PENDING_REG0
-.3817cb		89 01		bit #$01	                BIT #FNX0_INT00_SOF           ; Check to see if the bit is set
-.3817cd		f0 06		beq $3817d5	                BEQ continue            ; If not: skip the rest of this macro
-.3817cf		48		pha						PHA
-.3817d0		22 00 17 00	jsl $001700	                JSL VEC_INT00_SOF            ; And call its handler
-.3817d4		68		pla						PLA
-.3817d5						continue
-.3817d5		89 02		bit #$02	                BIT #FNX0_INT01_SOL           ; Check to see if the bit is set
-.3817d7		f0 06		beq $3817df	                BEQ continue            ; If not: skip the rest of this macro
-.3817d9		48		pha						PHA
-.3817da		22 04 17 00	jsl $001704	                JSL VEC_INT01_SOL            ; And call its handler
-.3817de		68		pla						PLA
-.3817df						continue
-.3817df		89 04		bit #$04	                BIT #FNX0_INT02_TMR0           ; Check to see if the bit is set
-.3817e1		f0 06		beq $3817e9	                BEQ continue            ; If not: skip the rest of this macro
-.3817e3		48		pha						PHA
-.3817e4		22 08 17 00	jsl $001708	                JSL VEC_INT02_TMR0            ; And call its handler
-.3817e8		68		pla						PLA
-.3817e9						continue
-.3817e9		89 08		bit #$08	                BIT #FNX0_INT03_TMR1           ; Check to see if the bit is set
-.3817eb		f0 06		beq $3817f3	                BEQ continue            ; If not: skip the rest of this macro
-.3817ed		48		pha						PHA
-.3817ee		22 0c 17 00	jsl $00170c	                JSL VEC_INT03_TMR1            ; And call its handler
-.3817f2		68		pla						PLA
-.3817f3						continue
-.3817f3		89 10		bit #$10	                BIT #FNX0_INT04_TMR2           ; Check to see if the bit is set
-.3817f5		f0 06		beq $3817fd	                BEQ continue            ; If not: skip the rest of this macro
-.3817f7		48		pha						PHA
-.3817f8		22 10 17 00	jsl $001710	                JSL VEC_INT04_TMR2            ; And call its handler
-.3817fc		68		pla						PLA
-.3817fd						continue
-.3817fd		89 20		bit #$20	                BIT #FNX0_INT05_RTC           ; Check to see if the bit is set
-.3817ff		f0 06		beq $381807	                BEQ continue            ; If not: skip the rest of this macro
-.381801		48		pha						PHA
-.381802		22 14 17 00	jsl $001714	                JSL VEC_INT05_RTC            ; And call its handler
-.381806		68		pla						PLA
-.381807						continue
-.381807		89 40		bit #$40	                BIT #FNX0_INT06_FDC           ; Check to see if the bit is set
-.381809		f0 06		beq $381811	                BEQ continue            ; If not: skip the rest of this macro
-.38180b		48		pha						PHA
-.38180c		22 18 17 00	jsl $001718	                JSL VEC_INT06_FDC            ; And call its handler
-.381810		68		pla						PLA
-.381811						continue
-.381811		89 80		bit #$80	                BIT #FNX0_INT07_MOUSE           ; Check to see if the bit is set
-.381813		f0 06		beq $38181b	                BEQ continue            ; If not: skip the rest of this macro
-.381815		48		pha						PHA
-.381816		22 1c 17 00	jsl $00171c	                JSL VEC_INT07_MOUSE            ; And call its handler
-.38181a		68		pla						PLA
-.38181b						continue
-.38181b						CHECK_PENDING_REG1
-.38181b		af 41 01 00	lda $000141	                LDA @l INT_PENDING_REG1
-.38181f		d0 03		bne $381824	                BNE process_reg1
-.381821		82 54 00	brl $381878	                BRL CHECK_PENDING_REG2
-.381824		8f 41 01 00	sta $000141	process_reg1    STA @l INT_PENDING_REG1
-.381828		89 01		bit #$01	                BIT #FNX1_INT00_KBD           ; Check to see if the bit is set
-.38182a		f0 06		beq $381832	                BEQ continue            ; If not: skip the rest of this macro
-.38182c		48		pha						PHA
-.38182d		22 20 17 00	jsl $001720	                JSL VEC_INT10_KBD            ; And call its handler
-.381831		68		pla						PLA
-.381832						continue
-.381832		89 02		bit #$02	                BIT #FNX1_INT01_COL0           ; Check to see if the bit is set
-.381834		f0 06		beq $38183c	                BEQ continue            ; If not: skip the rest of this macro
-.381836		48		pha						PHA
-.381837		22 24 17 00	jsl $001724	                JSL VEC_INT11_COL0            ; And call its handler
-.38183b		68		pla						PLA
-.38183c						continue
-.38183c		89 04		bit #$04	                BIT #FNX1_INT02_COL1           ; Check to see if the bit is set
-.38183e		f0 06		beq $381846	                BEQ continue            ; If not: skip the rest of this macro
-.381840		48		pha						PHA
-.381841		22 28 17 00	jsl $001728	                JSL VEC_INT12_COL1            ; And call its handler
-.381845		68		pla						PLA
-.381846						continue
-.381846		89 08		bit #$08	                BIT #FNX1_INT03_COM2           ; Check to see if the bit is set
-.381848		f0 06		beq $381850	                BEQ continue            ; If not: skip the rest of this macro
-.38184a		48		pha						PHA
-.38184b		22 2c 17 00	jsl $00172c	                JSL VEC_INT13_COM2            ; And call its handler
-.38184f		68		pla						PLA
-.381850						continue
-.381850		89 10		bit #$10	                BIT #FNX1_INT04_COM1           ; Check to see if the bit is set
-.381852		f0 06		beq $38185a	                BEQ continue            ; If not: skip the rest of this macro
-.381854		48		pha						PHA
-.381855		22 30 17 00	jsl $001730	                JSL VEC_INT14_COM1            ; And call its handler
-.381859		68		pla						PLA
-.38185a						continue
-.38185a		89 20		bit #$20	                BIT #FNX1_INT05_MPU401           ; Check to see if the bit is set
-.38185c		f0 06		beq $381864	                BEQ continue            ; If not: skip the rest of this macro
-.38185e		48		pha						PHA
-.38185f		22 34 17 00	jsl $001734	                JSL VEC_INT15_MIDI            ; And call its handler
-.381863		68		pla						PLA
-.381864						continue
-.381864		89 40		bit #$40	                BIT #FNX1_INT06_LPT           ; Check to see if the bit is set
-.381866		f0 06		beq $38186e	                BEQ continue            ; If not: skip the rest of this macro
-.381868		48		pha						PHA
-.381869		22 38 17 00	jsl $001738	                JSL VEC_INT16_LPT            ; And call its handler
-.38186d		68		pla						PLA
-.38186e						continue
-.38186e		89 80		bit #$80	                BIT #FNX1_INT07_SDCARD           ; Check to see if the bit is set
-.381870		f0 06		beq $381878	                BEQ continue            ; If not: skip the rest of this macro
-.381872		48		pha						PHA
-.381873		22 3c 17 00	jsl $00173c	                JSL VEC_INT17_SDC            ; And call its handler
-.381877		68		pla						PLA
-.381878						continue
-.381878						CHECK_PENDING_REG2
-.381878		af 42 01 00	lda $000142	                LDA @l INT_PENDING_REG2
-.38187c		d0 03		bne $381881	                BNE process_reg2
-.38187e		82 54 00	brl $3818d5	                BRL CHECK_PENDING_REG3
-.381881		8f 42 01 00	sta $000142	process_reg2    STA @l INT_PENDING_REG2
-.381885		89 01		bit #$01	                BIT #FNX2_INT00_OPL3           ; Check to see if the bit is set
-.381887		f0 06		beq $38188f	                BEQ continue            ; If not: skip the rest of this macro
-.381889		48		pha						PHA
-.38188a		22 40 17 00	jsl $001740	                JSL VEC_INT20_OPL            ; And call its handler
-.38188e		68		pla						PLA
-.38188f						continue
-.38188f		89 02		bit #$02	                BIT #FNX2_INT01_GABE_INT0           ; Check to see if the bit is set
-.381891		f0 06		beq $381899	                BEQ continue            ; If not: skip the rest of this macro
-.381893		48		pha						PHA
-.381894		22 44 17 00	jsl $001744	                JSL VEC_INT21_GABE0            ; And call its handler
-.381898		68		pla						PLA
-.381899						continue
-.381899		89 04		bit #$04	                BIT #FNX2_INT02_GABE_INT1           ; Check to see if the bit is set
-.38189b		f0 06		beq $3818a3	                BEQ continue            ; If not: skip the rest of this macro
-.38189d		48		pha						PHA
-.38189e		22 48 17 00	jsl $001748	                JSL VEC_INT22_GABE1            ; And call its handler
-.3818a2		68		pla						PLA
-.3818a3						continue
-.3818a3		89 08		bit #$08	                BIT #FNX2_INT03_VDMA           ; Check to see if the bit is set
-.3818a5		f0 06		beq $3818ad	                BEQ continue            ; If not: skip the rest of this macro
-.3818a7		48		pha						PHA
-.3818a8		22 4c 17 00	jsl $00174c	                JSL VEC_INT23_VDMA            ; And call its handler
-.3818ac		68		pla						PLA
-.3818ad						continue
-.3818ad		89 10		bit #$10	                BIT #FNX2_INT04_COL2           ; Check to see if the bit is set
-.3818af		f0 06		beq $3818b7	                BEQ continue            ; If not: skip the rest of this macro
-.3818b1		48		pha						PHA
-.3818b2		22 50 17 00	jsl $001750	                JSL VEC_INT24_COL2            ; And call its handler
-.3818b6		68		pla						PLA
-.3818b7						continue
-.3818b7		89 20		bit #$20	                BIT #FNX2_INT05_GABE_INT2           ; Check to see if the bit is set
-.3818b9		f0 06		beq $3818c1	                BEQ continue            ; If not: skip the rest of this macro
-.3818bb		48		pha						PHA
-.3818bc		22 54 17 00	jsl $001754	                JSL VEC_INT25_GABE2            ; And call its handler
-.3818c0		68		pla						PLA
-.3818c1						continue
-.3818c1		89 40		bit #$40	                BIT #FNX2_INT06_EXT           ; Check to see if the bit is set
-.3818c3		f0 06		beq $3818cb	                BEQ continue            ; If not: skip the rest of this macro
-.3818c5		48		pha						PHA
-.3818c6		22 58 17 00	jsl $001758	                JSL VEC_INT26_EXT            ; And call its handler
-.3818ca		68		pla						PLA
-.3818cb						continue
-.3818cb		89 80		bit #$80	                BIT #FNX2_INT07_SDCARD_INS           ; Check to see if the bit is set
-.3818cd		f0 06		beq $3818d5	                BEQ continue            ; If not: skip the rest of this macro
-.3818cf		48		pha						PHA
-.3818d0		22 5c 17 00	jsl $00175c	                JSL VEC_INT17_SDINS            ; And call its handler
-.3818d4		68		pla						PLA
-.3818d5						continue
-.3818d5						CHECK_PENDING_REG3
-.3818d5		af 43 01 00	lda $000143	                LDA @l INT_PENDING_REG3
-.3818d9		f0 22		beq $3818fd	                BEQ EXIT_IRQ_HANDLE
-.3818db		8f 43 01 00	sta $000143					STA @l INT_PENDING_REG3
-.3818df		89 01		bit #$01	                BIT #FNX3_INT00_OPN2           ; Check to see if the bit is set
-.3818e1		f0 06		beq $3818e9	                BEQ continue            ; If not: skip the rest of this macro
-.3818e3		48		pha						PHA
-.3818e4		22 60 17 00	jsl $001760	                JSL VEC_INT30_OPN2            ; And call its handler
-.3818e8		68		pla						PLA
-.3818e9						continue
-.3818e9		89 02		bit #$02	                BIT #FNX3_INT01_OPM           ; Check to see if the bit is set
-.3818eb		f0 06		beq $3818f3	                BEQ continue            ; If not: skip the rest of this macro
-.3818ed		48		pha						PHA
-.3818ee		22 64 17 00	jsl $001764	                JSL VEC_INT31_OPM            ; And call its handler
-.3818f2		68		pla						PLA
-.3818f3						continue
-.3818f3		89 04		bit #$04	                BIT #FNX3_INT02_IDE           ; Check to see if the bit is set
-.3818f5		f0 06		beq $3818fd	                BEQ continue            ; If not: skip the rest of this macro
-.3818f7		48		pha						PHA
-.3818f8		22 68 17 00	jsl $001768	                JSL VEC_INT32_IDE            ; And call its handler
-.3818fc		68		pla						PLA
-.3818fd						continue
-.3818fd						EXIT_IRQ_HANDLE
-.3818fd		28		plp		                PLP
-.3818fe		6b		rtl		                RTL
-.3818ff		6b		rtl		NMI_HANDLER     RTL
-.381900						HANDLE_TIMER0
-.381900		48		pha		                PHA
-.381901		08		php		                PHP
-.381902		e2 20		sep #$20	                SEP #$20        ; set A short
-.381904		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
-.381908		09 80		ora #$80	                ORA #TIMER0TRIGGER
-.38190a		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
-.38190e		28		plp		                PLP
-.38190f		68		pla		                PLA
-.381910		6b		rtl		                RTL
+.3817be		af 4c 01 00	lda $00014c					LDA @l INT_MASK_REG0
+.3817c2		49 ff		eor #$ff					EOR #$FF
+.3817c4		48		pha						PHA			; 1,s
+.3817c5		af 40 01 00	lda $000140	                LDA @l INT_PENDING_REG0     ; Get the block 0 pending interrupts
+.3817c9		23 01		and $01,s					AND 1,s
+.3817cb		d0 03		bne $3817d0	                BNE process_reg0
+.3817cd		4c 24 18	jmp $381824	                JMP skip_block0      ; If nothing: skip to block 1
+.3817d0		8f 40 01 00	sta $000140	process_reg0    STA @l INT_PENDING_REG0
+.3817d4		89 01		bit #$01	                BIT #FNX0_INT00_SOF           ; Check to see if the bit is set
+.3817d6		f0 06		beq $3817de	                BEQ continue            ; If not: skip the rest of this macro
+.3817d8		48		pha						PHA
+.3817d9		22 00 17 00	jsl $001700	                JSL VEC_INT00_SOF            ; And call its handler
+.3817dd		68		pla						PLA
+.3817de						continue
+.3817de		89 02		bit #$02	                BIT #FNX0_INT01_SOL           ; Check to see if the bit is set
+.3817e0		f0 06		beq $3817e8	                BEQ continue            ; If not: skip the rest of this macro
+.3817e2		48		pha						PHA
+.3817e3		22 04 17 00	jsl $001704	                JSL VEC_INT01_SOL            ; And call its handler
+.3817e7		68		pla						PLA
+.3817e8						continue
+.3817e8		89 04		bit #$04	                BIT #FNX0_INT02_TMR0           ; Check to see if the bit is set
+.3817ea		f0 06		beq $3817f2	                BEQ continue            ; If not: skip the rest of this macro
+.3817ec		48		pha						PHA
+.3817ed		22 08 17 00	jsl $001708	                JSL VEC_INT02_TMR0            ; And call its handler
+.3817f1		68		pla						PLA
+.3817f2						continue
+.3817f2		89 08		bit #$08	                BIT #FNX0_INT03_TMR1           ; Check to see if the bit is set
+.3817f4		f0 06		beq $3817fc	                BEQ continue            ; If not: skip the rest of this macro
+.3817f6		48		pha						PHA
+.3817f7		22 0c 17 00	jsl $00170c	                JSL VEC_INT03_TMR1            ; And call its handler
+.3817fb		68		pla						PLA
+.3817fc						continue
+.3817fc		89 10		bit #$10	                BIT #FNX0_INT04_TMR2           ; Check to see if the bit is set
+.3817fe		f0 06		beq $381806	                BEQ continue            ; If not: skip the rest of this macro
+.381800		48		pha						PHA
+.381801		22 10 17 00	jsl $001710	                JSL VEC_INT04_TMR2            ; And call its handler
+.381805		68		pla						PLA
+.381806						continue
+.381806		89 20		bit #$20	                BIT #FNX0_INT05_RTC           ; Check to see if the bit is set
+.381808		f0 06		beq $381810	                BEQ continue            ; If not: skip the rest of this macro
+.38180a		48		pha						PHA
+.38180b		22 14 17 00	jsl $001714	                JSL VEC_INT05_RTC            ; And call its handler
+.38180f		68		pla						PLA
+.381810						continue
+.381810		89 40		bit #$40	                BIT #FNX0_INT06_FDC           ; Check to see if the bit is set
+.381812		f0 06		beq $38181a	                BEQ continue            ; If not: skip the rest of this macro
+.381814		48		pha						PHA
+.381815		22 18 17 00	jsl $001718	                JSL VEC_INT06_FDC            ; And call its handler
+.381819		68		pla						PLA
+.38181a						continue
+.38181a		89 80		bit #$80	                BIT #FNX0_INT07_MOUSE           ; Check to see if the bit is set
+.38181c		f0 06		beq $381824	                BEQ continue            ; If not: skip the rest of this macro
+.38181e		48		pha						PHA
+.38181f		22 1c 17 00	jsl $00171c	                JSL VEC_INT07_MOUSE            ; And call its handler
+.381823		68		pla						PLA
+.381824						continue
+.381824		68		pla		skip_block0     PLA
+.381825						CHECK_PENDING_REG1
+.381825		af 4d 01 00	lda $00014d					LDA @l INT_MASK_REG1
+.381829		49 ff		eor #$ff					EOR #$FF
+.38182b		48		pha						PHA			; 1,s
+.38182c		af 41 01 00	lda $000141	                LDA @l INT_PENDING_REG1
+.381830		23 01		and $01,s					AND 1,s
+.381832		d0 03		bne $381837	                BNE process_reg1
+.381834		4c 8b 18	jmp $38188b	                JMP skip_block1
+.381837		8f 41 01 00	sta $000141	process_reg1    STA @l INT_PENDING_REG1
+.38183b		89 01		bit #$01	                BIT #FNX1_INT00_KBD           ; Check to see if the bit is set
+.38183d		f0 06		beq $381845	                BEQ continue            ; If not: skip the rest of this macro
+.38183f		48		pha						PHA
+.381840		22 20 17 00	jsl $001720	                JSL VEC_INT10_KBD            ; And call its handler
+.381844		68		pla						PLA
+.381845						continue
+.381845		89 02		bit #$02	                BIT #FNX1_INT01_COL0           ; Check to see if the bit is set
+.381847		f0 06		beq $38184f	                BEQ continue            ; If not: skip the rest of this macro
+.381849		48		pha						PHA
+.38184a		22 24 17 00	jsl $001724	                JSL VEC_INT11_COL0            ; And call its handler
+.38184e		68		pla						PLA
+.38184f						continue
+.38184f		89 04		bit #$04	                BIT #FNX1_INT02_COL1           ; Check to see if the bit is set
+.381851		f0 06		beq $381859	                BEQ continue            ; If not: skip the rest of this macro
+.381853		48		pha						PHA
+.381854		22 28 17 00	jsl $001728	                JSL VEC_INT12_COL1            ; And call its handler
+.381858		68		pla						PLA
+.381859						continue
+.381859		89 08		bit #$08	                BIT #FNX1_INT03_COM2           ; Check to see if the bit is set
+.38185b		f0 06		beq $381863	                BEQ continue            ; If not: skip the rest of this macro
+.38185d		48		pha						PHA
+.38185e		22 2c 17 00	jsl $00172c	                JSL VEC_INT13_COM2            ; And call its handler
+.381862		68		pla						PLA
+.381863						continue
+.381863		89 10		bit #$10	                BIT #FNX1_INT04_COM1           ; Check to see if the bit is set
+.381865		f0 06		beq $38186d	                BEQ continue            ; If not: skip the rest of this macro
+.381867		48		pha						PHA
+.381868		22 30 17 00	jsl $001730	                JSL VEC_INT14_COM1            ; And call its handler
+.38186c		68		pla						PLA
+.38186d						continue
+.38186d		89 20		bit #$20	                BIT #FNX1_INT05_MPU401           ; Check to see if the bit is set
+.38186f		f0 06		beq $381877	                BEQ continue            ; If not: skip the rest of this macro
+.381871		48		pha						PHA
+.381872		22 34 17 00	jsl $001734	                JSL VEC_INT15_MIDI            ; And call its handler
+.381876		68		pla						PLA
+.381877						continue
+.381877		89 40		bit #$40	                BIT #FNX1_INT06_LPT           ; Check to see if the bit is set
+.381879		f0 06		beq $381881	                BEQ continue            ; If not: skip the rest of this macro
+.38187b		48		pha						PHA
+.38187c		22 38 17 00	jsl $001738	                JSL VEC_INT16_LPT            ; And call its handler
+.381880		68		pla						PLA
+.381881						continue
+.381881		89 80		bit #$80	                BIT #FNX1_INT07_SDCARD           ; Check to see if the bit is set
+.381883		f0 06		beq $38188b	                BEQ continue            ; If not: skip the rest of this macro
+.381885		48		pha						PHA
+.381886		22 3c 17 00	jsl $00173c	                JSL VEC_INT17_SDC            ; And call its handler
+.38188a		68		pla						PLA
+.38188b						continue
+.38188b		68		pla		skip_block1     PLA
+.38188c						CHECK_PENDING_REG2
+.38188c		af 4e 01 00	lda $00014e					LDA @l INT_MASK_REG2
+.381890		49 ff		eor #$ff					EOR #$FF
+.381892		48		pha						PHA			; 1,s
+.381893		af 42 01 00	lda $000142	                LDA @l INT_PENDING_REG2
+.381897		23 01		and $01,s					AND 1,s
+.381899		d0 03		bne $38189e	                BNE process_reg2
+.38189b		4c f2 18	jmp $3818f2	                JMP skip_block2
+.38189e		8f 42 01 00	sta $000142	process_reg2    STA @l INT_PENDING_REG2
+.3818a2		89 01		bit #$01	                BIT #FNX2_INT00_OPL3           ; Check to see if the bit is set
+.3818a4		f0 06		beq $3818ac	                BEQ continue            ; If not: skip the rest of this macro
+.3818a6		48		pha						PHA
+.3818a7		22 40 17 00	jsl $001740	                JSL VEC_INT20_OPL            ; And call its handler
+.3818ab		68		pla						PLA
+.3818ac						continue
+.3818ac		89 02		bit #$02	                BIT #FNX2_INT01_GABE_INT0           ; Check to see if the bit is set
+.3818ae		f0 06		beq $3818b6	                BEQ continue            ; If not: skip the rest of this macro
+.3818b0		48		pha						PHA
+.3818b1		22 44 17 00	jsl $001744	                JSL VEC_INT21_GABE0            ; And call its handler
+.3818b5		68		pla						PLA
+.3818b6						continue
+.3818b6		89 04		bit #$04	                BIT #FNX2_INT02_GABE_INT1           ; Check to see if the bit is set
+.3818b8		f0 06		beq $3818c0	                BEQ continue            ; If not: skip the rest of this macro
+.3818ba		48		pha						PHA
+.3818bb		22 48 17 00	jsl $001748	                JSL VEC_INT22_GABE1            ; And call its handler
+.3818bf		68		pla						PLA
+.3818c0						continue
+.3818c0		89 08		bit #$08	                BIT #FNX2_INT03_VDMA           ; Check to see if the bit is set
+.3818c2		f0 06		beq $3818ca	                BEQ continue            ; If not: skip the rest of this macro
+.3818c4		48		pha						PHA
+.3818c5		22 4c 17 00	jsl $00174c	                JSL VEC_INT23_VDMA            ; And call its handler
+.3818c9		68		pla						PLA
+.3818ca						continue
+.3818ca		89 10		bit #$10	                BIT #FNX2_INT04_COL2           ; Check to see if the bit is set
+.3818cc		f0 06		beq $3818d4	                BEQ continue            ; If not: skip the rest of this macro
+.3818ce		48		pha						PHA
+.3818cf		22 50 17 00	jsl $001750	                JSL VEC_INT24_COL2            ; And call its handler
+.3818d3		68		pla						PLA
+.3818d4						continue
+.3818d4		89 20		bit #$20	                BIT #FNX2_INT05_GABE_INT2           ; Check to see if the bit is set
+.3818d6		f0 06		beq $3818de	                BEQ continue            ; If not: skip the rest of this macro
+.3818d8		48		pha						PHA
+.3818d9		22 54 17 00	jsl $001754	                JSL VEC_INT25_GABE2            ; And call its handler
+.3818dd		68		pla						PLA
+.3818de						continue
+.3818de		89 40		bit #$40	                BIT #FNX2_INT06_EXT           ; Check to see if the bit is set
+.3818e0		f0 06		beq $3818e8	                BEQ continue            ; If not: skip the rest of this macro
+.3818e2		48		pha						PHA
+.3818e3		22 58 17 00	jsl $001758	                JSL VEC_INT26_EXT            ; And call its handler
+.3818e7		68		pla						PLA
+.3818e8						continue
+.3818e8		89 80		bit #$80	                BIT #FNX2_INT07_SDCARD_INS           ; Check to see if the bit is set
+.3818ea		f0 06		beq $3818f2	                BEQ continue            ; If not: skip the rest of this macro
+.3818ec		48		pha						PHA
+.3818ed		22 5c 17 00	jsl $00175c	                JSL VEC_INT17_SDINS            ; And call its handler
+.3818f1		68		pla						PLA
+.3818f2						continue
+.3818f2		68		pla		skip_block2     PLA
+.3818f3						CHECK_PENDING_REG3
+.3818f3		af 4f 01 00	lda $00014f					LDA @l INT_MASK_REG3
+.3818f7		49 ff		eor #$ff					EOR #$FF
+.3818f9		48		pha						PHA			; 1,s
+.3818fa		af 43 01 00	lda $000143	                LDA @l INT_PENDING_REG3
+.3818fe		23 01		and $01,s					AND 1,s
+.381900		f0 22		beq $381924	                BEQ skip_block3
+.381902		8f 43 01 00	sta $000143					STA @l INT_PENDING_REG3
+.381906		89 01		bit #$01	                BIT #FNX3_INT00_OPN2           ; Check to see if the bit is set
+.381908		f0 06		beq $381910	                BEQ continue            ; If not: skip the rest of this macro
+.38190a		48		pha						PHA
+.38190b		22 60 17 00	jsl $001760	                JSL VEC_INT30_OPN2            ; And call its handler
+.38190f		68		pla						PLA
+.381910						continue
+.381910		89 02		bit #$02	                BIT #FNX3_INT01_OPM           ; Check to see if the bit is set
+.381912		f0 06		beq $38191a	                BEQ continue            ; If not: skip the rest of this macro
+.381914		48		pha						PHA
+.381915		22 64 17 00	jsl $001764	                JSL VEC_INT31_OPM            ; And call its handler
+.381919		68		pla						PLA
+.38191a						continue
+.38191a		89 04		bit #$04	                BIT #FNX3_INT02_IDE           ; Check to see if the bit is set
+.38191c		f0 06		beq $381924	                BEQ continue            ; If not: skip the rest of this macro
+.38191e		48		pha						PHA
+.38191f		22 68 17 00	jsl $001768	                JSL VEC_INT32_IDE            ; And call its handler
+.381923		68		pla						PLA
+.381924						continue
+.381924		68		pla		skip_block3     PLA
+.381925						EXIT_IRQ_HANDLE
+.381925		28		plp		                PLP
+.381926		6b		rtl		                RTL
+.381927		6b		rtl		NMI_HANDLER     RTL
+.381928						HANDLE_TIMER0
+.381928		48		pha		                PHA
+.381929		08		php		                PHP
+.38192a		e2 20		sep #$20	                SEP #$20        ; set A short
+.38192c		af 05 07 00	lda $000705	                LDA @l TIMERFLAGS               ; Flag that the interrupt has happened
+.381930		09 80		ora #$80	                ORA #TIMER0TRIGGER
+.381932		8f 05 07 00	sta $000705	                STA @l TIMERFLAGS
+.381936		28		plp		                PLP
+.381937		68		pla		                PLA
+.381938		6b		rtl		                RTL
 
 ;******  Return to file: src\kernel.asm
 
@@ -3787,7 +3807,7 @@
 .390fb0		5a		phy		                PHY
 .390fb1		a9 02 00	lda #$0002	                LDA #$02                    ; Set the handler for TIMER0 interrupts
 .390fb4		a0 38 00	ldy #$0038	                LDY #`HANDLE_TIMER0
-.390fb7		a2 00 19	ldx #$1900	                LDX #<>HANDLE_TIMER0
+.390fb7		a2 28 19	ldx #$1928	                LDX #<>HANDLE_TIMER0
 .390fba		22 48 11 00	jsl $001148	                JSL SETHANDLER
 .390fbe		7a		ply		                PLY                         ; Restore the delay amount
 .390fbf		fa		plx		                PLX
@@ -14670,9 +14690,9 @@
 
 ;******  Processing file: src\version.asm
 
->397c32		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+352 (2023-06-18)"
->397c3a		6c 70 68 61 2b 33 35 32 20 28 32 30 32 33 2d 30
->397c4a		36 2d 31 38 29
+>397c32		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+353 (2023-06-21)"
+>397c3a		6c 70 68 61 2b 33 35 33 20 28 32 30 32 33 2d 30
+>397c4a		36 2d 32 31 29
 
 ;******  Return to file: src\kernel.asm
 
