@@ -45,7 +45,7 @@ setdp           .macro
                 .endm 
 
 setdbr          .macro          ; Set the B (Data bank) register 
-                PEA #((256 * \1) + \1)
+                PEA #((\1) * 256) + (\1)
                 PLB
                 PLB
                 .databank \1

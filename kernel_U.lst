@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=1 -D TARGET_SYS=2 --long-address --flat -b -o kernel_U.bin --list kernel_U.lst --labels=kernel_U.lbl src\kernel.asm
-; Mon Jul 17 20:27:14 2023
+; Mon Jul 17 21:20:40 2023
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -644,7 +644,7 @@
 .18176c						ISETHANDLER
 .18176c		8b		phb		                PHB
 .18176d		08		php		                PHP
-.18176e		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.18176e		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .181771		ab		plb		                PLB
 .181772		ab		plb		                PLB
 .181773		e2 20		sep #$20	                SEP #$20        ; set A short
@@ -2532,7 +2532,7 @@
 .1904f5		58		cli		                CLI
 .1904f6		e2 20		sep #$20	                SEP #$20        ; set A short
 .1904f8		c2 10		rep #$10	                REP #$10        ; set X long
-.1904fa		f4 19 19	pea #$1919	                PEA #((256 * `greet_msg) + `greet_msg)
+.1904fa		f4 19 19	pea #$1919	                PEA #((`greet_msg) * 256) + (`greet_msg)
 .1904fd		ab		plb		                PLB
 .1904fe		ab		plb		                PLB
 .1904ff		a2 00 00	ldx #$0000	                LDX #0
@@ -2551,7 +2551,7 @@
 .190526		22 a0 10 00	jsl $0010a0	                JSL CSRHOME             ; Move to the home position
 .19052a						greet
 .19052a		c2 30		rep #$30	                REP #$30        ; set A&X long
-.19052c		f4 19 19	pea #$1919	                PEA #((256 * `greet_msg) + `greet_msg)
+.19052c		f4 19 19	pea #$1919	                PEA #((`greet_msg) * 256) + (`greet_msg)
 .19052f		ab		plb		                PLB
 .190530		ab		plb		                PLB
 .190531		a2 14 7b	ldx #$7b14	                LDX #<>greet_msg
@@ -2666,7 +2666,7 @@
 .190644		1b		tcs		                TAS
 .190645		5c 04 00 1a	jmp $1a0004	                JML MONITOR
 .190649						IREADY
-.190649		f4 19 19	pea #$1919	                PEA #((256 * `ready_msg) + `ready_msg)
+.190649		f4 19 19	pea #$1919	                PEA #((`ready_msg) * 256) + (`ready_msg)
 .19064c		ab		plb		                PLB
 .19064d		ab		plb		                PLB
 .19064e		e2 20		sep #$20	                SEP #$20        ; set A short
@@ -2778,7 +2778,7 @@
 .190704		08		php		                PHP                 ; stash the flags (we'll be changing M)
 .190705		f4 00 00	pea #$0000	                PEA #0         ; set DP to page 0
 .190708		2b		pld		                PLD
-.190709		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.190709		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19070c		ab		plb		                PLB
 .19070d		ab		plb		                PLB
 .19070e		e2 20		sep #$20	                SEP #$20        ; set A short
@@ -2869,7 +2869,7 @@
 .190790		8b		phb		                PHB
 .190791		0b		phd		                PHD
 .190792		08		php		                PHP
-.190793		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.190793		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .190796		ab		plb		                PLB
 .190797		ab		plb		                PLB
 .190798		f4 00 00	pea #$0000	                PEA #0         ; set DP to page 0
@@ -3792,7 +3792,7 @@
 .190f8b		48		pha		                PHA
 .190f8c		8b		phb		                PHB
 .190f8d		08		php		                PHP
-.190f8e		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.190f8e		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .190f91		ab		plb		                PLB
 .190f92		ab		plb		                PLB
 .190f93		c2 30		rep #$30	                REP #$30        ; set A&X long
@@ -6293,7 +6293,7 @@
 .193957		8b		phb		                PHB
 .193958		0b		phd		                PHD
 .193959		08		php		                PHP
-.19395a		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.19395a		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19395d		ab		plb		                PLB
 .19395e		ab		plb		                PLB
 .19395f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6338,7 +6338,7 @@
 .193997		0b		phd		                PHD
 .193998		8b		phb		                PHB
 .193999		08		php		                PHP
-.19399a		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.19399a		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19399d		ab		plb		                PLB
 .19399e		ab		plb		                PLB
 .19399f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6386,7 +6386,7 @@
 .1939ea		0b		phd		                PHD
 .1939eb		8b		phb		                PHB
 .1939ec		08		php		                PHP
-.1939ed		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1939ed		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1939f0		ab		plb		                PLB
 .1939f1		ab		plb		                PLB
 .1939f2		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6434,7 +6434,7 @@
 .193a30		0b		phd		                PHD
 .193a31		8b		phb		                PHB
 .193a32		08		php		                PHP
-.193a33		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193a33		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193a36		ab		plb		                PLB
 .193a37		ab		plb		                PLB
 .193a38		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6502,7 +6502,7 @@
 .193abb		0b		phd		                PHD
 .193abc		8b		phb		                PHB
 .193abd		08		php		                PHP
-.193abe		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193abe		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193ac1		ab		plb		                PLB
 .193ac2		ab		plb		                PLB
 .193ac3		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6587,7 +6587,7 @@
 .193b71		0b		phd		                PHD
 .193b72		8b		phb		                PHB
 .193b73		08		php		                PHP
-.193b74		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193b74		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193b77		ab		plb		                PLB
 .193b78		ab		plb		                PLB
 .193b79		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6619,7 +6619,7 @@
 .193bb5		8b		phb		                PHB
 .193bb6		0b		phd		                PHD
 .193bb7		08		php		                PHP
-.193bb8		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193bb8		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193bbb		ab		plb		                PLB
 .193bbc		ab		plb		                PLB
 .193bbd		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6674,7 +6674,7 @@
 .193c19		0b		phd		                PHD
 .193c1a		8b		phb		                PHB
 .193c1b		08		php		                PHP
-.193c1c		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193c1c		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193c1f		ab		plb		                PLB
 .193c20		ab		plb		                PLB
 .193c21		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6858,7 +6858,7 @@
 .193c6c		8b		phb		                PHB
 .193c6d		0b		phd		                PHD
 .193c6e		08		php		                PHP
-.193c6f		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.193c6f		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .193c72		ab		plb		                PLB
 .193c73		ab		plb		                PLB
 .193c74		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6871,7 +6871,7 @@
 .193c84		e8		inx		                INX
 .193c85		e0 15 02	cpx #$0215	                CPX #<>(FDC_CMD_RETRY - SDOS_VARIABLES + 1)
 .193c88		d0 f7		bne $193c81	                BNE b0_clr_loop
-.193c8a		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193c8a		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193c8d		ab		plb		                PLB
 .193c8e		ab		plb		                PLB
 .193c8f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -6947,7 +6947,7 @@
 .193d28		8b		phb		                PHB
 .193d29		0b		phd		                PHD
 .193d2a		08		php		                PHP
-.193d2b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193d2b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193d2e		ab		plb		                PLB
 .193d2f		ab		plb		                PLB
 .193d30		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7133,7 +7133,7 @@
 .193ed9		0b		phd		                PHD
 .193eda		da		phx		                PHX
 .193edb		08		php		                PHP
-.193edc		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.193edc		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .193edf		ab		plb		                PLB
 .193ee0		ab		plb		                PLB
 .193ee1		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7193,7 +7193,7 @@
 .193f5f		8b		phb		                PHB
 .193f60		0b		phd		                PHD
 .193f61		08		php		                PHP
-.193f62		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.193f62		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .193f65		ab		plb		                PLB
 .193f66		ab		plb		                PLB
 .193f67		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7229,7 +7229,7 @@
 .193f9f		8b		phb		                PHB
 .193fa0		0b		phd		                PHD
 .193fa1		08		php		                PHP
-.193fa2		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.193fa2		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .193fa5		ab		plb		                PLB
 .193fa6		ab		plb		                PLB
 .193fa7		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7262,7 +7262,7 @@
 .193fd1		8b		phb		                PHB
 .193fd2		0b		phd		                PHD
 .193fd3		08		php		                PHP
-.193fd4		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.193fd4		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .193fd7		ab		plb		                PLB
 .193fd8		ab		plb		                PLB
 .193fd9		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7310,7 +7310,7 @@
 .194027		8b		phb		                PHB
 .194028		0b		phd		                PHD
 .194029		08		php		                PHP
-.19402a		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.19402a		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19402d		ab		plb		                PLB
 .19402e		ab		plb		                PLB
 .19402f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7370,7 +7370,7 @@
 .194098		8b		phb		                PHB
 .194099		0b		phd		                PHD
 .19409a		08		php		                PHP
-.19409b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.19409b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19409e		ab		plb		                PLB
 .19409f		ab		plb		                PLB
 .1940a0		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7397,7 +7397,7 @@
 .1940c1		8b		phb		                PHB
 .1940c2		0b		phd		                PHD
 .1940c3		08		php		                PHP
-.1940c4		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.1940c4		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .1940c7		ab		plb		                PLB
 .1940c8		ab		plb		                PLB
 .1940c9		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7472,7 +7472,7 @@
 .19414e		8b		phb		                PHB
 .19414f		0b		phd		                PHD
 .194150		08		php		                PHP
-.194151		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194151		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .194154		ab		plb		                PLB
 .194155		ab		plb		                PLB
 .194156		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7556,7 +7556,7 @@
 .1941ec		8b		phb		                PHB
 .1941ed		0b		phd		                PHD
 .1941ee		08		php		                PHP
-.1941ef		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1941ef		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1941f2		ab		plb		                PLB
 .1941f3		ab		plb		                PLB
 .1941f4		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7591,7 +7591,7 @@
 .194220		8b		phb		                PHB
 .194221		0b		phd		                PHD
 .194222		08		php		                PHP
-.194223		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194223		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .194226		ab		plb		                PLB
 .194227		ab		plb		                PLB
 .194228		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7648,7 +7648,7 @@
 .194288		8b		phb		                PHB
 .194289		0b		phd		                PHD
 .19428a		08		php		                PHP
-.19428b		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.19428b		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19428e		ab		plb		                PLB
 .19428f		ab		plb		                PLB
 .194290		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7696,7 +7696,7 @@
 .1942e5						FATFORCLUSTER32
 .1942e5		8b		phb		                PHB
 .1942e6		0b		phd		                PHD
-.1942e7		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1942e7		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1942ea		ab		plb		                PLB
 .1942eb		ab		plb		                PLB
 .1942ec		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7768,7 +7768,7 @@
 .194366		8b		phb		                    PHB
 .194367		0b		phd		                    PHD
 .194368		08		php		                    PHP
-.194369		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194369		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19436c		ab		plb		                PLB
 .19436d		ab		plb		                PLB
 .19436e		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7824,7 +7824,7 @@
 .1943c3		8b		phb		                PHB
 .1943c4		0b		phd		                PHD
 .1943c5		08		php		                PHP
-.1943c6		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1943c6		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1943c9		ab		plb		                PLB
 .1943ca		ab		plb		                PLB
 .1943cb		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7919,7 +7919,7 @@
 .19446d		8b		phb		                    PHB
 .19446e		0b		phd		                    PHD
 .19446f		08		php		                    PHP
-.194470		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194470		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .194473		ab		plb		                PLB
 .194474		ab		plb		                PLB
 .194475		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -7972,7 +7972,7 @@
 .1944c9		8b		phb		                PHB
 .1944ca		0b		phd		                PHD
 .1944cb		08		php		                PHP
-.1944cc		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1944cc		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1944cf		ab		plb		                PLB
 .1944d0		ab		plb		                PLB
 .1944d1		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8074,7 +8074,7 @@
 .194595		8b		phb		                PHB
 .194596		0b		phd		                PHD
 .194597		08		php		                PHP
-.194598		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194598		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19459b		ab		plb		                PLB
 .19459c		ab		plb		                PLB
 .19459d		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8166,7 +8166,7 @@
 .194654						WRITEFAT12
 .194654		8b		phb		                PHB
 .194655		0b		phd		                PHD
-.194656		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.194656		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .194659		ab		plb		                PLB
 .19465a		ab		plb		                PLB
 .19465b		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8197,7 +8197,7 @@
 .194690		8b		phb		                PHB
 .194691		0b		phd		                PHD
 .194692		08		php		                PHP
-.194693		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194693		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194696		ab		plb		                PLB
 .194697		ab		plb		                PLB
 .194698		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8237,7 +8237,7 @@
 .1946d4		0b		phd		                PHD
 .1946d5		08		php		                PHP
 .1946d6		c2 30		rep #$30	                REP #$30        ; set A&X long
-.1946d8		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.1946d8		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .1946db		ab		plb		                PLB
 .1946dc		ab		plb		                PLB
 .1946dd		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8269,7 +8269,7 @@
 .194708		8b		phb		                PHB
 .194709		0b		phd		                PHD
 .19470a		08		php		                PHP
-.19470b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.19470b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19470e		ab		plb		                PLB
 .19470f		ab		plb		                PLB
 .194710		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8355,7 +8355,7 @@
 .1947b6		8b		phb		                PHB
 .1947b7		0b		phd		                PHD
 .1947b8		08		php		                PHP
-.1947b9		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1947b9		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1947bc		ab		plb		                PLB
 .1947bd		ab		plb		                PLB
 .1947be		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8412,7 +8412,7 @@
 .194828		8b		phb		                PHB
 .194829		0b		phd		                PHD
 .19482a		08		php		                PHP
-.19482b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.19482b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19482e		ab		plb		                PLB
 .19482f		ab		plb		                PLB
 .194830		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8526,7 +8526,7 @@
 .194919		8b		phb		                PHB
 .19491a		0b		phd		                PHD
 .19491b		08		php		                PHP
-.19491c		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.19491c		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19491f		ab		plb		                PLB
 .194920		ab		plb		                PLB
 .194921		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8671,7 +8671,7 @@
 .194a3d		8b		phb		                PHB
 .194a3e		0b		phd		                PHD
 .194a3f		08		php		                PHP
-.194a40		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194a40		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194a43		ab		plb		                PLB
 .194a44		ab		plb		                PLB
 .194a45		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8722,7 +8722,7 @@
 .194a8f		8b		phb		                PHB
 .194a90		0b		phd		                PHD
 .194a91		08		php		                PHP
-.194a92		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194a92		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194a95		ab		plb		                PLB
 .194a96		ab		plb		                PLB
 .194a97		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8752,7 +8752,7 @@
 .194ae0		0b		phd		                PHD
 .194ae1		8b		phb		                PHB
 .194ae2		08		php		                PHP
-.194ae3		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194ae3		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194ae6		ab		plb		                PLB
 .194ae7		ab		plb		                PLB
 .194ae8		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8818,7 +8818,7 @@
 .194b68		0b		phd		                PHD
 .194b69		8b		phb		                PHB
 .194b6a		08		php		                PHP
-.194b6b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194b6b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194b6e		ab		plb		                PLB
 .194b6f		ab		plb		                PLB
 .194b70		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8843,7 +8843,7 @@
 .194b97		0b		phd		                PHD
 .194b98		8b		phb		                PHB
 .194b99		08		php		                PHP
-.194b9a		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194b9a		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194b9d		ab		plb		                PLB
 .194b9e		ab		plb		                PLB
 .194b9f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8864,7 +8864,7 @@
 .194bc0		0b		phd		                PHD
 .194bc1		8b		phb		                PHB
 .194bc2		08		php		                PHP
-.194bc3		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194bc3		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194bc6		ab		plb		                PLB
 .194bc7		ab		plb		                PLB
 .194bc8		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8912,7 +8912,7 @@
 .194c1a		0b		phd		                PHD
 .194c1b		8b		phb		                PHB
 .194c1c		08		php		                PHP
-.194c1d		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194c1d		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194c20		ab		plb		                PLB
 .194c21		ab		plb		                PLB
 .194c22		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8961,7 +8961,7 @@
 .194c7b		0b		phd		                PHD
 .194c7c		8b		phb		                PHB
 .194c7d		08		php		                PHP
-.194c7e		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194c7e		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194c81		ab		plb		                PLB
 .194c82		ab		plb		                PLB
 .194c83		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -8986,7 +8986,7 @@
 .194cae		0b		phd		                PHD
 .194caf		8b		phb		                PHB
 .194cb0		08		php		                PHP
-.194cb1		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194cb1		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194cb4		ab		plb		                PLB
 .194cb5		ab		plb		                PLB
 .194cb6		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9050,7 +9050,7 @@
 .194d3c		0b		phd		                PHD
 .194d3d		8b		phb		                PHB
 .194d3e		08		php		                PHP
-.194d3f		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194d3f		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194d42		ab		plb		                PLB
 .194d43		ab		plb		                PLB
 .194d44		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9068,7 +9068,7 @@
 .194d5c		0b		phd		                PHD
 .194d5d		8b		phb		                PHB
 .194d5e		08		php		                PHP
-.194d5f		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194d5f		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194d62		ab		plb		                PLB
 .194d63		ab		plb		                PLB
 .194d64		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9209,7 +9209,7 @@
 .194e76		80 c7		bra $194e3f	                BRA copy_loop                       ; Go back to copying
 .194e78		82 79 02	brl $1950f4	done            BRL IF_SUCCESS
 .194e7b						IF_LOADPGZ
-.194e7b		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194e7b		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194e7e		ab		plb		                PLB
 .194e7f		ab		plb		                PLB
 .194e80		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9294,7 +9294,7 @@
 .194f2c		8b		phb		                PHB
 .194f2d		0b		phd		                PHD
 .194f2e		08		php		                PHP
-.194f2f		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194f2f		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194f32		ab		plb		                PLB
 .194f33		ab		plb		                PLB
 .194f34		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9329,7 +9329,7 @@
 .194f5d		8b		phb		                PHB
 .194f5e		0b		phd		                PHD
 .194f5f		08		php		                PHP
-.194f60		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.194f60		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .194f63		ab		plb		                PLB
 .194f64		ab		plb		                PLB
 .194f65		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9422,7 +9422,7 @@
 .195000		8b		phb		                PHB
 .195001		0b		phd		                PHD
 .195002		08		php		                PHP
-.195003		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.195003		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .195006		ab		plb		                PLB
 .195007		ab		plb		                PLB
 .195008		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9452,7 +9452,7 @@
 .195030		8b		phb		                PHB
 .195031		0b		phd		                PHD
 .195032		08		php		                PHP
-.195033		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.195033		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .195036		ab		plb		                PLB
 .195037		ab		plb		                PLB
 .195038		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9494,7 +9494,7 @@
 .195075		0b		phd		                PHD
 .195076		8b		phb		                PHB
 .195077		08		php		                PHP
-.195078		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.195078		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .19507b		ab		plb		                PLB
 .19507c		ab		plb		                PLB
 .19507d		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9571,7 +9571,7 @@
 .195103		0b		phd		                PHD
 .195104		8b		phb		                PHB
 .195105		08		php		                PHP
-.195106		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195106		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195109		ab		plb		                PLB
 .19510a		ab		plb		                PLB
 .19510b		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9637,7 +9637,7 @@
 .195191		0b		phd		                PHD
 .195192		8b		phb		                PHB
 .195193		08		php		                PHP
-.195194		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.195194		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .195197		ab		plb		                PLB
 .195198		ab		plb		                PLB
 .195199		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9677,7 +9677,7 @@
 .1951da		0b		phd		                PHD
 .1951db		8b		phb		                PHB
 .1951dc		08		php		                PHP
-.1951dd		f4 18 18	pea #$1818	                PEA #((256 * `DOS_HIGH_VARIABLES) + `DOS_HIGH_VARIABLES)
+.1951dd		f4 18 18	pea #$1818	                PEA #((`DOS_HIGH_VARIABLES) * 256) + (`DOS_HIGH_VARIABLES)
 .1951e0		ab		plb		                PLB
 .1951e1		ab		plb		                PLB
 .1951e2		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -9730,7 +9730,7 @@
 .19522b		0b		phd		                PHD
 .19522c		8b		phb		                PHB
 .19522d		08		php		                PHP
-.19522e		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.19522e		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195231		ab		plb		                PLB
 .195232		ab		plb		                PLB
 .195233		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -10139,7 +10139,7 @@
 .1954aa		0b		phd		                PHD
 .1954ab		8b		phb		                PHB
 .1954ac		08		php		                PHP
-.1954ad		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1954ad		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1954b0		ab		plb		                PLB
 .1954b1		ab		plb		                PLB
 .1954b2		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -10170,7 +10170,7 @@
 .1954e1		0b		phd		                PHD
 .1954e2		8b		phb		                PHB
 .1954e3		08		php		                PHP
-.1954e4		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1954e4		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1954e7		ab		plb		                PLB
 .1954e8		ab		plb		                PLB
 .1954e9		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -10234,7 +10234,7 @@
 .195573		0b		phd		                PHD
 .195574		8b		phb		                PHB
 .195575		08		php		                PHP
-.195576		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195576		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195579		ab		plb		                PLB
 .19557a		ab		plb		                PLB
 .19557b		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -10311,7 +10311,7 @@
 .195603		8b		phb		                    PHB
 .195604		0b		phd		                    PHD
 .195605		08		php		                    PHP
-.195606		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195606		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195609		ab		plb		                PLB
 .19560a		ab		plb		                PLB
 .19560b		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10504,7 +10504,7 @@
 .195784		8b		phb		                    PHB
 .195785		0b		phd		                    PHD
 .195786		08		php		                    PHP
-.195787		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195787		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19578a		ab		plb		                PLB
 .19578b		ab		plb		                PLB
 .19578c		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10771,7 +10771,7 @@
 .1959cf		8b		phb		                    PHB
 .1959d0		0b		phd		                    PHD
 .1959d1		08		php		                    PHP
-.1959d2		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1959d2		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1959d5		ab		plb		                PLB
 .1959d6		ab		plb		                PLB
 .1959d7		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10819,7 +10819,7 @@
 .195a2d		8b		phb		                    PHB
 .195a2e		0b		phd		                    PHD
 .195a2f		08		php		                    PHP
-.195a30		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195a30		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195a33		ab		plb		                PLB
 .195a34		ab		plb		                PLB
 .195a35		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10860,7 +10860,7 @@
 .195a7b		8b		phb		                    PHB
 .195a7c		0b		phd		                    PHD
 .195a7d		08		php		                    PHP
-.195a7e		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195a7e		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195a81		ab		plb		                PLB
 .195a82		ab		plb		                PLB
 .195a83		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10907,7 +10907,7 @@
 .195ad9		8b		phb		                    PHB
 .195ada		0b		phd		                    PHD
 .195adb		08		php		                    PHP
-.195adc		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195adc		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195adf		ab		plb		                PLB
 .195ae0		ab		plb		                PLB
 .195ae1		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -10969,7 +10969,7 @@
 .195b4e		8b		phb		                    PHB
 .195b4f		0b		phd		                    PHD
 .195b50		08		php		                    PHP
-.195b51		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195b51		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195b54		ab		plb		                PLB
 .195b55		ab		plb		                PLB
 .195b56		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11006,7 +11006,7 @@
 .195b90		8b		phb		                    PHB
 .195b91		0b		phd		                    PHD
 .195b92		08		php		                    PHP
-.195b93		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195b93		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195b96		ab		plb		                PLB
 .195b97		ab		plb		                PLB
 .195b98		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11073,7 +11073,7 @@
 .195c1a		8b		phb		                    PHB
 .195c1b		0b		phd		                    PHD
 .195c1c		08		php		                    PHP
-.195c1d		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195c1d		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195c20		ab		plb		                PLB
 .195c21		ab		plb		                PLB
 .195c22		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11172,7 +11172,7 @@
 .195cd7		8b		phb		                    PHB
 .195cd8		0b		phd		                    PHD
 .195cd9		08		php		                    PHP
-.195cda		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195cda		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195cdd		ab		plb		                PLB
 .195cde		ab		plb		                PLB
 .195cdf		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11213,7 +11213,7 @@
 .195d22		8b		phb		                    PHB
 .195d23		0b		phd		                    PHD
 .195d24		08		php		                    PHP
-.195d25		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195d25		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195d28		ab		plb		                PLB
 .195d29		ab		plb		                PLB
 .195d2a		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11266,7 +11266,7 @@
 .195d7c		8b		phb		                    PHB
 .195d7d		0b		phd		                    PHD
 .195d7e		08		php		                    PHP
-.195d7f		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195d7f		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195d82		ab		plb		                PLB
 .195d83		ab		plb		                PLB
 .195d84		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11324,7 +11324,7 @@
 .195ddd		8b		phb		                    PHB
 .195dde		0b		phd		                    PHD
 .195ddf		08		php		                    PHP
-.195de0		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195de0		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195de3		ab		plb		                PLB
 .195de4		ab		plb		                PLB
 .195de5		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11436,7 +11436,7 @@
 .195efc		8b		phb		                    PHB
 .195efd		0b		phd		                    PHD
 .195efe		08		php		                    PHP
-.195eff		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195eff		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195f02		ab		plb		                PLB
 .195f03		ab		plb		                PLB
 .195f04		f4 00 03	pea #$0300	                PEA #FDC_DRIVE         ; set DP to page 0
@@ -11514,7 +11514,7 @@
 .195f92		8b		phb		                    PHB
 .195f93		0b		phd		                    PHD
 .195f94		08		php		                    PHP
-.195f95		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.195f95		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .195f98		ab		plb		                PLB
 .195f99		ab		plb		                PLB
 .195f9a		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -11839,7 +11839,7 @@
 .196234		8b		phb		                PHB
 .196235		0b		phd		                PHD
 .196236		08		php		                PHP
-.196237		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.196237		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19623a		ab		plb		                PLB
 .19623b		ab		plb		                PLB
 .19623c		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -11907,7 +11907,7 @@
 .1962b7		8b		phb		                PHB
 .1962b8		0b		phd		                PHD
 .1962b9		08		php		                PHP
-.1962ba		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.1962ba		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .1962bd		ab		plb		                PLB
 .1962be		ab		plb		                PLB
 .1962bf		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -11976,7 +11976,7 @@
 .196337		8b		phb		                PHB
 .196338		0b		phd		                PHD
 .196339		08		php		                PHP
-.19633a		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.19633a		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .19633d		ab		plb		                PLB
 .19633e		ab		plb		                PLB
 .19633f		f4 20 03	pea #$0320	                PEA #SDOS_VARIABLES         ; set DP to page 0
@@ -13686,7 +13686,7 @@
 .196ff4		8b		phb		                    PHB
 .196ff5		0b		phd		                    PHD
 .196ff6		08		php		                    PHP
-.196ff7		f4 19 19	pea #$1919	                PEA #((256 * `KBD_STATE_MACH) + `KBD_STATE_MACH)
+.196ff7		f4 19 19	pea #$1919	                PEA #((`KBD_STATE_MACH) * 256) + (`KBD_STATE_MACH)
 .196ffa		ab		plb		                PLB
 .196ffb		ab		plb		                PLB
 .196ffc		f4 00 0f	pea #$0f00	                PEA #<>KBD_VARS         ; set DP to page 0
@@ -14397,7 +14397,7 @@
 .197902		8b		phb		                PHB
 .197903		0b		phd		                PHD
 .197904		08		php		                PHP
-.197905		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.197905		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .197908		ab		plb		                PLB
 .197909		ab		plb		                PLB
 .19790a		f4 00 00	pea #$0000	                PEA #0         ; set DP to page 0
@@ -14535,7 +14535,7 @@
 .197a1f		08		php		                PHP
 .197a20						                setasx
 .197a20		78		sei		                SEI
-.197a21		f4 00 00	pea #$0000	                PEA #((256 * 0) + 0)
+.197a21		f4 00 00	pea #$0000	                PEA #((0) * 256) + (0)
 .197a24		ab		plb		                PLB
 .197a25		ab		plb		                PLB
 .197a26		f4 00 00	pea #$0000	                PEA #0         ; set DP to page 0
@@ -14661,8 +14661,8 @@
 
 ;******  Processing file: src\version.asm
 
->197bc7		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+379 (2023-07-17)"
->197bcf		6c 70 68 61 2b 33 37 39 20 28 32 30 32 33 2d 30
+>197bc7		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+381 (2023-07-17)"
+>197bcf		6c 70 68 61 2b 33 38 31 20 28 32 30 32 33 2d 30
 >197bdf		37 2d 31 37 29
 
 ;******  Return to file: src\kernel.asm
