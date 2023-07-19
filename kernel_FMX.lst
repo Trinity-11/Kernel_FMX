@@ -1,7 +1,7 @@
 
 ; 64tass Turbo Assembler Macro V1.54.1900 listing file
 ; 64tass --m65816 -D TARGET=1 -D TARGET_SYS=1 --long-address --flat -b -o kernel_FMX.bin --list kernel_FMX.lst --labels=kernel_FMX.lbl src\kernel.asm
-; Wed Jul 19 11:48:04 2023
+; Wed Jul 19 12:55:44 2023
 
 ;Offset	;PC	;Hex		;Monitor	;Source
 
@@ -2599,7 +2599,7 @@
 .390590		5c 00 00 3a	jmp $3a0000	BOOTBASIC       JML BASIC             ; Cold start of the BASIC interpreter (or its replacement)
 .390594		ea		nop		CREDIT_LOCK     NOP
 .390595		80 fd		bra $390594	                BRA CREDIT_LOCK
-.390597		a2 b5 8c	ldx #$8cb5	BOOTSDC         LDX #<>sdc_boot
+.390597		a2 b3 8c	ldx #$8cb3	BOOTSDC         LDX #<>sdc_boot
 .39059a		22 fc 06 39	jsl $3906fc	                JSL IPRINT
 .39059e		e2 20		sep #$20	                SEP #$20        ; set A short
 .3905a0		a9 02		lda #$02	                LDA #BIOS_DEV_SD
@@ -2608,9 +2608,9 @@
 .3905aa		90 06		bcc $3905b2	                BCC sdc_error         ; Print an error message if couldn't get anything
 .3905ac		22 f2 3e 39	jsl $393ef2	                JSL DOS_TESTBOOT      ; Try to boot from the SDC's MBR
 .3905b0		80 de		bra $390590	                BRA BOOTBASIC         ; If we couldn't fall, into BASIC
-.3905b2		a2 39 8c	ldx #$8c39	sdc_error       LDX #<>sdc_err_boot   ; Print a message saying SD card booting is not implemented
+.3905b2		a2 37 8c	ldx #$8c37	sdc_error       LDX #<>sdc_err_boot   ; Print a message saying SD card booting is not implemented
 .3905b5		80 40		bra $3905f7	                BRA PR_BOOT_ERROR
-.3905b7		a2 cc 8c	ldx #$8ccc	BOOTIDE         LDX #<>ide_boot
+.3905b7		a2 ca 8c	ldx #$8cca	BOOTIDE         LDX #<>ide_boot
 .3905ba		22 fc 06 39	jsl $3906fc	                JSL IPRINT
 .3905be		e2 20		sep #$20	                SEP #$20        ; set A short
 .3905c0		a9 06		lda #$06	                LDA #BIOS_DEV_HD0
@@ -2619,9 +2619,9 @@
 .3905ca		90 07		bcc $3905d3	                BCC hdc_error         ; Print an error message if couldn't get anything
 .3905cc		22 f2 3e 39	jsl $393ef2	                JSL DOS_TESTBOOT      ; Try to boot from the IDE's MBR
 .3905d0		82 bd ff	brl $390590	                BRL BOOTBASIC         ; If we couldn't fall, into BASIC
-.3905d3		a2 55 8c	ldx #$8c55	hdc_error       LDX #<>ide_err_boot   ; Print a message saying SD card booting is not implemented
+.3905d3		a2 53 8c	ldx #$8c53	hdc_error       LDX #<>ide_err_boot   ; Print a message saying SD card booting is not implemented
 .3905d6		80 1f		bra $3905f7	                BRA PR_BOOT_ERROR
-.3905d8		a2 9e 8c	ldx #$8c9e	BOOTFLOPPY      LDX #<>fdc_boot
+.3905d8		a2 9c 8c	ldx #$8c9c	BOOTFLOPPY      LDX #<>fdc_boot
 .3905db		22 fc 06 39	jsl $3906fc	                JSL IPRINT
 .3905df		e2 20		sep #$20	                SEP #$20        ; set A short
 .3905e1		a9 00		lda #$00	                LDA #BIOS_DEV_FDC
@@ -2630,9 +2630,9 @@
 .3905eb		90 07		bcc $3905f4	                BCC fdc_error         ; Print an error message if couldn't get anything
 .3905ed		22 f2 3e 39	jsl $393ef2	                JSL DOS_TESTBOOT      ; Try to boot from the FDC's MBR
 .3905f1		82 9c ff	brl $390590	                BRL BOOTBASIC         ; If we couldn't, fall into BASIC
-.3905f4		a2 78 8c	ldx #$8c78	fdc_error       LDX #<>fdc_err_boot   ; Print a message saying SD card booting is not implemented
+.3905f4		a2 76 8c	ldx #$8c76	fdc_error       LDX #<>fdc_err_boot   ; Print a message saying SD card booting is not implemented
 .3905f7		22 fc 06 39	jsl $3906fc	PR_BOOT_ERROR   JSL IPRINT            ; Print the error message in X
-.3905fb		a2 14 8c	ldx #$8c14	                LDX #<>boot_retry     ; Print the boot retry prompt
+.3905fb		a2 12 8c	ldx #$8c12	                LDX #<>boot_retry     ; Print the boot retry prompt
 .3905fe		22 fc 06 39	jsl $3906fc	                JSL IPRINT
 .390602		22 96 06 39	jsl $390696	boot_wait_key   JSL IGETCHW           ; Wait for a keypress
 .390606		c9 52		cmp #$52	                CMP #'R'              ; Was "R" pressed?
@@ -2683,7 +2683,7 @@
 .390668		ab		plb		                PLB
 .390669		ab		plb		                PLB
 .39066a		e2 20		sep #$20	                SEP #$20        ; set A short
-.39066c		a2 e7 8c	ldx #$8ce7	                LDX #<>ready_msg
+.39066c		a2 e5 8c	ldx #$8ce5	                LDX #<>ready_msg
 .39066f		22 fc 06 39	jsl $3906fc	                JSL IPRINT
 .390673						IREADYWAIT
 .390673		22 8d 06 39	jsl $39068d	                JSL IGETCHE
@@ -3043,7 +3043,7 @@
 .3908ae		c2 20		rep #$20	                REP #$20        ; set A long
 .3908b0		29 0f 00	and #$000f	                AND #$0F
 .3908b3		aa		tax		                TAX
-.3908b4		bf fb 8c 39	lda $398cfb,x	                LDA hex_digits,X
+.3908b4		bf f9 8c 39	lda $398cf9,x	                LDA hex_digits,X
 .3908b8		22 1c 07 39	jsl $39071c	                JSL IPUTC       ; Print the digit
 .3908bc		fa		plx		                PLX
 .3908bd		6b		rtl		                RTL
@@ -3085,7 +3085,7 @@
 .3908f2		85 04		sta $04		                STA TMPPTR2
 .3908f4		a9 af 00	lda #$00af	                LDA #`CS_COLOR_MEM_PTR
 .3908f7		85 06		sta $06		                STA TMPPTR2+2
-.3908f9		a9 58 89	lda #$8958	                LDA #<>greet_clr_line1
+.3908f9		a9 56 89	lda #$8956	                LDA #<>greet_clr_line1
 .3908fc		85 00		sta $00		                STA TMPPTR1
 .3908fe		a9 39 00	lda #$0039	                LDA #`greet_clr_line1
 .390901		85 02		sta $02		                STA TMPPTR1+2
@@ -3094,7 +3094,7 @@
 .390907		a5 04		lda $04		                LDA TMPPTR2
 .390909		65 11		adc $11		                ADC COLS_PER_LINE
 .39090b		85 04		sta $04		                STA TMPPTR2
-.39090d		a9 82 89	lda #$8982	                LDA #<>greet_clr_line2
+.39090d		a9 80 89	lda #$8980	                LDA #<>greet_clr_line2
 .390910		85 00		sta $00		                STA TMPPTR1
 .390912		a9 39 00	lda #$0039	                LDA #`greet_clr_line2
 .390915		85 02		sta $02		                STA TMPPTR1+2
@@ -3103,7 +3103,7 @@
 .39091b		a5 04		lda $04		                LDA TMPPTR2
 .39091d		65 11		adc $11		                ADC COLS_PER_LINE
 .39091f		85 04		sta $04		                STA TMPPTR2
-.390921		a9 ac 89	lda #$89ac	                LDA #<>greet_clr_line3
+.390921		a9 aa 89	lda #$89aa	                LDA #<>greet_clr_line3
 .390924		85 00		sta $00		                STA TMPPTR1
 .390926		a9 39 00	lda #$0039	                LDA #`greet_clr_line3
 .390929		85 02		sta $02		                STA TMPPTR1+2
@@ -3112,7 +3112,7 @@
 .39092f		a5 04		lda $04		                LDA TMPPTR2
 .390931		65 11		adc $11		                ADC COLS_PER_LINE
 .390933		85 04		sta $04		                STA TMPPTR2
-.390935		a9 d6 89	lda #$89d6	                LDA #<>greet_clr_line4
+.390935		a9 d4 89	lda #$89d4	                LDA #<>greet_clr_line4
 .390938		85 00		sta $00		                STA TMPPTR1
 .39093a		a9 39 00	lda #$0039	                LDA #`greet_clr_line4
 .39093d		85 02		sta $02		                STA TMPPTR1+2
@@ -3121,7 +3121,7 @@
 .390943		a5 04		lda $04		                LDA TMPPTR2
 .390945		65 11		adc $11		                ADC COLS_PER_LINE
 .390947		85 04		sta $04		                STA TMPPTR2
-.390949		a9 00 8a	lda #$8a00	                LDA #<>greet_clr_line5
+.390949		a9 fe 89	lda #$89fe	                LDA #<>greet_clr_line5
 .39094c		85 00		sta $00		                STA TMPPTR1
 .39094e		a9 39 00	lda #$0039	                LDA #`greet_clr_line5
 .390951		85 02		sta $02		                STA TMPPTR1+2
@@ -3673,10 +3673,10 @@
 .390ea0		af 2a 01 00	lda $00012a	                LDA @lADDER32_R_HL
 .390ea4		85 46		sta $46		                STA BMP_PRSE_SRC_PTR+2
 .390ea6		20 16 0f	jsr $390f16	                JSR BMP_PARSER_DMA_SHIT_OUT  ; We are going to start with the slow method
-.390ea9		a2 bc 8b	ldx #$8bbc	                LDX #<>bmp_parser_msg0
+.390ea9		a2 ba 8b	ldx #$8bba	                LDX #<>bmp_parser_msg0
 .390eac		80 03		bra $390eb1	                BRA BMP_PARSER_END_NO_ERROR
 .390eae						BMP_PARSER_END_WITH_ERROR
-.390eae		a2 a8 8b	ldx #$8ba8	                LDX #<>bmp_parser_err0
+.390eae		a2 a6 8b	ldx #$8ba6	                LDX #<>bmp_parser_err0
 .390eb1						BMP_PARSER_END_NO_ERROR
 .390eb1		22 fc 06 39	jsl $3906fc	                JSL IPRINT       ; print the first line
 .390eb5		6b		rtl		                RTL
@@ -12288,13 +12288,13 @@
 .396641		e2 20		sep #$20	                SEP #$20        ; set A short
 .396643		e2 10		sep #$10	                SEP #$10        ; set X short
 .396645		a2 00		ldx #$00	                LDX	#$00
-.396647		bf 2a 8a 39	lda $398a2a,x	lutinitloop0	LDA @lfg_color_lut,x    ; get Local Data c64_character_Color_LUT_4_Txt
+.396647		bf 28 8a 39	lda $398a28,x	lutinitloop0	LDA @lfg_color_lut,x    ; get Local Data c64_character_Color_LUT_4_Txt
 .39664b		9f 00 1b ae	sta $ae1b00,x	                STA @lEVID_FG_LUT,x	    ; Write in LUT Memory
 .39664f		e8		inx		                inx
 .396650		e0 40		cpx #$40	                cpx #$40
 .396652		d0 f3		bne $396647	                bne lutinitloop0
 .396654		a2 00		ldx #$00	                LDX	#$00
-.396656		bf 6a 8a 39	lda $398a6a,x	lutinitloop1	LDA @lbg_color_lut,x    ; get Local Data
+.396656		bf 68 8a 39	lda $398a68,x	lutinitloop1	LDA @lbg_color_lut,x    ; get Local Data
 .39665a		9f 40 1b ae	sta $ae1b40,x	                STA @lEVID_BG_LUT,x	    ; Write in LUT Memory
 .39665e		e8		inx		                INX
 .39665f		e0 40		cpx #$40	                CPX #$40
@@ -16199,126 +16199,126 @@
 
 ;******  Processing file: src\version.asm
 
->398939		76 30 2e 34 2e 30 2d 61		.text "v0.4.0-alpha+382 (2023-07-19)"
->398941		6c 70 68 61 2b 33 38 32 20 28 32 30 32 33 2d 30
->398951		37 2d 31 39 29
+>398939		76 30 2e 35 2e 30 2d 61		.text "v0.5.0-alpha+2 (2023-07-19)"
+>398941		6c 70 68 61 2b 32 20 28 32 30 32 33 2d 30 37 2d
+>398951		31 39 29
 
 ;******  Return to file: src\kernel.asm
 
->398956		0d 00				                .text $0D,$00
->398958		90 90 90 90 90 90 d0 d0		  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
->398960		b0 b0 a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->398970		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->398980		f0 f0
->398982		90 90 90 90 90 d0 d0 b0		  greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
->39898a		b0 a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->39899a		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->3989aa		f0 f0
->3989ac		90 90 90 90 d0 d0 b0 b0		  greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
->3989b4		a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->3989c4		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->3989d4		f0 f0
->3989d6		90 90 90 d0 d0 b0 b0 a0		  greet_clr_line4 .text $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
->3989de		a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->3989ee		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->3989fe		f0 f0
->398a00		90 90 d0 d0 b0 b0 a0 a0		  greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
->398a08		e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->398a18		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
->398a28		f0 f0
->398a2a		00 00 00 ff			fg_color_lut	.text $00, $00, $00, $FF
->398a2e		00 00 80 ff			                .text $00, $00, $80, $FF
->398a32		00 80 00 ff			                .text $00, $80, $00, $FF
->398a36		80 00 00 ff			                .text $80, $00, $00, $FF
->398a3a		00 80 80 ff			                .text $00, $80, $80, $FF
->398a3e		80 80 00 ff			                .text $80, $80, $00, $FF
->398a42		80 00 80 ff			                .text $80, $00, $80, $FF
->398a46		80 80 80 ff			                .text $80, $80, $80, $FF
->398a4a		00 45 ff ff			                .text $00, $45, $FF, $FF
->398a4e		13 45 8b ff			                .text $13, $45, $8B, $FF
->398a52		00 00 20 ff			                .text $00, $00, $20, $FF
->398a56		00 20 00 ff			                .text $00, $20, $00, $FF
->398a5a		20 00 00 ff			                .text $20, $00, $00, $FF
->398a5e		20 20 20 ff			                .text $20, $20, $20, $FF
->398a62		40 40 40 ff			                .text $40, $40, $40, $FF
->398a66		ff ff ff ff			                .text $FF, $FF, $FF, $FF
->398a6a		00 00 00 ff			bg_color_lut	.text $00, $00, $00, $FF
->398a6e		00 00 80 ff			                .text $00, $00, $80, $FF
->398a72		00 80 00 ff			                .text $00, $80, $00, $FF
->398a76		80 00 00 ff			                .text $80, $00, $00, $FF
->398a7a		00 20 20 ff			                .text $00, $20, $20, $FF
->398a7e		20 20 00 ff			                .text $20, $20, $00, $FF
->398a82		20 00 20 ff			                .text $20, $00, $20, $FF
->398a86		20 20 20 ff			                .text $20, $20, $20, $FF
->398a8a		1e 69 d2 ff			                .text $1E, $69, $D2, $FF
->398a8e		13 45 8b ff			                .text $13, $45, $8B, $FF
->398a92		00 00 20 ff			                .text $00, $00, $20, $FF
->398a96		00 20 00 ff			                .text $00, $20, $00, $FF
->398a9a		40 00 00 ff			                .text $40, $00, $00, $FF
->398a9e		10 10 10 ff			                .text $10, $10, $10, $FF
->398aa2		40 40 40 ff			                .text $40, $40, $40, $FF
->398aa6		ff ff ff ff			                .text $FF, $FF, $FF, $FF
->398aaa		43 6d 64 20 30 78 41 41		pass_tst0xAAmsg .text "Cmd 0xAA Test passed...", $0D, $00
->398ab2		20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
->398ac2		00
->398ac3		43 6d 64 20 30 78 41 42		pass_tst0xABmsg .text "Cmd 0xAB Test passed...", $0D, $00
->398acb		20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
->398adb		00
->398adc		43 6d 64 20 30 78 36 30		pass_cmd0x60msg .text "Cmd 0x60 Executed.", $0D, $00
->398ae4		20 45 78 65 63 75 74 65 64 2e 0d 00
->398af0		43 6d 64 20 30 78 46 46		pass_cmd0xFFmsg .text "Cmd 0xFF (Reset) Done.", $0D, $00
->398af8		20 28 52 65 73 65 74 29 20 44 6f 6e 65 2e 0d 00
->398b08		43 6d 64 20 30 78 45 45		pass_cmd0xEEmsg .text "Cmd 0xEE Echo Test passed...", $0D, $00
->398b10		20 45 63 68 6f 20 54 65 73 74 20 70 61 73 73 65
->398b20		64 2e 2e 2e 0d 00
->398b26		4b 65 79 62 6f 61 72 64		Success_kb_init .text "Keyboard Present", $0D, $00
->398b2e		20 50 72 65 73 65 6e 74 0d 00
->398b38		4d 6f 75 73 65 20 50 72		Success_ms_init .text "Mouse Present", $0D, $00
->398b40		65 73 65 6e 74 0d 00
->398b47		4e 6f 20 4b 65 79 62 6f		Failed_kb_init  .text "No Keyboard Attached or Failed Init...", $0D, $00
->398b4f		61 72 64 20 41 74 74 61 63 68 65 64 20 6f 72 20
->398b5f		46 61 69 6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
->398b6f		4e 6f 20 4d 6f 75 73 65		Failed_ms_init  .text "No Mouse Attached or Failed Init...", $0D, $00
->398b77		20 41 74 74 61 63 68 65 64 20 6f 72 20 46 61 69
->398b87		6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
->398b94		49 20 61 6d 20 73 74 75		IamStuckHeremsg .text "I am stuck here...", $0D, $00
->398b9c		63 6b 20 68 65 72 65 2e 2e 2e 0d 00
->398ba8		4e 4f 20 53 49 47 4e 41		bmp_parser_err0 .text "NO SIGNATURE FOUND.", $00
->398bb0		54 55 52 45 20 46 4f 55 4e 44 2e 00
->398bbc		42 4d 50 20 4c 4f 41 44		bmp_parser_msg0 .text "BMP LOADED.", $00
->398bc4		45 44 2e 00
->398bc8		45 58 45 43 55 54 49 4e		bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
->398bd0		47 20 42 4d 50 20 50 41 52 53 45 52 00
->398bdd		49 44 45 20 48 44 44 20		IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
->398be5		50 72 65 73 65 6e 74 3a 00
->398bee		42 6f 6f 74 20 44 49 50		boot_invalid    .null "Boot DIP switch settings are invalid."
->398bf6		20 73 77 69 74 63 68 20 73 65 74 74 69 6e 67 73
->398c06		20 61 72 65 20 69 6e 76 61 6c 69 64 2e 00
->398c14		50 72 65 73 73 20 52 20		boot_retry      .null "Press R to retry, B to go to BASIC.", 13
->398c1c		74 6f 20 72 65 74 72 79 2c 20 42 20 74 6f 20 67
->398c2c		6f 20 74 6f 20 42 41 53 49 43 2e 0d 00
->398c39		55 6e 61 62 6c 65 20 74		sdc_err_boot    .null "Unable to read the SD card."
->398c41		6f 20 72 65 61 64 20 74 68 65 20 53 44 20 63 61
->398c51		72 64 2e 00
->398c55		55 6e 61 62 6c 65 20 74		ide_err_boot    .null "Unable to read from the IDE drive."
->398c5d		6f 20 72 65 61 64 20 66 72 6f 6d 20 74 68 65 20
->398c6d		49 44 45 20 64 72 69 76 65 2e 00
->398c78		55 6e 61 62 6c 65 20 74		fdc_err_boot    .null "Unable to read from the floppy drive."
->398c80		6f 20 72 65 61 64 20 66 72 6f 6d 20 74 68 65 20
->398c90		66 6c 6f 70 70 79 20 64 72 69 76 65 2e 00
->398c9e		42 6f 6f 74 69 6e 67 20		fdc_boot        .null "Booting from floppy..."
->398ca6		66 72 6f 6d 20 66 6c 6f 70 70 79 2e 2e 2e 00
->398cb5		42 6f 6f 74 69 6e 67 20		sdc_boot        .null "Booting from SDCard..."
->398cbd		66 72 6f 6d 20 53 44 43 61 72 64 2e 2e 2e 00
->398ccc		42 6f 6f 74 69 6e 67 20		ide_boot        .null "Booting from Hard Drive..."
->398cd4		66 72 6f 6d 20 48 61 72 64 20 44 72 69 76 65 2e
->398ce4		2e 2e 00
->398ce7		0d 52 45 41 44 59 2e 00		ready_msg       .null $0D,"READY."
->398cef		41 42 4f 52 54 20 45 52		error_01        .null "ABORT ERROR"
->398cf7		52 4f 52 00
->398cfb		30 31 32 33 34 35 36 37		hex_digits      .text "0123456789ABCDEF",0
->398d03		38 39 41 42 43 44 45 46 00
->398d0c						.align 256
+>398954		0d 00				                .text $0D,$00
+>398956		90 90 90 90 90 90 d0 d0		  greet_clr_line1 .text $90, $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+>39895e		b0 b0 a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>39896e		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>39897e		f0 f0
+>398980		90 90 90 90 90 d0 d0 b0		  greet_clr_line2 .text $90, $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+>398988		b0 a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>398998		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>3989a8		f0 f0
+>3989aa		90 90 90 90 d0 d0 b0 b0		  greet_clr_line3 .text $90, $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+>3989b2		a0 a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>3989c2		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>3989d2		f0 f0
+>3989d4		90 90 90 d0 d0 b0 b0 a0		  greet_clr_line4 .text $90, $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+>3989dc		a0 e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>3989ec		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>3989fc		f0 f0
+>3989fe		90 90 d0 d0 b0 b0 a0 a0		  greet_clr_line5 .text $90, $90, $D0, $D0, $B0, $B0, $A0, $A0, $E0, $E0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0, $F0
+>398a06		e0 e0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>398a16		f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0
+>398a26		f0 f0
+>398a28		00 00 00 ff			fg_color_lut	.text $00, $00, $00, $FF
+>398a2c		00 00 80 ff			                .text $00, $00, $80, $FF
+>398a30		00 80 00 ff			                .text $00, $80, $00, $FF
+>398a34		80 00 00 ff			                .text $80, $00, $00, $FF
+>398a38		00 80 80 ff			                .text $00, $80, $80, $FF
+>398a3c		80 80 00 ff			                .text $80, $80, $00, $FF
+>398a40		80 00 80 ff			                .text $80, $00, $80, $FF
+>398a44		80 80 80 ff			                .text $80, $80, $80, $FF
+>398a48		00 45 ff ff			                .text $00, $45, $FF, $FF
+>398a4c		13 45 8b ff			                .text $13, $45, $8B, $FF
+>398a50		00 00 20 ff			                .text $00, $00, $20, $FF
+>398a54		00 20 00 ff			                .text $00, $20, $00, $FF
+>398a58		20 00 00 ff			                .text $20, $00, $00, $FF
+>398a5c		20 20 20 ff			                .text $20, $20, $20, $FF
+>398a60		40 40 40 ff			                .text $40, $40, $40, $FF
+>398a64		ff ff ff ff			                .text $FF, $FF, $FF, $FF
+>398a68		00 00 00 ff			bg_color_lut	.text $00, $00, $00, $FF
+>398a6c		00 00 80 ff			                .text $00, $00, $80, $FF
+>398a70		00 80 00 ff			                .text $00, $80, $00, $FF
+>398a74		80 00 00 ff			                .text $80, $00, $00, $FF
+>398a78		00 20 20 ff			                .text $00, $20, $20, $FF
+>398a7c		20 20 00 ff			                .text $20, $20, $00, $FF
+>398a80		20 00 20 ff			                .text $20, $00, $20, $FF
+>398a84		20 20 20 ff			                .text $20, $20, $20, $FF
+>398a88		1e 69 d2 ff			                .text $1E, $69, $D2, $FF
+>398a8c		13 45 8b ff			                .text $13, $45, $8B, $FF
+>398a90		00 00 20 ff			                .text $00, $00, $20, $FF
+>398a94		00 20 00 ff			                .text $00, $20, $00, $FF
+>398a98		40 00 00 ff			                .text $40, $00, $00, $FF
+>398a9c		10 10 10 ff			                .text $10, $10, $10, $FF
+>398aa0		40 40 40 ff			                .text $40, $40, $40, $FF
+>398aa4		ff ff ff ff			                .text $FF, $FF, $FF, $FF
+>398aa8		43 6d 64 20 30 78 41 41		pass_tst0xAAmsg .text "Cmd 0xAA Test passed...", $0D, $00
+>398ab0		20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
+>398ac0		00
+>398ac1		43 6d 64 20 30 78 41 42		pass_tst0xABmsg .text "Cmd 0xAB Test passed...", $0D, $00
+>398ac9		20 54 65 73 74 20 70 61 73 73 65 64 2e 2e 2e 0d
+>398ad9		00
+>398ada		43 6d 64 20 30 78 36 30		pass_cmd0x60msg .text "Cmd 0x60 Executed.", $0D, $00
+>398ae2		20 45 78 65 63 75 74 65 64 2e 0d 00
+>398aee		43 6d 64 20 30 78 46 46		pass_cmd0xFFmsg .text "Cmd 0xFF (Reset) Done.", $0D, $00
+>398af6		20 28 52 65 73 65 74 29 20 44 6f 6e 65 2e 0d 00
+>398b06		43 6d 64 20 30 78 45 45		pass_cmd0xEEmsg .text "Cmd 0xEE Echo Test passed...", $0D, $00
+>398b0e		20 45 63 68 6f 20 54 65 73 74 20 70 61 73 73 65
+>398b1e		64 2e 2e 2e 0d 00
+>398b24		4b 65 79 62 6f 61 72 64		Success_kb_init .text "Keyboard Present", $0D, $00
+>398b2c		20 50 72 65 73 65 6e 74 0d 00
+>398b36		4d 6f 75 73 65 20 50 72		Success_ms_init .text "Mouse Present", $0D, $00
+>398b3e		65 73 65 6e 74 0d 00
+>398b45		4e 6f 20 4b 65 79 62 6f		Failed_kb_init  .text "No Keyboard Attached or Failed Init...", $0D, $00
+>398b4d		61 72 64 20 41 74 74 61 63 68 65 64 20 6f 72 20
+>398b5d		46 61 69 6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
+>398b6d		4e 6f 20 4d 6f 75 73 65		Failed_ms_init  .text "No Mouse Attached or Failed Init...", $0D, $00
+>398b75		20 41 74 74 61 63 68 65 64 20 6f 72 20 46 61 69
+>398b85		6c 65 64 20 49 6e 69 74 2e 2e 2e 0d 00
+>398b92		49 20 61 6d 20 73 74 75		IamStuckHeremsg .text "I am stuck here...", $0D, $00
+>398b9a		63 6b 20 68 65 72 65 2e 2e 2e 0d 00
+>398ba6		4e 4f 20 53 49 47 4e 41		bmp_parser_err0 .text "NO SIGNATURE FOUND.", $00
+>398bae		54 55 52 45 20 46 4f 55 4e 44 2e 00
+>398bba		42 4d 50 20 4c 4f 41 44		bmp_parser_msg0 .text "BMP LOADED.", $00
+>398bc2		45 44 2e 00
+>398bc6		45 58 45 43 55 54 49 4e		bmp_parser_msg1 .text "EXECUTING BMP PARSER", $00
+>398bce		47 20 42 4d 50 20 50 41 52 53 45 52 00
+>398bdb		49 44 45 20 48 44 44 20		IDE_HDD_Present_msg0 .text "IDE HDD Present:", $00
+>398be3		50 72 65 73 65 6e 74 3a 00
+>398bec		42 6f 6f 74 20 44 49 50		boot_invalid    .null "Boot DIP switch settings are invalid."
+>398bf4		20 73 77 69 74 63 68 20 73 65 74 74 69 6e 67 73
+>398c04		20 61 72 65 20 69 6e 76 61 6c 69 64 2e 00
+>398c12		50 72 65 73 73 20 52 20		boot_retry      .null "Press R to retry, B to go to BASIC.", 13
+>398c1a		74 6f 20 72 65 74 72 79 2c 20 42 20 74 6f 20 67
+>398c2a		6f 20 74 6f 20 42 41 53 49 43 2e 0d 00
+>398c37		55 6e 61 62 6c 65 20 74		sdc_err_boot    .null "Unable to read the SD card."
+>398c3f		6f 20 72 65 61 64 20 74 68 65 20 53 44 20 63 61
+>398c4f		72 64 2e 00
+>398c53		55 6e 61 62 6c 65 20 74		ide_err_boot    .null "Unable to read from the IDE drive."
+>398c5b		6f 20 72 65 61 64 20 66 72 6f 6d 20 74 68 65 20
+>398c6b		49 44 45 20 64 72 69 76 65 2e 00
+>398c76		55 6e 61 62 6c 65 20 74		fdc_err_boot    .null "Unable to read from the floppy drive."
+>398c7e		6f 20 72 65 61 64 20 66 72 6f 6d 20 74 68 65 20
+>398c8e		66 6c 6f 70 70 79 20 64 72 69 76 65 2e 00
+>398c9c		42 6f 6f 74 69 6e 67 20		fdc_boot        .null "Booting from floppy..."
+>398ca4		66 72 6f 6d 20 66 6c 6f 70 70 79 2e 2e 2e 00
+>398cb3		42 6f 6f 74 69 6e 67 20		sdc_boot        .null "Booting from SDCard..."
+>398cbb		66 72 6f 6d 20 53 44 43 61 72 64 2e 2e 2e 00
+>398cca		42 6f 6f 74 69 6e 67 20		ide_boot        .null "Booting from Hard Drive..."
+>398cd2		66 72 6f 6d 20 48 61 72 64 20 44 72 69 76 65 2e
+>398ce2		2e 2e 00
+>398ce5		0d 52 45 41 44 59 2e 00		ready_msg       .null $0D,"READY."
+>398ced		41 42 4f 52 54 20 45 52		error_01        .null "ABORT ERROR"
+>398cf5		52 4f 52 00
+>398cf9		30 31 32 33 34 35 36 37		hex_digits      .text "0123456789ABCDEF",0
+>398d01		38 39 41 42 43 44 45 46 00
+>398d0a						.align 256
 >398e00		00 1b 31 32 33 34 35 36		ScanCode_Press_Set1   .text $00, $1B, $31, $32, $33, $34, $35, $36, $37, $38, $39, $30, $2D, $3D, $08, $09    ; $00
 >398e08		37 38 39 30 2d 3d 08 09
 >398e10		71 77 65 72 74 79 75 69		                      .text $71, $77, $65, $72, $74, $79, $75, $69, $6F, $70, $5B, $5D, $0D, $00, $61, $73    ; $10

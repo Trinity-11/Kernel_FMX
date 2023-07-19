@@ -1,2 +1,2 @@
 @echo off
-python C256Mgr\c256mgr.py --upload %1%
+python FoenixMgr.zip --upload %1%

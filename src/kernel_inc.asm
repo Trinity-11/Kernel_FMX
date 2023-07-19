@@ -80,6 +80,9 @@ SETTABLE         = $001140 ; Set the keyboard scan code -> character translation
 READVRAM         = $001144 ; Read a byte from video RAM at B:X
 SETHANDLER       = $001148 ; Set the handler for the interrupt # in A to the FAR routine at Y:X
 DELAY            = $00114C ; Wait at least Y:X ticks of the system clock.
+IP_INIT          = $001150 ; Init network stack; B:Y->ip, mask, default_route.  buffer_ptr below is 24 of 32 bits.
+UDP_SEND         = $001154 ; Send a UDP packet:  0:X->local_port, remote_ip, remote_port, buffer_ptr, size, copied
+UDP_RECV         = $001158 ; Recv a UDP packet:  0:X->local_port, remote_ip, remote_port, buffer_ptr, size, copied
 
 ;
 ; Interrupt Vector Table
