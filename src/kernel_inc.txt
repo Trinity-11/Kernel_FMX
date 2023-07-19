@@ -80,7 +80,9 @@ SETTABLE         = %ADDR% ; Set the keyboard scan code -> character translation 
 READVRAM         = %ADDR% ; Read a byte from video RAM at B:X
 SETHANDLER       = %ADDR% ; Set the handler for the interrupt # in A to the FAR routine at Y:X
 DELAY            = %ADDR% ; Wait at least Y:X ticks of the system clock.
-
+IP_INIT          = %ADDR% ; Init network stack; B:Y->ip, mask, default_route.  buffer_ptr below is 24 of 32 bits.
+UDP_SEND         = %ADDR% ; Send a UDP packet:  0:X->local_port, remote_ip, remote_port, buffer_ptr, size, copied
+UDP_RECV         = %ADDR% ; Recv a UDP packet:  0:X->local_port, remote_ip, remote_port, buffer_ptr, size, copied
 ;
 ; Interrupt Vector Table
 ;
