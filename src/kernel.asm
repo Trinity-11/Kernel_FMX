@@ -22,12 +22,15 @@ START_OF_CREDITS := 0
 START_OF_SPLASH := 0
 START_OF_FONT := 0
 
+LAN = ESID_ETHERNET_REG
+
 .if ( TARGET_SYS == SYS_C256_FMX ) || ( TARGET_SYS == SYS_C256_U_PLUS )
 ; Key memory areas for the Foenix FMX
   START_OF_FLASH := $380000                   ; The Foenix FMX Flash starts at $380000
   START_OF_KERNEL := $390400                  ; The kernel itself starts at $390400
   START_OF_BASIC := $3A0000                   ; The BASIC flash code starts at $3A0000
   START_OF_CREDITS := $3B0000                 ; The credits screen starts at $3B0000
+  PACKETS := $3C0000                          ; RAM for IP Stack packet buffers
   START_OF_SPLASH := $3E0000                  ; SplashScreen Code and Data $3E0000
   START_OF_FONT := $3F0000                    ; The font starts at $3F0000
 .else
@@ -36,6 +39,7 @@ START_OF_FONT := 0
   START_OF_KERNEL := $190400                  ; The kernel itself starts at $190400
   START_OF_BASIC := $1A0000                   ; The BASIC flash code starts at $1A0000
   START_OF_CREDITS := $1B0000                 ; The credits screen starts at $1B0000
+  PACKETS := $1C0000                          ; RAM for IP Stack packet buffers
   START_OF_SPLASH := $1E0000                  ; SplashScreen Code and Data $3E0000  
   START_OF_FONT := $1F0000                    ; The font starts at $3F0000
 .endif
@@ -2261,6 +2265,7 @@ IRQHANDLESTUB   RTL
 .include "Libraries/kbd_driver.asm"                 ; Include the keyboard reading code
 .include "Libraries/mouse_driver.asm"               ; Include the mouse driver code
 .include "SplashScreenCode/boot_sound.asm"        ; Include the code to play the boot sound
+.include "networking/net.asm"                     ; Include the UDP/IP/Ethernet stack
 
 ;
 ; Greeting message and other kernel boot data

@@ -111,6 +111,9 @@ SETTABLE        JML KBD_SETTABLE    ; Set the keyboard scan code -> character tr
 READVRAM        JML IREADVRAM       ; Read a byte from video RAM at B:X
 SETHANDLER      JML ISETHANDLER     ; Set the handler for the interrupt # in A to the FAR routine at Y:X
 DELAY           JML IDELAY          ; Wait at least Y:X ticks of the system clock.
+IP_INIT         JML kernel.net.user.init        ; Initialize the network stack; B:Y->ip_info
+UDP_SEND        JML kernel.net.user.udp_send    ; Send a UDP packet; 0:X->udp_info
+UDP_RECV        JML kernel.net.user.udp_recv    ; Recv a UDP packet; 0:X->udp_info
 .here
 
 ;

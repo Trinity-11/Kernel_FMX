@@ -1,7 +1,97 @@
 
 ; Simple Init For the ESID and EVID
+
+ip_info
+        .byte   192, 168, 1, 122
+        .byte   255,255,255,0
+        .byte   192,168,1,1
+
+HAS_ETHERNET    .word   0
                 
 SIMPLE_INIT_ETHERNET_CTRL   .proc
+
+        lda     HAS_ETHERNET
+        inc     a
+        sta     HAS_ETHERNET
+        rtl
+
+; Test code for the IP stack
+        php
+
+        sep     #$30
+        lda     GABE_MSTR_CTRL
+        ora     #GABE_CTRL_PWR_LED
+        sta     GABE_MSTR_CTRL
+        rep     #$30
+
+        phb
+        phk
+        plb
+        ldy     #<>ip_info
+        jsl     kernel.net.user.init
+        plb
+        bcs     _done
+
+        sep     #$30
+        lda     GABE_MSTR_CTRL
+        and     #~GABE_CTRL_PWR_LED
+        sta     GABE_MSTR_CTRL
+        rep     #$30
+        .al
+        .xl
+
+      ; Allocate our DP interface buffer
+        tsc
+        sec
+        sbc     #kernel.net.user.udp_info.size
+        tcs
+        inc     a
+        tax
+        
+      ; Use the display as our data buffer
+        lda     #$a100
+        sta     kernel.net.user.udp_info.buffer+0,d,x
+        lda     #$af
+        sta     kernel.net.user.udp_info.buffer+2,d,x
+        lda     #5
+        sta     kernel.net.user.udp_info.buflen,d,x
+
+      ; Do an initial send
+        lda     _ip+0
+        sta     kernel.net.user.udp_info.remote_ip+0,d,x
+        lda     _ip+2
+        sta     kernel.net.user.udp_info.remote_ip+2,d,x
+        lda     _port
+        sta     kernel.net.user.udp_info.local_port,d,x
+        sta     kernel.net.user.udp_info.remote_port,d,x
+        lda     #6
+        sta     kernel.net.user.udp_info.buflen,d,x
+
+_retry  jsl     kernel.net.user.udp_send
+        bcs     _retry        
+
+_loop
+        lda     #20
+        sta     kernel.net.user.udp_info.buflen,d,x
+        jsl     kernel.net.user.udp_recv
+        lda     kernel.net.user.udp_info.copied,d,x
+        beq     _loop
+
+        lda     kernel.net.user.udp_info.copied,d,x
+        sta     kernel.net.user.udp_info.buflen,d,x
+        jsl     kernel.net.user.udp_send
+
+        jmp     _loop
+
+_done   plp
+        rtl
+
+_ip     ;.byte   204, 87, 225, 246
+        .byte   192, 168, 1, 5
+_port   .word   12345
+
+
+; Original code for hisorical reference
                 .al
 WaitforittobeReady:
                 LDA @l ESID_ETHERNET_REG + $84
